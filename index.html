@@ -4,10 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>暑假作业看板</title>
+    <title>暑假任务管理系统 - MD3 独立子任务调度版 V2.6 (Ultimate)</title>
     <meta name="theme-color" content="#6750A4">
-    <script src="https://cdn.tailwindcss.com">
-    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -17,9 +16,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
         rel="stylesheet" />
-    <!-- Supabase SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         :root {
@@ -256,13 +253,13 @@
 
         .folder-icon {
             transition: transform var(--md-motion-duration-short4) var(--md-motion-easing-standard);
-        }
-
-        .folder-icon.open {
             transform: rotate(0deg);
         }
 
-        /* 修改为 */
+        .folder-icon.open {
+            transform: rotate(90deg);
+        }
+
         @keyframes locatePulse {
             0% {
                 box-shadow: 0 0 0 0 rgba(103, 80, 164, 0.8);
@@ -282,20 +279,18 @@
         }
 
         .locate-highlight {
-            /* animation: locatePulse 2s cubic-bezier(0.4, 0, 0.2, 1); */
-            animation: locatePulse 1s ease-in-out 2; 
+            animation: locatePulse 1s ease-in-out 2;
         }
     </style>
 </head>
 
-<body class="h-screen w-screen flex flex-col md:flex-row select-none overflow-hidden">
+<body class="h-[100dvh] w-screen flex flex-col md:flex-row select-none overflow-hidden">
 
     <div id="global-tooltip" class="text-xs flex flex-col gap-1"></div>
     <div id="custom-context-menu" class="fixed hidden z-50 rounded-lg p-1 shadow-xl border text-xs min-w-[150px]"
         style="background-color: var(--md-sys-color-surface-container-high); border-color: var(--md-sys-color-outline-variant);">
     </div>
 
-    <!-- 导航栏 -->
     <aside
         class="w-full md:w-20 h-16 md:h-full flex flex-row md:flex-col justify-around md:justify-between items-center py-2 md:py-6 flex-shrink-0 order-last md:order-first border-t md:border-t-0 md:border-r z-50 bg-[var(--md-sys-color-surface-container-low)] border-[var(--md-sys-color-outline-variant)] overflow-x-auto no-scrollbar">
         <div class="flex flex-row md:flex-col items-center gap-2 md:gap-5 px-4 md:px-0 w-full md:w-auto">
@@ -306,16 +301,14 @@
             <nav class="flex flex-row md:flex-col gap-2 md:gap-4 flex-1 md:w-full md:px-2">
                 <button onclick="switchView('home')" id="nav-home"
                     class="md-nav-item active flex flex-col items-center gap-1 group md:w-full text-center outline-none px-3 md:px-0">
-                    <div class="md-icon-wrapper w-14 h-8 flex items-center justify-center rounded-full">
-                        <span class="material-symbols-outlined">home</span>
-                    </div>
+                    <div class="md-icon-wrapper w-14 h-8 flex items-center justify-center rounded-full"><span
+                            class="material-symbols-outlined">home</span></div>
                     <span class="text-[10px] md:text-xs font-medium tracking-wider">首页</span>
                 </button>
                 <button onclick="switchView('calendar')" id="nav-calendar"
                     class="md-nav-item flex flex-col items-center gap-1 group md:w-full text-center outline-none px-3 md:px-0">
-                    <div class="md-icon-wrapper w-14 h-8 flex items-center justify-center rounded-full">
-                        <span class="material-symbols-outlined">calendar_month</span>
-                    </div>
+                    <div class="md-icon-wrapper w-14 h-8 flex items-center justify-center rounded-full"><span
+                            class="material-symbols-outlined">calendar_month</span></div>
                     <span class="text-[10px] md:text-xs font-medium tracking-wider">日程</span>
                 </button>
             </nav>
@@ -347,7 +340,6 @@
         </button>
     </aside>
 
-    <!-- 抽屉 -->
     <section id="task-drawer"
         class="absolute md:relative z-40 h-[calc(100%-4rem)] md:h-full w-80 max-w-[85vw] flex flex-col border-r flex-shrink-0 transition-all duration-300 shadow-2xl md:shadow-none"
         style="background-color: var(--md-sys-color-surface-container-lowest); border-color: var(--md-sys-color-outline-variant);"
@@ -388,16 +380,21 @@
         <span class="material-symbols-outlined">menu</span>
     </button>
 
-    <!-- 主视图 -->
-    <main class="flex-1 h-full relative overflow-hidden flex flex-col">
+    <main class="flex-1 h-[100dvh] md:h-full relative overflow-hidden flex flex-col">
         <div id="view-home"
             class="view-pane active p-4 md:p-6 flex flex-col h-full overflow-y-auto lg:overflow-hidden gap-4 md:gap-6">
             <header
-                class="w-full max-w-3xl mx-auto flex items-center h-12 md:h-14 rounded-full px-4 shadow-sm flex-shrink-0"
+                class="w-full max-w-3xl mx-auto flex items-center h-12 md:h-14 rounded-full px-4 shadow-sm flex-shrink-0 gap-2"
                 style="background-color: var(--md-sys-color-surface-container-high);">
-                <span class="material-symbols-outlined text-[var(--md-sys-color-on-surface-variant)] mr-3">search</span>
+                <span class="material-symbols-outlined text-[var(--md-sys-color-on-surface-variant)] mr-1">search</span>
                 <input type="text" id="global-search" oninput="handleSearchDebounced(this.value)" placeholder="搜索关键词"
                     class="bg-transparent flex-1 outline-none text-sm text-[var(--md-sys-color-on-surface)]" />
+                <button onclick="undo()"
+                    class="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors"><span
+                        class="material-symbols-outlined text-lg">undo</span></button>
+                <button onclick="redo()"
+                    class="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors"><span
+                        class="material-symbols-outlined text-lg">redo</span></button>
             </header>
             <div class="p-4 md:p-5 rounded-2xl flex flex-col gap-3 shadow-sm border border-[var(--md-sys-color-outline-variant)] flex-shrink-0"
                 style="background-color: var(--md-sys-color-surface-container-low);">
@@ -443,8 +440,8 @@
         </div>
 
         <div id="view-calendar" class="view-pane p-4 md:p-6 flex flex-col h-full overflow-hidden gap-4">
-            <div class="flex justify-between items-center flex-shrink-0 pl-12 md:pl-0 transition-all">
-                <div class="flex items-center gap-2 md:gap-4">
+            <div class="flex justify-between items-center flex-shrink-0 pl-12 md:pl-0 transition-all gap-2">
+                <div class="flex items-center gap-2 md:gap-4 flex-wrap">
                     <h2 class="text-base md:text-xl font-bold tracking-tight" id="calendar-month-title">加载中...</h2>
                     <div
                         class="flex items-center rounded-full border overflow-hidden shadow-sm bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)]">
@@ -456,17 +453,25 @@
                                 class="material-symbols-outlined text-sm">chevron_right</span></button>
                     </div>
                 </div>
-                <div
-                    class="flex items-center gap-1 bg-[var(--md-sys-color-surface-container-high)] p-1 rounded-full shadow-sm border border-[var(--md-sys-color-outline-variant)]">
-                    <button id="view-mode-month" onclick="switchCalendarMode('month')"
-                        class="px-3 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] transition-all">月历</button>
-                    <button id="view-mode-week" onclick="switchCalendarMode('week')"
-                        class="px-3 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold text-[var(--md-sys-color-on-surface-variant)] transition-all">周历</button>
+                <div class="flex items-center gap-1">
+                    <button onclick="undo()"
+                        class="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors"><span
+                            class="material-symbols-outlined text-lg">undo</span></button>
+                    <button onclick="redo()"
+                        class="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors"><span
+                            class="material-symbols-outlined text-lg">redo</span></button>
+                    <div
+                        class="flex items-center gap-1 bg-[var(--md-sys-color-surface-container-high)] p-1 rounded-full shadow-sm border border-[var(--md-sys-color-outline-variant)] ml-2">
+                        <button id="view-mode-month" onclick="switchCalendarMode('month')"
+                            class="px-3 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] transition-all">月历</button>
+                        <button id="view-mode-week" onclick="switchCalendarMode('week')"
+                            class="px-3 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold text-[var(--md-sys-color-on-surface-variant)] transition-all">周历</button>
+                    </div>
                 </div>
             </div>
             <div class="flex-1 w-full flex flex-col gap-4 overflow-hidden relative min-h-0">
                 <div id="calendar-month-view"
-                    class="w-full flex-shrink-0 rounded-2xl border p-1 md:p-2 flex flex-col shadow-sm transition-all duration-300 border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-lowest)]"
+                    class="w-full flex-shrink-0 rounded-2xl border p-1 md:p-2 flex flex-col shadow-sm transition-all duration-300 border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-lowest)] overflow-y-auto"
                     style="height: 100%;">
                     <div class="calendar-grid calendar-grid-month flex-1 h-full text-xs" id="month-grid-container">
                     </div>
@@ -496,7 +501,6 @@
         </div>
     </main>
 
-    <!-- 模态框 -->
     <div id="modal-backdrop"
         class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 pointer-events-none opacity-0 transition-opacity duration-200 flex items-center justify-center p-4">
         <div
@@ -564,158 +568,146 @@
         const defaultInitialState = {
             batches: [
                 {
-                    id: "batch-demo-01",
-                    title: "高一物理必修第一册错题回溯",
-                    content: "对期末考卷中动力学多体滑块模型与牛顿第二定律综合题重新推导。",
-                    subject: "物理",
-                    tags: ["高难度", "急需突破"],
+                    id: "batch-demo-01", title: "高一物理必修第一册错题回溯", content: "对期末考卷中动力学多体滑块模型与牛顿第二定律综合题重新推导。", subject: "物理", tags: ["高难度", "急需突破"],
                     subtasks: [
-                        { id: "sub-101", text: "滑块模型核心三题拆解", done: true, endDate: TODAY_STR, startMinute: 480, durationMinutes: 90 },
-                        { id: "sub-102", text: "建立隔离法受力方程组", done: false, endDate: TODAY_STR, startMinute: 540, durationMinutes: 120 }
+                        { id: "sub-101", text: "滑块模型核心三题拆解", weight: 1, done: true, endDate: TODAY_STR, startMinute: 480, durationMinutes: 90 },
+                        { id: "sub-102", text: "建立隔离法受力方程组", weight: 1, done: false, endDate: TODAY_STR, startMinute: 540, durationMinutes: 120 }
                     ]
                 },
                 {
-                    id: "batch-demo-02",
-                    title: "英语3500词高效循环背诵",
-                    content: "复习并默写核心变形词及短语。",
-                    subject: "英语",
-                    tags: ["高频高燃"],
+                    id: "batch-demo-02", title: "英语3500词高效循环背诵", content: "复习并默写核心变形词及短语。", subject: "英语", tags: ["高频高燃"],
                     subtasks: [
-                        { id: "sub-201", text: "Unit 1 核心词默写", done: true, endDate: TODAY_STR, startMinute: 780, durationMinutes: 180 },
-                        { id: "sub-202", text: "Unit 2 完形填空精讲", done: false, endDate: null, startMinute: 480, durationMinutes: 120 }
+                        { id: "sub-201", text: "Unit 1 核心词默写", weight: 1, done: true, endDate: TODAY_STR, startMinute: 780, durationMinutes: 180 },
+                        { id: "sub-202", text: "Unit 2 完形填空精讲", weight: 1, done: false, endDate: null, startMinute: 480, durationMinutes: 120 }
                     ]
                 }
             ],
-            tags: [
-                { name: "高难度", color: "#E53935" },
-                { name: "急需突破", color: "#FB8C00" },
-                { name: "高频高燃", color: "#3949AB" }
-            ],
+            tags: [{ name: "高难度", color: "#E53935" }, { name: "急需突破", color: "#FB8C00" }, { name: "高频高燃", color: "#3949AB" }],
             subjects: ["语文", "数学", "英语", "物理", "化学", "地理"],
-            currentDrawerArrange: "group",
-            searchQuery: "",
-            selectedFormSubject: "数学",
-            selectedFormTags: [],
-            calendarYear: parseInt(TODAY_STR.split('-')[0]),
-            calendarMonth: parseInt(TODAY_STR.split('-')[1]),
-            calendarMode: "month",
-            focusedDate: TODAY_STR
+            currentDrawerArrange: "group", searchQuery: "", selectedFormSubject: "数学", selectedFormTags: [],
+            calendarYear: parseInt(TODAY_STR.split('-')[0]), calendarMonth: parseInt(TODAY_STR.split('-')[1]), calendarMode: "month", focusedDate: TODAY_STR
         };
 
         let appState = {};
+        let historyStack = []; let historyIndex = -1; let isRestoring = false;
         let searchDebounceTimer = null;
         let timelineInteractionCtx = { type: null, subtaskId: null, initialY: 0, initialStartMinute: 0, initialDuration: 0 };
         let timelineLayoutCache = {};
         let contextMenuCtx = { type: null, arg1: null, arg2: null, arg3: null };
         let isGlobalDragging = false;
+        let isTouch = false;
 
         const subjectColors = {
-            "语文": { bg: "#F3E5F5", text: "#4A148C" },
-            "数学": { bg: "#E3F2FD", text: "#0D47A1" },
-            "英语": { bg: "#E1F5FE", text: "#01579B" },
-            "物理": { bg: "#E8EAF6", text: "#1A237E" },
-            "化学": { bg: "#E0F2F1", text: "#004D40" },
-            "地理": { bg: "#EFEBE9", text: "#4E342E" }
+            "语文": { bg: "#F3E5F5", text: "#4A148C" }, "数学": { bg: "#E3F2FD", text: "#0D47A1" },
+            "英语": { bg: "#E1F5FE", text: "#01579B" }, "物理": { bg: "#E8EAF6", text: "#1A237E" },
+            "化学": { bg: "#E0F2F1", text: "#004D40" }, "地理": { bg: "#EFEBE9", text: "#4E342E" }
         };
 
-        // Supabase 配置
         const SUPABASE_URL = 'https://mamubvgmcetepllznifl.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_HEeNPSqD75cWlnmZjcVHKA_Pw-OdL_A';
         const BUCKET_NAME = 'schedule-data';
         const FILE_NAME = 'data.json';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // 从 Supabase 加载数据
         async function loadStateFromSupabase() {
             try {
                 const { data, error } = await supabaseClient.storage.from(BUCKET_NAME).download(FILE_NAME);
                 if (error) throw error;
                 const text = await data.text();
                 const parsed = JSON.parse(text);
-                localStorage.setItem("MD3_ATOMIC_SYSTEM_DATA", JSON.stringify(parsed));
-                return parsed;
+                localStorage.setItem("MD3_ATOMIC_SYSTEM_DATA", JSON.stringify(parsed)); return parsed;
             } catch (err) {
-                console.warn('无法从 Supabase 加载数据，尝试本地缓存', err);
                 const cached = localStorage.getItem("MD3_ATOMIC_SYSTEM_DATA");
-                if (cached) {
-                    try { return JSON.parse(cached); } catch (e) { }
-                }
+                if (cached) { try { return JSON.parse(cached); } catch (e) { } }
                 return JSON.parse(JSON.stringify(defaultInitialState));
             }
         }
 
-        // 保存到 Supabase (异步) + 本地缓存
-        function saveStateToSupabase(data) {
-            localStorage.setItem("MD3_ATOMIC_SYSTEM_DATA", JSON.stringify(data));
-            supabaseClient.storage.from(BUCKET_NAME).upload(FILE_NAME, JSON.stringify(data), {
-                upsert: true,
-                contentType: 'application/json'
-            }).then(({ error }) => {
-                if (error) console.error('同步到 Supabase 失败', error);
-                else console.log('已同步到 Supabase');
-            });
+        function commitState() {
+            if (isRestoring) return;
+            if (historyIndex < historyStack.length - 1) historyStack = historyStack.slice(0, historyIndex + 1);
+            historyStack.push(JSON.parse(JSON.stringify(appState)));
+            if (historyStack.length > 50) historyStack.shift(); else historyIndex++;
         }
 
-        // 统一保存入口
-        function saveStateToStorage() {
-            saveStateToSupabase(appState);
+        function undo() {
+            if (historyIndex > 0) {
+                historyIndex--; isRestoring = true;
+                appState = JSON.parse(JSON.stringify(historyStack[historyIndex]));
+                saveStateToStorage(false); renderAllComponents(); isRestoring = false;
+            }
         }
 
-        // 初始化
+        function redo() {
+            if (historyIndex < historyStack.length - 1) {
+                historyIndex++; isRestoring = true;
+                appState = JSON.parse(JSON.stringify(historyStack[historyIndex]));
+                saveStateToStorage(false); renderAllComponents(); isRestoring = false;
+            }
+        }
+
+        function saveStateToStorage(pushHistory = true) {
+            if (pushHistory) commitState();
+            localStorage.setItem("MD3_ATOMIC_SYSTEM_DATA", JSON.stringify(appState));
+            supabaseClient.storage.from(BUCKET_NAME).upload(FILE_NAME, JSON.stringify(appState), { upsert: true, contentType: 'application/json' }).catch(() => { });
+        }
+
         document.addEventListener("DOMContentLoaded", async () => {
             appState = await loadStateFromSupabase();
             appState.searchQuery = "";
+            commitState();
             initializeTheme();
             renderAllComponents();
 
-            document.addEventListener("click", () => {
-                document.getElementById("custom-context-menu").style.display = "none";
-            });
+            document.addEventListener("click", () => { document.getElementById("custom-context-menu").style.display = "none"; });
             document.addEventListener("dragstart", () => { isGlobalDragging = true; hideGlobalTooltip(); });
             document.addEventListener("dragend", () => { isGlobalDragging = false; });
             document.addEventListener("drop", () => { isGlobalDragging = false; });
+
+            window.addEventListener('touchstart', () => isTouch = true, { passive: true });
+
+            let swipeStartX = 0, swipeStartY = 0;
+            document.addEventListener('touchstart', e => { swipeStartX = e.changedTouches[0].screenX; swipeStartY = e.changedTouches[0].screenY; }, { passive: true });
+            document.addEventListener('touchend', e => {
+                const endX = e.changedTouches[0].screenX, endY = e.changedTouches[0].screenY;
+                if (Math.abs(endY - swipeStartY) > 50) return;
+                const diff = swipeStartX - endX;
+                const inCalendar = document.getElementById('view-calendar').classList.contains('active');
+                if (inCalendar && appState.calendarMode === 'week' && Math.abs(diff) > 50) {
+                    if (e.target.closest('#calendar-timeline-pane')) {
+                        let d = new Date(appState.focusedDate); d.setDate(d.getDate() + (diff > 0 ? 1 : -1));
+                        appState.focusedDate = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+                        focusDayTimeline(appState.focusedDate); renderCalendarWorkspace();
+                    } else if (e.target.closest('#calendar-month-view')) {
+                        switchCalendarDate(diff > 0 ? 1 : -1);
+                    }
+                }
+            }, { passive: true });
+
+            document.addEventListener('keydown', e => {
+                if (e.ctrlKey || e.metaKey) {
+                    if (e.key === 'z') { e.preventDefault(); undo(); }
+                    if (e.key === 'y') { e.preventDefault(); redo(); }
+                }
+            });
         });
 
-        // ==================== 以下为原有所有逻辑函数，保持完全不变 ====================
         function findSubtask(subtaskId) {
-            for (let b of appState.batches) {
-                let s = b.subtasks.find(x => x.id === subtaskId);
-                if (s) return { batch: b, subtask: s };
-            }
+            for (let b of appState.batches) { let s = b.subtasks.find(x => x.id === subtaskId); if (s) return { batch: b, subtask: s }; }
             return null;
         }
 
         function jumpToCalendar(dateStr) {
-            if (!dateStr || dateStr === '待分发' || dateStr === 'null') {
-                alert("该任务尚未分配日期。");
-                return;
-            }
-            appState.focusedDate = dateStr;
-            const d = new Date(dateStr);
-            if (isNaN(d.getTime())) return;
-            appState.calendarYear = d.getFullYear();
-            appState.calendarMonth = d.getMonth() + 1;
-
-            switchCalendarMode('month');
-            switchView('calendar');
-
+            if (!dateStr || dateStr === '待分发' || dateStr === 'null') { alert("该任务尚未分配日期。"); return; }
+            appState.focusedDate = dateStr; const d = new Date(dateStr); if (isNaN(d.getTime())) return;
+            appState.calendarYear = d.getFullYear(); appState.calendarMonth = d.getMonth() + 1;
+            switchCalendarMode('month'); switchView('calendar');
             setTimeout(() => {
                 const cells = document.querySelectorAll('#month-grid-container > div');
                 cells.forEach(el => {
                     if (el.dataset.date === dateStr) {
                         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                        // 为日历格子添加涟漪动画
-                        const observer = new IntersectionObserver((entries, obs) => {
-                            entries.forEach(entry => {
-                                if (entry.isIntersecting) {
-                                    el.classList.add('locate-highlight');
-                                    setTimeout(() => el.classList.remove('locate-highlight'), 2000);
-                                    obs.unobserve(el);
-                                }
-                            });
-                        }, { threshold: 0.5 });
-                        observer.observe(el);
+                        el.classList.add('locate-highlight'); setTimeout(() => el.classList.remove('locate-highlight'), 2000);
                     }
                 });
             }, 300);
@@ -725,21 +717,27 @@
             switchView('home');
             setTimeout(() => {
                 const el = document.getElementById('home-sub-' + subtaskId);
-                if (!el) return;
+                if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('locate-highlight'); setTimeout(() => el.classList.remove('locate-highlight'), 2000); }
+            }, 300);
+        }
 
-                // 观察元素进入视口后播放动画
-                const observer = new IntersectionObserver((entries, obs) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            el.classList.add('locate-highlight');
-                            setTimeout(() => el.classList.remove('locate-highlight'), 2000);
-                            obs.unobserve(el);
+        function expandToDrawerTask(subtaskId) {
+            switchView('home'); changeDrawerArrange('time'); document.getElementById('task-drawer').classList.remove('collapsed');
+            setTimeout(() => {
+                const el = document.querySelector(`#drawer-task-container [data-subtask-id="${subtaskId}"]`);
+                if (el) {
+                    let parent = el.parentElement;
+                    while (parent && parent.id !== 'drawer-task-container') {
+                        if (parent.classList.contains('folder-content')) {
+                            parent.classList.add('open');
+                            const icon = parent.previousElementSibling?.querySelector('.folder-icon');
+                            if (icon) icon.classList.add('open');
                         }
-                    });
-                }, { threshold: 0.5 });
-
-                observer.observe(el);
-                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        parent = parent.parentElement;
+                    }
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    el.classList.add('locate-highlight'); setTimeout(() => el.classList.remove('locate-highlight'), 2000);
+                }
             }, 300);
         }
 
@@ -747,133 +745,92 @@
         function handleDragLeave(e) { e.currentTarget.classList.remove("drag-hover", "meta-drop-hover"); }
 
         function handleSubtaskDragStart(e, subtaskId) {
-            e.dataTransfer.setData("text/plain", subtaskId);
-            e.dataTransfer.effectAllowed = "move";
-            isGlobalDragging = true;
-            hideGlobalTooltip();
-            document.getElementById("custom-context-menu").style.display = "none";
+            e.dataTransfer.setData("text/plain", subtaskId); e.dataTransfer.effectAllowed = "move";
+            isGlobalDragging = true; hideGlobalTooltip(); document.getElementById("custom-context-menu").style.display = "none";
         }
 
         function dropBackToPool(e) {
-            e.preventDefault();
-            e.currentTarget.classList.remove("drag-hover");
-            const subtaskId = e.dataTransfer.getData("text/plain");
-            const target = findSubtask(subtaskId);
+            e.preventDefault(); e.currentTarget.classList.remove("drag-hover");
+            const subtaskId = e.dataTransfer.getData("text/plain"); const target = findSubtask(subtaskId);
             if (target) { target.subtask.endDate = null; saveStateToStorage(); renderAllComponents(); }
             isGlobalDragging = false;
         }
 
         function dropToCalendarCell(e, dateStr, cellEl) {
-            e.preventDefault();
-            cellEl.classList.remove("drag-hover");
-            const subtaskId = e.dataTransfer.getData("text/plain");
-            const target = findSubtask(subtaskId);
-            if (target) {
-                target.subtask.endDate = dateStr;
-                saveStateToStorage(); renderAllComponents();
-                if (appState.calendarMode === 'week') focusDayTimeline(appState.focusedDate);
-            }
+            e.preventDefault(); cellEl.classList.remove("drag-hover");
+            const subtaskId = e.dataTransfer.getData("text/plain"); const target = findSubtask(subtaskId);
+            if (target) { target.subtask.endDate = dateStr; saveStateToStorage(); renderAllComponents(); if (appState.calendarMode === 'week') focusDayTimeline(appState.focusedDate); }
             isGlobalDragging = false;
         }
 
         function dropToTimelineTrack(e) {
             e.preventDefault();
-            const subtaskId = e.dataTransfer.getData("text/plain");
-            const target = findSubtask(subtaskId);
-            if (!target) return;
+            const subtaskId = e.dataTransfer.getData("text/plain"); const target = findSubtask(subtaskId); if (!target) return;
             const rect = document.getElementById("timeline-track-wrapper").getBoundingClientRect();
             const dropY = (e.clientY || (e.changedTouches && e.changedTouches[0].clientY)) - rect.top;
-            let targetMinute = Math.round(dropY / 10) * 10;
-            targetMinute = Math.max(0, Math.min(1440 - target.subtask.durationMinutes, targetMinute));
-            target.subtask.endDate = appState.focusedDate;
-            target.subtask.startMinute = targetMinute;
-            saveStateToStorage(); renderAllComponents();
-            focusDayTimeline(appState.focusedDate);
-            isGlobalDragging = false;
+            let targetMinute = Math.round(dropY / 10) * 10; targetMinute = Math.max(0, Math.min(1440 - target.subtask.durationMinutes, targetMinute));
+            target.subtask.endDate = appState.focusedDate; target.subtask.startMinute = targetMinute;
+            saveStateToStorage(); renderAllComponents(); focusDayTimeline(appState.focusedDate); isGlobalDragging = false;
         }
 
         function startTimelineCardDrag(e, subtaskId) {
             e.stopPropagation(); if (e.type !== 'touchstart') e.preventDefault();
             timelineInteractionCtx.type = 'drag'; timelineInteractionCtx.subtaskId = subtaskId;
             timelineInteractionCtx.initialY = e.clientY || (e.touches && e.touches[0].clientY);
-            const target = findSubtask(subtaskId);
-            timelineInteractionCtx.initialStartMinute = target.subtask.startMinute;
+            const target = findSubtask(subtaskId); timelineInteractionCtx.initialStartMinute = target.subtask.startMinute;
             isGlobalDragging = true; hideGlobalTooltip();
-            window.addEventListener("mousemove", doTimelineResizeOrDrag);
-            window.addEventListener("mouseup", stopTimelineResizeOrDrag);
-            window.addEventListener("touchmove", doTimelineResizeOrDrag, { passive: false });
-            window.addEventListener("touchend", stopTimelineResizeOrDrag);
+            window.addEventListener("mousemove", doTimelineResizeOrDrag); window.addEventListener("mouseup", stopTimelineResizeOrDrag);
+            window.addEventListener("touchmove", doTimelineResizeOrDrag, { passive: false }); window.addEventListener("touchend", stopTimelineResizeOrDrag);
         }
 
         function startTimelineResize(e, subtaskId) {
             e.stopPropagation(); if (e.type !== 'touchstart') e.preventDefault();
             timelineInteractionCtx.type = 'resize'; timelineInteractionCtx.subtaskId = subtaskId;
             timelineInteractionCtx.initialY = e.clientY || (e.touches && e.touches[0].clientY);
-            const target = findSubtask(subtaskId);
-            timelineInteractionCtx.initialDuration = target.subtask.durationMinutes;
+            const target = findSubtask(subtaskId); timelineInteractionCtx.initialDuration = target.subtask.durationMinutes;
             isGlobalDragging = true; hideGlobalTooltip();
-            window.addEventListener("mousemove", doTimelineResizeOrDrag);
-            window.addEventListener("mouseup", stopTimelineResizeOrDrag);
-            window.addEventListener("touchmove", doTimelineResizeOrDrag, { passive: false });
-            window.addEventListener("touchend", stopTimelineResizeOrDrag);
+            window.addEventListener("mousemove", doTimelineResizeOrDrag); window.addEventListener("mouseup", stopTimelineResizeOrDrag);
+            window.addEventListener("touchmove", doTimelineResizeOrDrag, { passive: false }); window.addEventListener("touchend", stopTimelineResizeOrDrag);
         }
 
         function doTimelineResizeOrDrag(e) {
-            if (!timelineInteractionCtx.type) return;
-            if (e.type === 'touchmove') e.preventDefault();
+            if (!timelineInteractionCtx.type) return; if (e.type === 'touchmove') e.preventDefault();
             const currentY = e.clientY || (e.touches && e.touches[0].clientY);
-            const deltaY = currentY - timelineInteractionCtx.initialY;
-            const minuteDelta = Math.round(deltaY / 10) * 10;
-            const target = findSubtask(timelineInteractionCtx.subtaskId);
-            if (!target) return;
-            if (timelineInteractionCtx.type === 'resize') {
-                let newDur = timelineInteractionCtx.initialDuration + minuteDelta;
-                target.subtask.durationMinutes = Math.max(10, Math.min(1440 - target.subtask.startMinute, newDur));
-            } else if (timelineInteractionCtx.type === 'drag') {
-                let newStart = timelineInteractionCtx.initialStartMinute + minuteDelta;
-                target.subtask.startMinute = Math.max(0, Math.min(1440 - target.subtask.durationMinutes, newStart));
-            }
+            const deltaY = currentY - timelineInteractionCtx.initialY; const minuteDelta = Math.round(deltaY / 10) * 10;
+            const target = findSubtask(timelineInteractionCtx.subtaskId); if (!target) return;
+            if (timelineInteractionCtx.type === 'resize') { let newDur = timelineInteractionCtx.initialDuration + minuteDelta; target.subtask.durationMinutes = Math.max(10, Math.min(1440 - target.subtask.startMinute, newDur)); }
+            else if (timelineInteractionCtx.type === 'drag') { let newStart = timelineInteractionCtx.initialStartMinute + minuteDelta; target.subtask.startMinute = Math.max(0, Math.min(1440 - target.subtask.durationMinutes, newStart)); }
             focusDayTimeline(appState.focusedDate);
         }
 
         function stopTimelineResizeOrDrag() {
             if (timelineInteractionCtx.type) {
                 timelineInteractionCtx.type = null; timelineInteractionCtx.subtaskId = null;
-                window.removeEventListener("mousemove", doTimelineResizeOrDrag);
-                window.removeEventListener("mouseup", stopTimelineResizeOrDrag);
-                window.removeEventListener("touchmove", doTimelineResizeOrDrag);
-                window.removeEventListener("touchend", stopTimelineResizeOrDrag);
-                isGlobalDragging = false;
-                saveStateToStorage(); renderAllComponents();
+                window.removeEventListener("mousemove", doTimelineResizeOrDrag); window.removeEventListener("mouseup", stopTimelineResizeOrDrag);
+                window.removeEventListener("touchmove", doTimelineResizeOrDrag); window.removeEventListener("touchend", stopTimelineResizeOrDrag);
+                isGlobalDragging = false; saveStateToStorage(); renderAllComponents();
             }
         }
 
         function showGlobalTooltip(e, subtaskId) {
-            if (isGlobalDragging) return;
+            if (isGlobalDragging || isTouch) return;
             const target = findSubtask(subtaskId); if (!target) return;
-            const { batch, subtask } = target;
             const tooltip = document.getElementById("global-tooltip");
-            let startH = String(Math.floor(subtask.startMinute / 60)).padStart(2, '0');
-            let startM = String(subtask.startMinute % 60).padStart(2, '0');
-            let endTotal = subtask.startMinute + subtask.durationMinutes;
-            let endH = String(Math.floor(endTotal / 60)).padStart(2, '0');
-            let endM = String(endTotal % 60).padStart(2, '0');
+            let startM_v = target.subtask.startMinute || 480;
+            let startH = String(Math.floor(startM_v / 60)).padStart(2, '0'); let startM = String(startM_v % 60).padStart(2, '0');
+            let endTotal = startM_v + target.subtask.durationMinutes; let endH = String(Math.floor(endTotal / 60)).padStart(2, '0'); let endM = String(endTotal % 60).padStart(2, '0');
             tooltip.innerHTML = `
-                <div class="font-bold text-[var(--md-sys-color-primary)] text-sm mb-1">${subtask.text}</div>
-                <div class="text-[var(--md-sys-color-on-surface-variant)] font-medium">属: ${batch.title}</div>
-                <div class="mt-1.5 flex gap-2">
-                    <span class="px-1.5 py-0.5 bg-black/5 dark:bg-white/10 rounded border border-[var(--md-sys-color-outline-variant)]">科: ${batch.subject}</span>
-                </div>
-                <div class="text-[var(--md-sys-color-outline)] font-mono mt-1.5">排程: ${startH}:${startM} - ${endH}:${endM} (${subtask.durationMinutes}分)</div>
+                <div class="font-bold text-[var(--md-sys-color-primary)] text-sm mb-1">${target.subtask.text}</div>
+                <div class="text-[var(--md-sys-color-on-surface-variant)] font-medium">属: ${target.batch.title}</div>
+                <div class="mt-1.5 flex gap-2"><span class="px-1.5 py-0.5 bg-black/5 dark:bg-white/10 rounded border border-[var(--md-sys-color-outline-variant)]">科: ${target.batch.subject}</span></div>
+                <div class="text-[var(--md-sys-color-outline)] font-mono mt-1.5">排程: ${target.subtask.startMinute === null ? '未分配时间' : `${startH}:${startM} - ${endH}:${endM} (${target.subtask.durationMinutes}分)`}</div>
             `;
-            tooltip.style.display = "block";
-            tooltip.style.left = `${(e.clientX || (e.touches && e.touches[0].clientX)) + 14}px`;
-            tooltip.style.top = `${(e.clientY || (e.touches && e.touches[0].clientY)) + 14}px`;
+            tooltip.style.display = "block"; tooltip.style.left = `${(e.clientX || (e.touches && e.touches[0].clientX)) + 14}px`; tooltip.style.top = `${(e.clientY || (e.touches && e.touches[0].clientY)) + 14}px`;
         }
         function hideGlobalTooltip() { document.getElementById("global-tooltip").style.display = "none"; }
 
         function handleContextMenu(e, type, arg1, arg2, arg3) {
-            e.preventDefault(); e.stopPropagation();
+            e.preventDefault(); e.stopPropagation(); hideGlobalTooltip();
             contextMenuCtx = { type, arg1, arg2, arg3 };
             const menu = document.getElementById("custom-context-menu");
             let html = '';
@@ -882,43 +839,39 @@
                 const subtaskId = arg2; const target = findSubtask(subtaskId);
                 const hasDate = target && !!target.subtask.endDate;
 
-                if (type === 'task_home') {
+                if (target) {
+                    html += `<button onclick="executeContextMenuAction('toggle_status')" class="w-full text-left px-3 py-2 rounded-md ${target.subtask.done ? 'hover:bg-amber-500/10 text-amber-600' : 'hover:bg-emerald-500/10 text-emerald-600'} flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm">${target.subtask.done ? 'undo' : 'check_circle'}</span>${target.subtask.done ? '取消完成' : '完成此任务'}</button>`;
+                }
+
+                if (type !== 'task_home') {
+                    html += `<button onclick="executeContextMenuAction('locate_home')" class="w-full text-left px-3 py-2 rounded-md hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2 text-[var(--md-sys-color-on-surface)] transition-colors"><span class="material-symbols-outlined text-sm">home</span>定位到首页</button>`;
+                }
+                if (type !== 'task_calendar') {
                     html += `<button onclick="executeContextMenuAction('locate_calendar')" class="w-full text-left px-3 py-2 rounded-md hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2 text-[var(--md-sys-color-on-surface)] transition-colors ${!hasDate ? 'opacity-50 cursor-not-allowed' : ''}" ${!hasDate ? 'disabled' : ''}><span class="material-symbols-outlined text-sm">explore</span>定位到日历</button>`;
                 }
-                if (type === 'task_calendar') {
-                    html += `<button onclick="executeContextMenuAction('locate_home')" class="w-full text-left px-3 py-2 rounded-md hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2 text-[var(--md-sys-color-on-surface)] transition-colors"><span class="material-symbols-outlined text-sm">home</span>定位到首页</button>`;
-                    if (target) {
-                        if (target.subtask.done) {
-                            html += `<button onclick="executeContextMenuAction('uncomplete')" class="w-full text-left px-3 py-2 rounded-md hover:bg-amber-500/10 text-amber-600 flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm">undo</span>取消完成</button>`;
-                        } else {
-                            html += `<button onclick="executeContextMenuAction('complete')" class="w-full text-left px-3 py-2 rounded-md hover:bg-emerald-500/10 text-emerald-600 flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm">check_circle</span>完成此任务</button>`;
-                        }
-                    }
-                }
+
                 html += `<button onclick="executeContextMenuAction('edit')" class="w-full text-left px-3 py-2 rounded-md hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2 text-[var(--md-sys-color-on-surface)] transition-colors"><span class="material-symbols-outlined text-sm">edit</span>编辑主任务</button>`;
+
                 if (type === 'task_calendar') {
                     html += `<button onclick="executeContextMenuAction('unassign')" class="w-full text-left px-3 py-2 rounded-md hover:bg-orange-500/10 text-orange-500 flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm">event_busy</span>取消分配</button>`;
+                    html += `<button onclick="executeContextMenuAction('unassign_time')" class="w-full text-left px-3 py-2 rounded-md hover:bg-orange-500/10 text-orange-500 flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm">timer_off</span>取消分配具体时间</button>`;
                 }
                 html += `<hr class="my-1 border-[var(--md-sys-color-outline-variant)]">`;
-                if (type === 'task_drawer' && appState.currentDrawerArrange === 'tag' && arg3) {
-                    html += `<button onclick="executeContextMenuAction('delete_tag_from_task')" class="w-full text-left px-3 py-2 rounded-md hover:bg-orange-500/10 text-orange-500 flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm">label_off</span>移除此标签</button>`;
-                } else {
-                    html += `<button onclick="executeContextMenuAction('delete_task')" class="w-full text-left px-3 py-2 rounded-md hover:bg-red-500/10 dark:hover:bg-red-500/20 text-red-500 flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm">delete</span>删除此任务</button>`;
-                }
+                html += `<button onclick="executeContextMenuAction('delete_task')" class="w-full text-left px-3 py-2 rounded-md hover:bg-red-500/10 dark:hover:bg-red-500/20 text-red-500 flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm">delete</span>删除此子任务</button>`;
             } else if (type === 'folder_main') {
                 html += `<button onclick="executeContextMenuAction('add_subtask')" class="w-full text-left px-3 py-2 rounded-md hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2 text-[var(--md-sys-color-on-surface)] transition-colors"><span class="material-symbols-outlined text-sm">add</span>添加子任务</button>`;
                 html += `<button onclick="executeContextMenuAction('delete_main')" class="w-full text-left px-3 py-2 rounded-md hover:bg-red-500/10 dark:hover:bg-red-500/20 text-red-500 flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm">delete</span>删除此主任务</button>`;
             } else if (type === 'folder_subject') {
                 html += `<button onclick="executeContextMenuAction('add_subject_task')" class="w-full text-left px-3 py-2 rounded-md hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2 text-[var(--md-sys-color-on-surface)] transition-colors"><span class="material-symbols-outlined text-sm">add</span>添加 [${arg1}] 任务</button>`;
                 html += `<button onclick="executeContextMenuAction('delete_subject')" class="w-full text-left px-3 py-2 rounded-md hover:bg-red-500/10 dark:hover:bg-red-500/20 text-red-500 flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm">delete</span>删除此学科</button>`;
+            } else if (type === 'folder_batch_tag') {
+                html += `<button onclick="executeContextMenuAction('remove_tag_from_batch')" class="w-full text-left px-3 py-2 rounded-md hover:bg-orange-500/10 text-orange-500 flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm">label_off</span>移除「${arg3}」标签</button>`;
             }
-            menu.innerHTML = html;
-            menu.style.display = "block";
-            let x = e.clientX || (e.touches && e.touches[0].clientX);
-            let y = e.clientY || (e.touches && e.touches[0].clientY);
+
+            menu.innerHTML = html; menu.style.display = "block";
+            let x = e.clientX || (e.touches && e.touches[0].clientX); let y = e.clientY || (e.touches && e.touches[0].clientY);
             const menuWidth = 150, menuHeight = menu.offsetHeight || 120;
-            if (x + menuWidth > window.innerWidth) x -= menuWidth;
-            if (y + menuHeight > window.innerHeight) y -= menuHeight;
+            if (x + menuWidth > window.innerWidth) x -= menuWidth; if (y + menuHeight > window.innerHeight) y -= menuHeight;
             menu.style.left = `${x}px`; menu.style.top = `${y}px`;
         }
 
@@ -927,37 +880,30 @@
             if (action === 'locate_calendar') {
                 const target = findSubtask(arg2); if (!target || !target.subtask.endDate) return;
                 jumpToCalendar(target.subtask.endDate);
-                setTimeout(() => {
-                    const el1 = document.getElementById(`cal-sub-${arg2}`); const el2 = document.getElementById(`tl-sub-${arg2}`);
-                    if (el1) { el1.scrollIntoView({ behavior: 'smooth', block: 'center' }); el1.classList.add('locate-highlight'); setTimeout(() => el1.classList.remove('locate-highlight'), 1600); }
-                    if (el2) { el2.scrollIntoView({ behavior: 'smooth', block: 'center' }); el2.classList.add('locate-highlight'); setTimeout(() => el2.classList.remove('locate-highlight'), 1600); }
-                }, 400);
             } else if (action === 'locate_home') {
                 jumpToHome(arg2);
-            } else if (action === 'complete') {
-                const target = findSubtask(arg2); if (target) { target.subtask.done = true; saveStateToStorage(); renderAllComponents(); }
-            } else if (action === 'uncomplete') {
-                const target = findSubtask(arg2); if (target) { target.subtask.done = false; saveStateToStorage(); renderAllComponents(); }
+            } else if (action === 'toggle_status') {
+                const target = findSubtask(arg2); if (target) { target.subtask.done = !target.subtask.done; saveStateToStorage(); renderAllComponents(); }
             } else if (action === 'edit') { openEditTaskModal(arg1); }
             else if (action === 'unassign') {
                 const target = findSubtask(arg2); if (target) { target.subtask.endDate = null; saveStateToStorage(); renderAllComponents(); }
+            } else if (action === 'unassign_time') {
+                const target = findSubtask(arg2); if (target) { target.subtask.startMinute = null; saveStateToStorage(); renderAllComponents(); }
             } else if (action === 'delete_task') {
-                if (confirm("确定要删除该子任务吗？")) {
-                    const b = appState.batches.find(x => x.id === arg1);
-                    if (b) { b.subtasks = b.subtasks.filter(s => s.id !== arg2); saveStateToStorage(); renderAllComponents(); }
-                }
-            } else if (action === 'delete_tag_from_task') {
                 const b = appState.batches.find(x => x.id === arg1);
-                if (b) { b.tags = b.tags.filter(t => t !== arg3); saveStateToStorage(); renderAllComponents(); }
+                if (b) { b.subtasks = b.subtasks.filter(s => s.id !== arg2); saveStateToStorage(); renderAllComponents(); }
             } else if (action === 'add_subtask') {
                 openEditTaskModal(arg1); addChecklistItemSlot();
                 setTimeout(() => { const s = document.getElementById("form-checklist-slots"); s.parentElement.scrollTop = s.parentElement.scrollHeight; }, 50);
             } else if (action === 'delete_main') {
-                if (confirm("确定要删除此主任务吗？")) { appState.batches = appState.batches.filter(b => b.id !== arg1); saveStateToStorage(); renderAllComponents(); }
+                appState.batches = appState.batches.filter(b => b.id !== arg1); saveStateToStorage(); renderAllComponents();
             } else if (action === 'add_subject_task') {
                 openAddTaskModal(); selectFormSubject(arg1);
             } else if (action === 'delete_subject') {
-                if (confirm("确定要删除此学科吗？(不会删除旗下的任务，其学科可能变空)")) { appState.subjects = appState.subjects.filter(s => s !== arg1); saveStateToStorage(); renderAllComponents(); }
+                appState.subjects = appState.subjects.filter(s => s !== arg1); saveStateToStorage(); renderAllComponents();
+            } else if (action === 'remove_tag_from_batch') {
+                const b = appState.batches.find(x => x.id === arg1);
+                if (b) { b.tags = b.tags.filter(t => t !== arg3); saveStateToStorage(); renderAllComponents(); }
             }
         }
 
@@ -986,21 +932,90 @@
         }
 
         function toggleFolder(el) {
-            const content = el.nextElementSibling; const icon = el.querySelector('.folder-icon');
-            content.classList.toggle('open'); icon.classList.toggle('open');
+            const content = el.parentElement.querySelector('.folder-content'); const icon = el.querySelector('.folder-icon');
+            if (content) content.classList.toggle('open'); if (icon) icon.classList.toggle('open');
+        }
+
+        function handleDrawerTaskClick(subtaskId) {
+            if (document.getElementById('view-home').classList.contains('active')) jumpToHome(subtaskId);
+            else { const target = findSubtask(subtaskId); if (target && target.subtask.endDate) jumpToCalendar(target.subtask.endDate); }
         }
 
         function renderLeftDrawerPool() {
             const container = document.getElementById("drawer-task-container"); container.innerHTML = "";
             const currentMode = appState.currentDrawerArrange;
+
+            function createFolderDom(title, dropValue = null, contextMenuAttr = '', extraHtml = '', iconColor = 'var(--md-sys-color-primary)') {
+                const wrapper = document.createElement("div");
+                wrapper.className = "flex flex-col rounded-xl mb-0.5 transition-colors border border-transparent w-full";
+                if (dropValue !== null) {
+                    let counter = 0; let dragExpandTimer;
+                    wrapper.addEventListener("dragenter", (e) => { e.preventDefault(); counter++; if (counter === 1) { wrapper.classList.add("meta-drop-hover"); dragExpandTimer = setTimeout(() => { wrapper.querySelector('.folder-content')?.classList.add('open'); wrapper.querySelector('.folder-icon')?.classList.add('open'); }, 800); } });
+                    wrapper.addEventListener("dragleave", () => { counter--; if (counter === 0) { wrapper.classList.remove("meta-drop-hover"); clearTimeout(dragExpandTimer); } });
+                    wrapper.addEventListener("drop", (e) => { counter = 0; wrapper.classList.remove("meta-drop-hover"); clearTimeout(dragExpandTimer); dropToMetaCategory(e, currentMode, dropValue, wrapper); });
+                }
+                wrapper.innerHTML = `
+                    <div class="folder-header flex items-center justify-between p-1.5 md:p-2 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 rounded-lg group select-none transition-colors" onclick="toggleFolder(this)" ${contextMenuAttr}>
+                        <div class="flex items-center gap-2 min-w-0" style="color: ${iconColor}">
+                            <span class="material-symbols-outlined text-[18px] folder-icon flex-shrink-0 transition-transform">chevron_right</span>
+                            <span class="text-[11px] md:text-xs font-bold truncate">${title}</span>
+                        </div>
+                        <div class="flex items-center gap-0.5 flex-shrink-0 text-[var(--md-sys-color-on-surface)]">${extraHtml}</div>
+                    </div>
+                    <div class="folder-content"><div class="folder-inner"><div class="flex flex-col gap-1 px-1 pb-1 pt-0.5 ml-2 pl-2 border-l border-[var(--md-sys-color-outline-variant)] target-inner"></div></div></div>
+                `;
+                return wrapper;
+            }
+
+            if (currentMode === 'time') {
+                const timeTree = { unassigned: [], years: {} };
+                appState.batches.forEach(b => b.subtasks.forEach(s => {
+                    if (!s.endDate) timeTree.unassigned.push({ batch: b, subtask: s });
+                    else {
+                        const d = new Date(s.endDate); if (isNaN(d.getTime())) return;
+                        const y = d.getFullYear(), m = d.getMonth() + 1, w = getWeekNumberInMonth(s.endDate);
+                        const dayStr = s.endDate, wd = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"][d.getDay()];
+                        if (!timeTree.years[y]) timeTree.years[y] = {};
+                        if (!timeTree.years[y][m]) timeTree.years[y][m] = {};
+                        if (!timeTree.years[y][m][w]) timeTree.years[y][m][w] = {};
+                        if (!timeTree.years[y][m][w][dayStr]) timeTree.years[y][m][w][dayStr] = { wd, items: [] };
+                        timeTree.years[y][m][w][dayStr].items.push({ batch: b, subtask: s });
+                    }
+                }));
+
+                if (timeTree.unassigned.length > 0) {
+                    const unassignedFolder = createFolderDom(`待排程 (${timeTree.unassigned.length})`, '待排程');
+                    timeTree.unassigned.forEach(item => renderDrawerTask(item, '待排程', unassignedFolder.querySelector('.target-inner')));
+                    container.appendChild(unassignedFolder);
+                }
+
+                Object.keys(timeTree.years).sort((a, b) => b - a).forEach(y => {
+                    const yFolder = createFolderDom(`${y}年`);
+                    Object.keys(timeTree.years[y]).sort((a, b) => b - a).forEach(m => {
+                        const mFolder = createFolderDom(`${m}月`);
+                        Object.keys(timeTree.years[y][m]).sort((a, b) => b - a).forEach(w => {
+                            const wFolder = createFolderDom(`第${w}周`);
+                            Object.keys(timeTree.years[y][m][w]).sort((a, b) => b.localeCompare(a)).forEach(dayStr => {
+                                const dayData = timeTree.years[y][m][w][dayStr];
+                                const dFolder = createFolderDom(`${dayStr} (${dayData.wd})`, dayStr);
+                                dayData.items.forEach(item => renderDrawerTask(item, dayStr, dFolder.querySelector('.target-inner')));
+                                wFolder.querySelector('.target-inner').appendChild(dFolder);
+                            });
+                            mFolder.querySelector('.target-inner').appendChild(wFolder);
+                        });
+                        yFolder.querySelector('.target-inner').appendChild(mFolder);
+                    });
+                    container.appendChild(yFolder);
+                });
+                return;
+            }
+
             let categories = [];
             if (currentMode === 'group') categories = [...new Set(appState.batches.map(b => b.title))];
             else if (currentMode === 'subject') categories = appState.subjects;
             else if (currentMode === 'tag') categories = appState.tags.map(t => t.name);
-            else categories = ["已排程明细", "待排程"];
 
             categories.forEach(catName => {
-                let isSystemMeta = ["已排程明细", "待排程"].includes(catName) || currentMode === 'group';
                 let folderIconColor = 'var(--md-sys-color-primary)';
                 if (currentMode === 'tag') { const tObj = appState.tags.find(t => t.name === catName); if (tObj) folderIconColor = tObj.color; }
 
@@ -1011,19 +1026,11 @@
                         if (currentMode === 'group') match = batch.title === catName;
                         else if (currentMode === 'subject') match = batch.subject === catName;
                         else if (currentMode === 'tag') match = batch.tags.includes(catName);
-                        else if (currentMode === 'time') match = catName === "待排程" ? !subtask.endDate : !!subtask.endDate;
                         if (match) matchingItems.push({ batch, subtask });
                     });
                 });
 
-                const wrapper = document.createElement("div");
-                wrapper.className = "flex flex-col rounded-xl mb-1 transition-colors border border-transparent";
-                let counter = 0;
-                wrapper.addEventListener("dragenter", (e) => { e.preventDefault(); counter++; if (counter === 1) wrapper.classList.add("meta-drop-hover"); });
-                wrapper.addEventListener("dragleave", () => { counter--; if (counter === 0) wrapper.classList.remove("meta-drop-hover"); });
-                wrapper.addEventListener("drop", (e) => { counter = 0; wrapper.classList.remove("meta-drop-hover"); dropToMetaCategory(e, currentMode, catName, wrapper); });
-
-                let folderContextAttr = '', hoverAddHtml = '';
+                let folderContextAttr = '', hoverAddHtml = '', delHtml = '';
                 if (currentMode === 'group') {
                     const batch = appState.batches.find(b => b.title === catName);
                     if (batch) {
@@ -1033,22 +1040,14 @@
                 } else if (currentMode === 'subject') {
                     folderContextAttr = `oncontextmenu="handleContextMenu(event, 'folder_subject', '${catName}')"`;
                     hoverAddHtml = `<button onclick="event.stopPropagation(); executeContextMenuActionObj('folder_subject', '${catName}', null, 'add_subject_task')" class="opacity-0 group-hover:opacity-100 text-[var(--md-sys-color-outline)] hover:text-[var(--md-sys-color-primary)] transition-opacity p-0.5"><span class="material-symbols-outlined text-sm">add</span></button>`;
+                    delHtml = `<button onclick="event.stopPropagation(); deleteMetaAsset('${currentMode}', '${catName}')" class="opacity-0 group-hover:opacity-100 text-[var(--md-sys-color-outline)] hover:text-red-500 transition-opacity p-0.5"><span class="material-symbols-outlined text-sm">delete</span></button>`;
+                } else if (currentMode === 'tag') {
+                    delHtml = `<button onclick="event.stopPropagation(); deleteMetaAsset('${currentMode}', '${catName}')" class="opacity-0 group-hover:opacity-100 text-[var(--md-sys-color-outline)] hover:text-red-500 transition-opacity p-0.5"><span class="material-symbols-outlined text-sm">delete</span></button>`;
                 }
 
-                wrapper.innerHTML = `
-                    <div class="flex items-center justify-between p-2 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 rounded-lg group select-none transition-colors" onclick="toggleFolder(this)" ${folderContextAttr}>
-                        <div class="flex items-center gap-2 min-w-0" style="color: ${folderIconColor}">
-                            <span class="material-symbols-outlined text-[20px] folder-icon transform -rotate-90 flex-shrink-0">arrow_drop_down</span>
-                            <span class="text-xs font-bold truncate">${catName} <span class="text-[10px] font-normal text-[var(--md-sys-color-outline)] ml-1">(${matchingItems.length})</span></span>
-                        </div>
-                        <div class="flex items-center gap-0.5 flex-shrink-0">
-                            ${hoverAddHtml}
-                            ${isSystemMeta ? "" : `<button onclick="event.stopPropagation(); deleteMetaAsset('${currentMode}', '${catName}')" class="opacity-0 group-hover:opacity-100 text-[var(--md-sys-color-outline)] hover:text-red-500 transition-opacity p-0.5"><span class="material-symbols-outlined text-sm">delete</span></button>`}
-                        </div>
-                    </div>
-                    <div class="folder-content ${matchingItems.length > 0 ? 'open' : ''}"><div class="folder-inner"><div class="flex flex-col gap-1 px-1.5 pb-1 pt-1 ml-1 target-inner"></div></div></div>
-                `;
+                const wrapper = createFolderDom(`${catName} <span class="text-[10px] font-normal text-[var(--md-sys-color-outline)] ml-1">(${matchingItems.length})</span>`, catName, folderContextAttr, hoverAddHtml + delHtml, folderIconColor);
                 const innerContainer = wrapper.querySelector(".target-inner");
+
                 if (matchingItems.length === 0) innerContainer.innerHTML = `<div class="text-[10px] text-[var(--md-sys-color-outline)] p-2 text-center border border-dashed rounded-lg border-[var(--md-sys-color-outline-variant)]">空</div>`;
                 else {
                     if (currentMode === 'group') {
@@ -1060,16 +1059,9 @@
                             batchMap.get(item.batch.id).subtasks.push(item.subtask);
                         });
                         batchMap.forEach((data, batchId) => {
-                            const subFolder = document.createElement("div"); subFolder.className = "flex flex-col";
-                            subFolder.innerHTML = `
-                                <div class="flex items-center gap-1.5 p-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 rounded group select-none transition-colors text-[var(--md-sys-color-on-surface-variant)]" onclick="toggleFolder(this)" oncontextmenu="handleContextMenu(event, 'folder_main', '${data.batch.id}')">
-                                    <span class="material-symbols-outlined text-[16px] folder-icon transform -rotate-90 flex-shrink-0">arrow_drop_down</span>
-                                    <span class="text-[10px] font-bold truncate">${data.batch.title}</span>
-                                </div>
-                                <div class="folder-content open"><div class="folder-inner"><div class="flex flex-col gap-1 pl-4 border-l ml-[9px] mt-0.5 border-[var(--md-sys-color-outline-variant)] pb-1 sub-target"></div></div></div>
-                            `;
-                            const subInner = subFolder.querySelector(".sub-target");
-                            data.subtasks.forEach(sub => { renderDrawerTask({ batch: data.batch, subtask: sub }, catName, subInner); });
+                            let subCtxAttr = currentMode === 'tag' ? `oncontextmenu="handleContextMenu(event, 'folder_batch_tag', '${data.batch.id}', null, '${catName}')"` : `oncontextmenu="handleContextMenu(event, 'folder_main', '${data.batch.id}')"`;
+                            const subFolder = createFolderDom(data.batch.title, null, subCtxAttr, '', 'inherit');
+                            data.subtasks.forEach(sub => { renderDrawerTask({ batch: data.batch, subtask: sub }, catName, subFolder.querySelector('.target-inner')); });
                             innerContainer.appendChild(subFolder);
                         });
                     }
@@ -1082,13 +1074,13 @@
             const { batch, subtask } = item;
             const taskEl = document.createElement("div");
             taskEl.className = `p-2 rounded-lg border flex flex-col gap-1 bg-[var(--md-sys-color-surface-container-highest)] border-[var(--md-sys-color-outline-variant)] cursor-grab active:cursor-grabbing hover:shadow-sm transition-shadow ${subtask.done ? 'opacity-50 saturate-50 line-through' : ''}`;
-            taskEl.setAttribute("draggable", "true");
+            taskEl.setAttribute("draggable", "true"); taskEl.setAttribute("data-subtask-id", subtask.id);
             taskEl.addEventListener("dragstart", (e) => handleSubtaskDragStart(e, subtask.id));
             let timer;
             taskEl.addEventListener("touchstart", (e) => { timer = setTimeout(() => handleContextMenu(e, 'task_drawer', batch.id, subtask.id, catName), 500); });
-            taskEl.addEventListener("touchend", () => clearTimeout(timer));
-            taskEl.addEventListener("touchmove", () => clearTimeout(timer));
+            taskEl.addEventListener("touchend", () => clearTimeout(timer)); taskEl.addEventListener("touchmove", () => clearTimeout(timer));
             taskEl.addEventListener("contextmenu", (e) => handleContextMenu(e, 'task_drawer', batch.id, subtask.id, catName));
+            taskEl.addEventListener("click", () => handleDrawerTaskClick(subtask.id));
             taskEl.innerHTML = `
                 <div class="flex justify-between items-center text-[9px]">
                     <span class="font-bold px-1.5 rounded shadow-sm" style="background-color:${subjectColors[batch.subject]?.bg || '#E0E0E0'}; color:${subjectColors[batch.subject]?.text || '#333'};">${batch.subject}</span>
@@ -1100,7 +1092,6 @@
         }
 
         function deleteMetaAsset(dimension, itemValue) {
-            if (!confirm(`确认要删除 [${itemValue}] 资产维度吗？`)) return;
             if (dimension === 'subject') appState.subjects = appState.subjects.filter(s => s !== itemValue);
             else if (dimension === 'tag') { appState.tags = appState.tags.filter(t => t.name !== itemValue); appState.batches.forEach(b => { b.tags = b.tags.filter(t => t !== itemValue); }); }
             saveStateToStorage(); renderAllComponents();
@@ -1110,8 +1101,7 @@
             appState.currentDrawerArrange = dimension;
             document.querySelectorAll("#drawer-filter-chips button").forEach(btn => btn.classList.remove("chip-active"));
             document.getElementById(`chip-${dimension}`).classList.add("chip-active");
-            const quickAdd = document.getElementById('drawer-quick-add-container');
-            const colorInput = document.getElementById('drawer-quick-color');
+            const quickAdd = document.getElementById('drawer-quick-add-container'); const colorInput = document.getElementById('drawer-quick-color');
             if (dimension === 'subject' || dimension === 'tag') { quickAdd.style.display = 'flex'; if (dimension === 'tag') colorInput.classList.remove('hidden'); else colorInput.classList.add('hidden'); }
             else { quickAdd.style.display = 'none'; }
             renderLeftDrawerPool();
@@ -1150,15 +1140,12 @@
                 `;
                 const subContainer = box.querySelector(".subtask-list-zone");
                 batch.subtasks.forEach(sub => {
-                    const subRow = document.createElement("div");
-                    subRow.id = `home-sub-${sub.id}`;
+                    const subRow = document.createElement("div"); subRow.id = `home-sub-${sub.id}`;
                     subRow.className = "flex items-center justify-between p-2.5 rounded-xl bg-[var(--md-sys-color-surface-container-low)] border border-transparent text-xs cursor-grab active:cursor-grabbing hover:bg-[var(--md-sys-color-surface-container-high)] hover:border-[var(--md-sys-color-outline-variant)] transition-all";
-                    subRow.setAttribute("draggable", "true");
-                    subRow.addEventListener("dragstart", (e) => handleSubtaskDragStart(e, sub.id));
+                    subRow.setAttribute("draggable", "true"); subRow.addEventListener("dragstart", (e) => handleSubtaskDragStart(e, sub.id));
                     let timer;
                     subRow.addEventListener("touchstart", (e) => { timer = setTimeout(() => handleContextMenu(e, 'task_home', batch.id, sub.id), 500); });
-                    subRow.addEventListener("touchend", () => clearTimeout(timer));
-                    subRow.addEventListener("touchmove", () => clearTimeout(timer));
+                    subRow.addEventListener("touchend", () => clearTimeout(timer)); subRow.addEventListener("touchmove", () => clearTimeout(timer));
                     subRow.addEventListener("contextmenu", (e) => handleContextMenu(e, 'task_home', batch.id, sub.id));
                     subRow.innerHTML = `
                         <label class="flex items-center gap-3 cursor-pointer flex-1 overflow-hidden">
@@ -1254,20 +1241,15 @@
                 appState.batches.forEach(batch => {
                     batch.subtasks.forEach(subtask => {
                         if (subtask.endDate === finalDateStr) {
-                            const block = document.createElement("div");
-                            block.id = `cal-sub-${subtask.id}`;
+                            const block = document.createElement("div"); block.id = `cal-sub-${subtask.id}`;
                             block.className = `text-[8px] md:text-[9px] px-1 md:px-1.5 py-0.5 md:py-1 rounded truncate font-bold text-white shadow-sm cursor-grab hover:brightness-110 active:scale-95 transition-all ${subtask.done ? 'opacity-50 line-through saturate-50' : ''}`;
-                            block.style.backgroundColor = subjectColors[batch.subject]?.text || "#6750A4";
-                            block.innerText = subtask.text;
-                            block.setAttribute("draggable", "true");
-                            block.addEventListener("dragstart", (e) => handleSubtaskDragStart(e, subtask.id));
+                            block.style.backgroundColor = subjectColors[batch.subject]?.text || "#6750A4"; block.innerText = subtask.text;
+                            block.setAttribute("draggable", "true"); block.addEventListener("dragstart", (e) => handleSubtaskDragStart(e, subtask.id));
                             let timer;
                             block.addEventListener("touchstart", (e) => { timer = setTimeout(() => handleContextMenu(e, 'task_calendar', batch.id, subtask.id), 500); });
-                            block.addEventListener("touchend", () => clearTimeout(timer));
-                            block.addEventListener("touchmove", () => clearTimeout(timer));
+                            block.addEventListener("touchend", () => clearTimeout(timer)); block.addEventListener("touchmove", () => clearTimeout(timer));
                             block.addEventListener("contextmenu", (e) => handleContextMenu(e, 'task_calendar', batch.id, subtask.id));
-                            block.addEventListener("mousemove", (e) => showGlobalTooltip(e, subtask.id));
-                            block.addEventListener("mouseleave", hideGlobalTooltip);
+                            block.addEventListener("mousemove", (e) => showGlobalTooltip(e, subtask.id)); block.addEventListener("mouseleave", hideGlobalTooltip);
                             taskBox.appendChild(block);
                         }
                     });
@@ -1288,7 +1270,11 @@
             }
             const cardPool = document.getElementById("timeline-cards-pool"); cardPool.innerHTML = "";
             let dayTasks = [];
-            appState.batches.forEach(b => b.subtasks.forEach(s => { if (s.endDate === dateStr) dayTasks.push({ batch: b, subtask: s }); }));
+            appState.batches.forEach(b => b.subtasks.forEach(s => {
+                if (s.endDate === dateStr && s.startMinute !== null && s.startMinute !== undefined) {
+                    dayTasks.push({ batch: b, subtask: s });
+                }
+            }));
             dayTasks.sort((a, b) => a.subtask.startMinute - b.subtask.startMinute);
 
             let isDragging = timelineInteractionCtx.type !== null;
@@ -1319,14 +1305,12 @@
                 const { batch, subtask } = item;
                 const topPx = subtask.startMinute; const heightPx = subtask.durationMinutes;
                 const widthPct = 100 / item.groupTotal; const leftPct = item.colIndex * widthPct;
-                const block = document.createElement("div");
-                block.id = `tl-sub-${subtask.id}`;
+                const block = document.createElement("div"); block.id = `tl-sub-${subtask.id}`;
                 block.className = `absolute rounded-xl p-1.5 md:p-2.5 text-[10px] md:text-xs text-white font-bold shadow-md select-none group flex flex-col border border-white/20 transition-all active:scale-[0.99] active:shadow-lg ${subtask.done ? 'opacity-60 saturate-50 line-through' : ''}`;
                 block.style.top = `${topPx}px`; block.style.height = `${heightPx}px`;
                 block.style.left = `calc(${leftPct}% + 2px)`; block.style.width = `calc(${widthPct}% - 4px)`;
                 block.style.backgroundColor = subjectColors[batch.subject]?.text || "var(--md-sys-color-primary)";
-                let startH = String(Math.floor(subtask.startMinute / 60)).padStart(2, '0');
-                let startM = String(subtask.startMinute % 60).padStart(2, '0');
+                let startH = String(Math.floor(subtask.startMinute / 60)).padStart(2, '0'); let startM = String(subtask.startMinute % 60).padStart(2, '0');
                 block.innerHTML = `
                     <div class="flex-1 overflow-hidden pointer-events-none">
                         <div class="truncate">${subtask.text}</div>
@@ -1340,11 +1324,9 @@
                 block.addEventListener("touchstart", (e) => { if (!e.target.closest('.resize-handle')) startTimelineCardDrag(e, subtask.id); }, { passive: false });
                 let timer;
                 block.addEventListener("touchstart", (e) => { timer = setTimeout(() => handleContextMenu(e, 'task_calendar', batch.id, subtask.id), 500); });
-                block.addEventListener("touchend", () => clearTimeout(timer));
-                block.addEventListener("touchmove", () => clearTimeout(timer));
+                block.addEventListener("touchend", () => clearTimeout(timer)); block.addEventListener("touchmove", () => clearTimeout(timer));
                 block.addEventListener("contextmenu", (e) => handleContextMenu(e, 'task_calendar', batch.id, subtask.id));
-                block.addEventListener("mousemove", (e) => showGlobalTooltip(e, subtask.id));
-                block.addEventListener("mouseleave", hideGlobalTooltip);
+                block.addEventListener("mousemove", (e) => showGlobalTooltip(e, subtask.id)); block.addEventListener("mouseleave", hideGlobalTooltip);
                 cardPool.appendChild(block);
             });
         }
@@ -1370,8 +1352,15 @@
             const box = document.getElementById("form-checklist-slots"); box.innerHTML = "";
             batch.subtasks.forEach(sub => {
                 const div = document.createElement("div"); div.className = "flex gap-2 items-center group";
-                div.dataset.subId = sub.id; div.dataset.endDate = sub.endDate || ""; div.dataset.startMinute = sub.startMinute || 480; div.dataset.durationMinutes = sub.durationMinutes || 120;
-                div.innerHTML = `<input type="text" value="${sub.text}" required class="flex-1 p-2 rounded-lg border text-xs bg-[var(--md-sys-color-surface-container-lowest)] outline-none focus:border-[var(--md-sys-color-primary)] transition-colors" /><button type="button" onclick="this.parentElement.remove()" class="text-[var(--md-sys-color-outline)] hover:text-red-500 transition-colors p-1"><span class="material-symbols-outlined text-lg">do_not_disturb_on</span></button>`;
+                div.dataset.subId = sub.id; div.dataset.endDate = sub.endDate || ""; div.dataset.startMinute = sub.startMinute === null ? "null" : sub.startMinute; div.dataset.durationMinutes = sub.durationMinutes || 120;
+                div.innerHTML = `
+                    <input type="text" value="${sub.text}" required class="flex-1 p-2 rounded-lg border text-xs bg-[var(--md-sys-color-surface-container-lowest)] outline-none focus:border-[var(--md-sys-color-primary)] transition-colors checklist-text-input" onkeydown="if(event.key==='Enter'){event.preventDefault(); addChecklistItemSlot(this);}" />
+                    <div class="flex items-center gap-1 w-20">
+                        <span class="text-[10px] text-[var(--md-sys-color-outline)]">权重</span>
+                        <input type="number" min="1" value="${sub.weight || 1}" class="w-full p-1.5 rounded-lg border text-xs bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)] outline-none focus:border-[var(--md-sys-color-primary)] transition-colors checklist-weight-input" />
+                    </div>
+                    <button type="button" onclick="this.parentElement.remove()" class="text-[var(--md-sys-color-outline)] hover:text-red-500 transition-colors p-1"><span class="material-symbols-outlined text-lg">do_not_disturb_on</span></button>
+                `;
                 box.appendChild(div);
             });
             appState.selectedFormTags = [...batch.tags]; renderFormTagsPool();
@@ -1409,11 +1398,21 @@
             document.querySelectorAll("#form-subject-container button").forEach(b => { b.classList.remove("chip-active", "shadow-sm"); b.classList.add("text-[var(--md-sys-color-on-surface-variant)]"); });
             const el = document.getElementById(`form-sub-${sub}`); if (el) { el.classList.add("chip-active", "shadow-sm"); el.classList.remove("text-[var(--md-sys-color-on-surface-variant)]"); }
         }
-        function addChecklistItemSlot() {
+
+        function addChecklistItemSlot(currentInput = null) {
             const box = document.getElementById("form-checklist-slots");
             const div = document.createElement("div"); div.className = "flex gap-2 items-center group";
-            div.innerHTML = `<input type="text" placeholder="如：数学暑假作业卷一" required class="flex-1 p-2.5 rounded-xl border text-xs bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)] outline-none focus:border-[var(--md-sys-color-primary)] transition-colors" /><button type="button" onclick="this.parentElement.remove()" class="text-[var(--md-sys-color-outline)] hover:text-red-500 transition-colors p-1"><span class="material-symbols-outlined text-lg">do_not_disturb_on</span></button>`;
-            box.appendChild(div); setTimeout(() => div.querySelector('input').focus(), 50);
+            div.innerHTML = `
+                <input type="text" placeholder="如：数学暑假作业卷一" required class="flex-1 p-2.5 rounded-xl border text-xs bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)] outline-none focus:border-[var(--md-sys-color-primary)] transition-colors checklist-text-input" onkeydown="if(event.key==='Enter'){event.preventDefault(); addChecklistItemSlot(this);}" />
+                <div class="flex items-center gap-1 w-20">
+                    <span class="text-[10px] text-[var(--md-sys-color-outline)]">权重</span>
+                    <input type="number" min="1" value="1" class="w-full p-1.5 rounded-lg border text-xs bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)] outline-none focus:border-[var(--md-sys-color-primary)] transition-colors checklist-weight-input" />
+                </div>
+                <button type="button" onclick="this.parentElement.remove()" class="text-[var(--md-sys-color-outline)] hover:text-red-500 transition-colors p-1"><span class="material-symbols-outlined text-lg">do_not_disturb_on</span></button>
+            `;
+            if (currentInput && currentInput.parentElement) currentInput.parentElement.after(div);
+            else box.appendChild(div);
+            setTimeout(() => div.querySelector('.checklist-text-input').focus(), 50);
         }
 
         function handleFormSubmit(e) {
@@ -1421,10 +1420,34 @@
             const bId = document.getElementById("form-task-id").value;
             const title = document.getElementById("form-title").value.trim();
             const content = document.getElementById("form-content").value.trim();
+
+            // 查找原始 batch（编辑模式下需要）
+            const originalBatch = bId ? appState.batches.find(b => b.id === bId) : null;
+
             const subtasks = [];
             document.querySelectorAll("#form-checklist-slots > div").forEach((div, idx) => {
-                const text = div.querySelector("input").value.trim();
-                if (text) subtasks.push({ id: div.dataset.subId || `sub-${Date.now()}-${idx}`, text: text, done: false, endDate: div.dataset.endDate || null, startMinute: parseInt(div.dataset.startMinute) || 480, durationMinutes: parseInt(div.dataset.durationMinutes) || 120 });
+                const text = div.querySelector(".checklist-text-input").value.trim();
+                const weight = parseInt(div.querySelector(".checklist-weight-input")?.value) || 1;
+                if (text) {
+                    // 保留已有子任务的完成状态
+                    let doneStatus = false;
+                    if (div.dataset.subId && originalBatch) {
+                        const originalSub = originalBatch.subtasks.find(s => s.id === div.dataset.subId);
+                        if (originalSub) {
+                            doneStatus = originalSub.done;
+                        }
+                    }
+
+                    subtasks.push({
+                        id: div.dataset.subId || `sub-${Date.now()}-${idx}`,
+                        text: text,
+                        weight: weight,
+                        done: doneStatus,  // 使用保留的状态，而非硬编码 false
+                        endDate: div.dataset.endDate || null,
+                        startMinute: (div.dataset.startMinute !== "null" && div.dataset.startMinute !== undefined) ? parseInt(div.dataset.startMinute) : 480,
+                        durationMinutes: parseInt(div.dataset.durationMinutes) || 120
+                    });
+                }
             });
             if (bId) {
                 const existing = appState.batches.find(b => b.id === bId);
@@ -1436,12 +1459,15 @@
         }
 
         function calculateAndRenderStatistics() {
-            let total = 0, completed = 0;
-            appState.batches.forEach(b => b.subtasks.forEach(s => { total++; if (s.done) completed++; }));
-            const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
+            let totalWeight = 0, completedWeight = 0, totalItems = 0;
+            appState.batches.forEach(b => b.subtasks.forEach(s => {
+                const w = s.weight || 1; totalItems++; totalWeight += w;
+                if (s.done) completedWeight += w;
+            }));
+            const percent = totalWeight === 0 ? 0 : Math.round((completedWeight / totalWeight) * 100);
             document.getElementById("global-progress-percent").innerText = `${percent}%`;
             document.getElementById("global-progress-bar").style.width = `${percent}%`;
-            document.getElementById("stats-summary-text").innerText = `共 ${appState.batches.length} 门学科， ${total} 项子任务，已完成 ${completed} 项。`;
+            document.getElementById("stats-summary-text").innerText = `共 ${appState.batches.length} 门学科， ${totalItems} 项子任务。`;
         }
 
         function renderSpecialTaskLists() {
@@ -1455,14 +1481,12 @@
                             const item = document.createElement("div");
                             item.className = "p-2 rounded-lg bg-[var(--md-sys-color-surface-container-lowest)] text-xs font-medium border-l-4 border-rose-500 shadow-sm cursor-pointer hover:bg-black/5";
                             item.innerHTML = `<span class="truncate block mb-0.5">${s.text}</span><span class="text-[9px] text-rose-500 font-mono bg-rose-500/10 px-1 py-0.5 rounded">死线: ${s.endDate}</span>`;
-                            item.onclick = () => { jumpToCalendar(s.endDate); };
-                            overdue.appendChild(item);
+                            item.onclick = () => expandToDrawerTask(s.id); overdue.appendChild(item);
                         } else if (s.endDate === TODAY_STR) {
                             const item = document.createElement("div");
                             item.className = "p-2 rounded-lg bg-[var(--md-sys-color-surface-container-lowest)] text-xs font-medium border-l-4 border-[var(--md-sys-color-primary)] shadow-sm cursor-pointer hover:bg-black/5";
                             item.innerHTML = `<span class="truncate block text-[var(--md-sys-color-primary)]">${s.text}</span>`;
-                            item.onclick = () => { jumpToCalendar(s.endDate); };
-                            today.appendChild(item);
+                            item.onclick = () => expandToDrawerTask(s.id); today.appendChild(item);
                         }
                     }
                 });
@@ -1474,7 +1498,7 @@
         function toggleSubtaskStatus(subtaskId) {
             const target = findSubtask(subtaskId); if (target) { target.subtask.done = !target.subtask.done; saveStateToStorage(); renderAllComponents(); }
         }
-        function deleteEntireBatch(id) { if (confirm("确定要删除该任务吗？")) { appState.batches = appState.batches.filter(b => b.id !== id); saveStateToStorage(); renderAllComponents(); } }
+        function deleteEntireBatch(id) { appState.batches = appState.batches.filter(b => b.id !== id); saveStateToStorage(); renderAllComponents(); }
         function handleSearchDebounced(val) { clearTimeout(searchDebounceTimer); searchDebounceTimer = setTimeout(() => { appState.searchQuery = val.trim(); renderHomeChecklist(); }, 200); }
 
         function switchView(viewName) {
