@@ -43,6 +43,7 @@
             --md-sys-color-outline: #79747E;
             --md-sys-color-outline-variant: #CAC4D0;
             --md-sys-color-tertiary-container: #FFD8E4;
+            --md-sys-color-gold: #F59E0B;
             --md-motion-easing-emphasized: cubic-bezier(0.2, 0, 0, 1);
             --md-motion-easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
             --md-motion-duration-short4: 200ms;
@@ -72,6 +73,7 @@
             --md-sys-color-surface-container-highest: #333138;
             --md-sys-color-outline: #938F99;
             --md-sys-color-outline-variant: #49454F;
+            --md-sys-color-gold: #FBBF24;
         }
 
         body {
@@ -79,6 +81,34 @@
             color: var(--md-sys-color-on-background);
             font-family: system-ui, -apple-system, sans-serif;
             overflow: hidden;
+        }
+
+        .material-symbols-outlined.star-filled {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            color: var(--md-sys-color-gold);
+        }
+
+        .material-symbols-outlined.star-outline {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            color: var(--md-sys-color-outline);
+        }
+
+        @keyframes starPopAnim {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.4) rotate(15deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        .star-pop {
+            animation: starPopAnim 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .md-nav-item .md-icon-wrapper {
@@ -154,24 +184,17 @@
             grid-template-columns: repeat(7, minmax(0, 1fr));
         }
 
-        .calendar-grid-month {
-            grid-template-rows: auto repeat(6, minmax(0, 1fr));
-        }
-
-        .calendar-grid-week {
-            grid-template-rows: auto 1fr;
-        }
-
-        .no-scrollbar::-webkit-scrollbar {
+        .no-scrollbar::-webkit-scrollbar,
+        .hide-scrollbar::-webkit-scrollbar {
             display: none;
         }
 
-        .no-scrollbar {
+        .no-scrollbar,
+        .hide-scrollbar {
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
 
-        /* Custom MD3 Scrollbar */
         .md-scrollbar::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -306,14 +329,6 @@
             animation: locatePulse 1s ease-in-out 2;
         }
 
-        /* 3-Pane Slider Elements */
-        .slider-viewport {
-            overflow: hidden;
-            position: relative;
-            width: 100%;
-            height: 100%;
-        }
-
         .slider-track {
             display: flex;
             width: 300%;
@@ -327,17 +342,72 @@
             height: 100%;
             flex-shrink: 0;
         }
+
+        .starred-calendar-item {
+            border: 1.5px solid var(--md-sys-color-gold) !important;
+            box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
+        }
     </style>
 </head>
 
 <body class="h-[100dvh] w-screen flex flex-col md:flex-row select-none overflow-hidden">
 
-    <!-- Global Date Picker - Positioned absolutely near pointer of trigger dynamically -->
-    <input type="date" id="global-date-picker" class="fixed w-0 h-0 opacity-0 pointer-events-none z-[9999]"
-        onchange="handleDatePickerChange(event)">
     <div id="global-tooltip" class="text-xs flex flex-col gap-1"></div>
-    <div id="custom-context-menu" class="fixed hidden z-[100] rounded-lg p-1 shadow-xl border text-xs min-w-[150px]"
-        style="background-color: var(--md-sys-color-surface-container-high); border-color: var(--md-sys-color-outline-variant);">
+
+    <div id="custom-context-menu"
+        class="fixed hidden z-[100] rounded-xl p-1 shadow-xl border text-xs min-w-[150px] bg-[var(--md-sys-color-surface-container-high)] border-[var(--md-sys-color-outline-variant)]">
+    </div>
+
+    <div id="date-quick-menu"
+        class="fixed hidden z-[110] rounded-xl p-1 shadow-xl border text-xs min-w-[140px] flex-col gap-0.5 bg-[var(--md-sys-color-surface-container-high)] border-[var(--md-sys-color-outline-variant)]">
+        <button onclick="executeDateAction('today')"
+            class="w-full text-left px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface)] flex items-center gap-2 font-medium transition-colors">
+            <span class="material-symbols-outlined text-sm text-[var(--md-sys-color-primary)]">today</span>今日完成
+        </button>
+        <button onclick="executeDateAction('custom')"
+            class="w-full text-left px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface)] flex items-center gap-2 font-medium transition-colors">
+            <span
+                class="material-symbols-outlined text-sm text-[var(--md-sys-color-secondary)]">edit_calendar</span>更改日期
+        </button>
+    </div>
+
+    <div id="md3-datepicker-modal"
+        class="fixed hidden z-[130] w-[280px] sm:w-[300px] rounded-[24px] p-4 shadow-2xl flex-col gap-3 bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)] transition-all duration-150 transform scale-95 opacity-0">
+        <div class="flex flex-col gap-0.5 px-1">
+            <span class="text-[10px] font-bold tracking-wider uppercase text-[var(--md-sys-color-primary)]">选择日期</span>
+            <h3 class="text-base font-black text-[var(--md-sys-color-on-surface)]" id="md3-picker-header-date">
+                2026年8月17日</h3>
+        </div>
+        <div class="flex justify-between items-center px-1">
+            <span class="text-xs font-bold text-[var(--md-sys-color-on-surface-variant)]"
+                id="md3-picker-month-year">2026年 8月</span>
+            <div class="flex items-center gap-1">
+                <button type="button" onclick="navigateMD3PickerMonth(-1)"
+                    class="p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-[var(--md-sys-color-on-surface)] flex items-center justify-center">
+                    <span class="material-symbols-outlined text-base">chevron_left</span>
+                </button>
+                <button type="button" onclick="navigateMD3PickerMonth(1)"
+                    class="p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-[var(--md-sys-color-on-surface)] flex items-center justify-center">
+                    <span class="material-symbols-outlined text-base">chevron_right</span>
+                </button>
+            </div>
+        </div>
+        <div class="grid grid-cols-7 gap-1 text-center text-xs font-bold text-[var(--md-sys-color-on-surface-variant)]">
+            <div>日</div>
+            <div>一</div>
+            <div>二</div>
+            <div>三</div>
+            <div>四</div>
+            <div>五</div>
+            <div>六</div>
+        </div>
+        <div id="md3-picker-days-grid" class="grid grid-cols-7 gap-1 text-center text-xs min-h-[160px]"></div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-[var(--md-sys-color-outline-variant)]">
+            <button type="button" onclick="closeMD3DatePicker()"
+                class="px-3 py-1.5 rounded-full text-xs font-bold hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-primary)] transition-colors">取消</button>
+            <button type="button" onclick="confirmMD3DatePicker()"
+                class="px-4 py-1.5 rounded-full text-xs font-bold text-[var(--md-sys-color-on-primary)] shadow-sm bg-[var(--md-sys-color-primary)] hover:brightness-110 active:scale-95 transition-all">确定</button>
+        </div>
     </div>
 
     <aside
@@ -400,7 +470,7 @@
         style="background-color: var(--md-sys-color-surface-container-lowest); border-color: var(--md-sys-color-outline-variant);"
         ondragover="allowDrop(event)" ondragleave="handleDragLeave(event)">
 
-        <div class="p-4 flex flex-col gap-3 border-b flex-shrink-0"
+        <div class="p-4 flex flex-col gap-3 border-b flex-shrink-0 max-w-full overflow-hidden"
             style="border-color: var(--md-sys-color-outline-variant);">
             <div class="flex items-center justify-between">
                 <h2 class="text-sm font-semibold tracking-wide" style="color: var(--md-sys-color-on-surface-variant);">
@@ -427,9 +497,10 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-1 overflow-x-auto no-scrollbar py-1" id="drawer-filter-chips">
-                <button onclick="changeDrawerArrange('group')" id="chip-group"
-                    class="chip-active text-[11px] py-1.5 px-3 rounded-full text-center font-semibold md-ripple border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0">默认</button>
+            <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 pr-1 w-full flex-nowrap"
+                id="drawer-filter-chips">
+                <button onclick="changeDrawerArrange('starred')" id="chip-starred"
+                    class="chip-active text-[11px] py-1.5 px-3 rounded-full text-center font-semibold md-ripple border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0">重要</button>
                 <button onclick="changeDrawerArrange('subject')" id="chip-subject"
                     class="text-[11px] py-1.5 px-3 rounded-full text-center font-semibold md-ripple border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0">按学科</button>
                 <button onclick="changeDrawerArrange('tag')" id="chip-tag"
@@ -449,7 +520,6 @@
         </div>
         <div class="flex-1 overflow-hidden relative flex flex-col">
             <div id="drawer-task-container" class="flex-1 overflow-y-auto p-2 flex flex-col gap-1 md-scrollbar"></div>
-            <!-- Quick locate today button -->
             <div id="drawer-today-locator-container"
                 class="p-2 border-t border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-lowest)] hidden flex-shrink-0 justify-center">
                 <button onclick="locateDrawerToday()"
@@ -466,13 +536,13 @@
     </button>
 
     <main class="flex-1 h-[100dvh] md:h-full relative overflow-hidden flex flex-col">
+        <!-- Home View Pane -->
         <div id="view-home" class="view-pane active p-4 md:p-6 flex flex-col h-full overflow-hidden gap-4 md:gap-6">
             <header
                 class="w-full max-w-3xl mx-auto flex items-center h-12 md:h-14 rounded-full px-4 shadow-sm flex-shrink-0 gap-2"
                 style="background-color: var(--md-sys-color-surface-container-high);">
                 <span class="material-symbols-outlined text-[var(--md-sys-color-on-surface-variant)] mr-1">search</span>
-                <input type="text" id="global-search" oninput="handleSearchDebounced(this.value)"
-                    placeholder="搜索关键词"
+                <input type="text" id="global-search" oninput="handleSearchDebounced(this.value)" placeholder="搜索关键词"
                     class="bg-transparent flex-1 outline-none text-sm text-[var(--md-sys-color-on-surface)]" />
                 <button onclick="undo()"
                     class="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors"><span
@@ -481,6 +551,7 @@
                     class="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors"><span
                         class="material-symbols-outlined text-lg">redo</span></button>
             </header>
+
             <div class="p-4 md:p-5 rounded-2xl flex flex-col gap-3 shadow-sm border border-[var(--md-sys-color-outline-variant)] flex-shrink-0"
                 style="background-color: var(--md-sys-color-surface-container-low);">
                 <div class="flex justify-between items-center">
@@ -494,10 +565,11 @@
                 </div>
                 <div class="w-full h-2 md:h-3 rounded-full overflow-hidden"
                     style="background-color: var(--md-sys-color-surface-variant);">
-                    <div id="global-progress-bar" class="h-full rounded-full transition-all duration-700 ease-out"
+                    <div id="global-progress-bar" class="h-full rounded-full transition-all duration-500 ease-out"
                         style="width: 0%; background-color: var(--md-sys-color-primary);"></div>
                 </div>
             </div>
+
             <div class="flex-1 w-full flex flex-col gap-4 md:gap-6 overflow-hidden min-h-0">
                 <div
                     class="flex-1 w-full flex flex-col gap-3 overflow-y-auto pr-1 md:pr-2 md-scrollbar min-h-0 animate-fade">
@@ -506,6 +578,7 @@
             </div>
         </div>
 
+        <!-- Today View Pane -->
         <div id="view-today" class="view-pane p-4 md:p-6 flex flex-col h-full overflow-hidden gap-4 md:gap-6">
             <div class="flex items-center gap-3 flex-shrink-0">
                 <span
@@ -533,19 +606,11 @@
             </div>
         </div>
 
+        <!-- Calendar View Pane -->
         <div id="view-calendar" class="view-pane p-4 md:p-6 flex flex-col h-full overflow-hidden gap-4">
             <div class="flex justify-between items-center flex-shrink-0 pl-12 md:pl-0 transition-all gap-2">
                 <div class="flex items-center gap-2 md:gap-4 flex-wrap">
                     <h2 class="text-base md:text-xl font-bold tracking-tight" id="calendar-month-title">加载中...</h2>
-                    <div
-                        class="flex items-center rounded-full border overflow-hidden shadow-sm bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)]">
-                        <button onclick="switchCalendarDate(-1)"
-                            class="p-1 md:p-1.5 hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface)] flex items-center transition-colors"><span
-                                class="material-symbols-outlined text-sm">chevron_left</span></button>
-                        <button onclick="switchCalendarDate(1)"
-                            class="p-1 md:p-1.5 hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface)] flex items-center transition-colors"><span
-                                class="material-symbols-outlined text-sm">chevron_right</span></button>
-                    </div>
                 </div>
                 <div class="flex items-center gap-1">
                     <button onclick="undo()"
@@ -565,17 +630,40 @@
             </div>
 
             <div class="flex-1 w-full flex flex-col gap-4 overflow-hidden relative min-h-0">
-                <!-- Month View rounded corner clipping wrapper -->
+
                 <div id="calendar-month-view-wrapper"
                     class="w-full flex-shrink-0 rounded-2xl border flex flex-col shadow-sm transition-all duration-300 border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-lowest)] overflow-hidden"
                     style="height: 100%;">
-                    <div id="calendar-month-view" class="w-full h-full overflow-y-auto md-scrollbar p-1 md:p-2">
-                        <div class="calendar-grid calendar-grid-month flex-1 h-full text-xs animate-fade"
-                            id="month-grid-container"></div>
+                    <!-- Scrollable Container without visible scrollbar -->
+                    <div id="calendar-month-scroll" class="flex-1 overflow-y-auto hide-scrollbar relative"
+                        onscroll="handleCalendarScroll(event, true)">
+                        <!-- Sticky Pinned Header: Unified theme color (lighter background with backdrop blur) -->
+                        <div
+                            class="sticky top-0 z-20 grid grid-cols-7 text-center font-bold py-1.5 md:py-2 border-b border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)]/30 backdrop-blur-md">
+                            <div>一</div>
+                            <div>二</div>
+                            <div>三</div>
+                            <div>四</div>
+                            <div>五</div>
+                            <div>六</div>
+                            <div>日</div>
+                        </div>
+
+                        <!-- Massive list of day cells generated dynamically -->
+                        <div class="calendar-grid flex-1 w-full text-xs" id="month-grid-container"></div>
                     </div>
                 </div>
 
-                <!-- Week Swipe View (3-Pane Slider) -->
+                <div id="calendar-week-view-wrapper"
+                    class="w-full flex-shrink-0 rounded-2xl border flex flex-col shadow-sm transition-all duration-300 border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-lowest)] overflow-hidden hidden">
+                    <!-- Native Horizontal Scrollable Container -->
+                    <div id="calendar-week-scroll"
+                        class="w-full overflow-x-auto hide-scrollbar flex flex-row relative border-b border-[var(--md-sys-color-outline-variant)]"
+                        onscroll="handleCalendarScroll(event, false)">
+                        <div id="week-grid-container" class="flex flex-row text-xs h-full min-h-[70px]"></div>
+                    </div>
+                </div>
+
                 <div id="calendar-timeline-pane"
                     class="w-full flex-1 border rounded-2xl p-3 md:p-4 flex flex-col gap-3 shadow-sm bg-[var(--md-sys-color-surface-container-low)] border-[var(--md-sys-color-outline-variant)] hidden transition-all duration-300 min-h-0 overflow-hidden">
                     <div
@@ -588,7 +676,6 @@
                                 class="material-symbols-outlined text-sm">close_fullscreen</span></button>
                     </div>
 
-                    <!-- 3-Pane Continuous Slider Container -->
                     <div
                         class="flex-1 w-full relative overflow-hidden rounded-lg border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-lowest)]">
                         <div id="slider-track" class="slider-track">
@@ -603,6 +690,7 @@
         </div>
     </main>
 
+    <!-- Modal Dialog for Task Creation/Editing -->
     <div id="modal-backdrop"
         class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 pointer-events-none opacity-0 transition-opacity duration-200 flex items-center justify-center p-4">
         <div
@@ -670,95 +758,42 @@
 
         const defaultInitialState = {
             batches: [{
-                id: "batch-demo-01",
-                title: "高一物理必修第一册错题回溯",
-                content: "对期末考卷中动力学多体滑块模型与牛顿第二定律综合题重新推导。",
-                subject: "物理",
-                tags: ["高难度", "急需突破"],
-                subtasks: [{
-                    id: "sub-101",
-                    text: "滑块模型核心三题拆解",
-                    weight: 1,
-                    done: true,
-                    completedAt: TODAY_STR,
-                    endDate: TODAY_STR,
-                    startMinute: 480,
-                    durationMinutes: 90
-                },
-                {
-                    id: "sub-102",
-                    text: "建立隔离法受力方程组",
-                    weight: 1,
-                    done: false,
-                    endDate: TODAY_STR,
-                    startMinute: 540,
-                    durationMinutes: 120
-                }
-                ]
+                id: "batch-demo-01", title: "高一物理必修第一册错题回溯", content: "对期末考卷中动力学多体滑块模型与牛顿第二定律综合题重新推导。", subject: "物理", tags: ["高难度", "急需突破"],
+                subtasks: [{ id: "sub-101", text: "滑块模型核心三题拆解", weight: 1, done: true, starred: true, completedAt: TODAY_STR, endDate: TODAY_STR, startMinute: 480, durationMinutes: 90 },
+                { id: "sub-102", text: "建立隔离法受力方程组", weight: 1, done: false, starred: false, endDate: TODAY_STR, startMinute: 540, durationMinutes: 120 }]
             }, {
-                id: "batch-demo-02",
-                title: "英语3500词高效循环背诵",
-                content: "复习并默写核心变形词及短语。",
-                subject: "英语",
-                tags: ["高频高燃"],
-                subtasks: [{
-                    id: "sub-201",
-                    text: "Unit 1 核心词默写",
-                    weight: 1,
-                    done: true,
-                    completedAt: TODAY_STR,
-                    endDate: TODAY_STR,
-                    startMinute: 780,
-                    durationMinutes: 180
-                },
-                {
-                    id: "sub-202",
-                    text: "Unit 2 完形填空精讲",
-                    weight: 1,
-                    done: false,
-                    endDate: null,
-                    startMinute: null,
-                    durationMinutes: 120
-                }
-                ]
+                id: "batch-demo-02", title: "英语3500词高效循环背诵", content: "复习并默写核心变形词及短语。", subject: "英语", tags: ["高频高燃"],
+                subtasks: [{ id: "sub-201", text: "Unit 1 核心词默写", weight: 1, done: true, starred: false, completedAt: TODAY_STR, endDate: TODAY_STR, startMinute: 780, durationMinutes: 180 },
+                { id: "sub-202", text: "Unit 2 完形填空精讲", weight: 1, done: false, starred: true, endDate: null, startMinute: null, durationMinutes: 120 }]
             }],
             tags: [{ name: "高难度", color: "#E53935" }, { name: "急需突破", color: "#FB8C00" }, { name: "高频高燃", color: "#3949AB" }],
             subjects: ["语文", "数学", "英语", "物理", "化学", "地理"],
-            currentDrawerArrange: "group",
-            searchQuery: "",
-            selectedFormSubject: "数学",
-            selectedFormTags: [],
-            calendarYear: parseInt(TODAY_STR.split('-')[0]),
-            calendarMonth: parseInt(TODAY_STR.split('-')[1]),
-            calendarMode: "month",
-            focusedDate: TODAY_STR
+            currentDrawerArrange: "starred", searchQuery: "", selectedFormSubject: "数学", selectedFormTags: [],
+            calendarYear: parseInt(TODAY_STR.split('-')[0]), calendarMonth: parseInt(TODAY_STR.split('-')[1]), calendarMode: "month", focusedDate: TODAY_STR
         };
 
         let appState = {};
-        let historyStack = [];
-        let historyIndex = -1;
-        let isRestoring = false;
-        let searchDebounceTimer = null;
-        let drawerSearchTimer = null;
+        let historyStack = []; let historyIndex = -1; let isRestoring = false;
+        let searchDebounceTimer = null; let drawerSearchTimer = null;
         let timelineInteractionCtx = { type: null, subtaskId: null, initialY: 0, initialStartMinute: 0, initialDuration: 0 };
-        let timelineLayoutCache = {};
         let contextMenuCtx = { type: null, arg1: null, arg2: null, arg3: null };
-        let isGlobalDragging = false;
-        let globalDraggedSubtaskId = null;
-        let dragHoverNavTimer = null;
-        let isTouch = false;
-        let currentDatePickerSubtaskId = null;
-        let drawerFolderStates = {};
-        let lastClickX = 0;
-        let lastClickY = 0;
+        let isGlobalDragging = false; let globalDraggedSubtaskId = null;
+        let dragHoverNavTimer = null; let isTouch = false;
+        let currentDateActionSubtaskId = null; let drawerFolderStates = {};
+        let lastClickX = 0; let lastClickY = 0; let activeDateTriggerEl = null;
+
+        let md3PickerYear = parseInt(TODAY_STR.split('-')[0]);
+        let md3PickerMonth = parseInt(TODAY_STR.split('-')[1]);
+        let md3PickerSelectedDate = TODAY_STR;
+
+        let isCalendarGridGenerated = false;
+        let calScrollInterval = null;
+        let scrollDebounceTimer = null;
 
         const subjectColors = {
-            "语文": { bg: "#F3E5F5", text: "#4A148C" },
-            "数学": { bg: "#E3F2FD", text: "#0D47A1" },
-            "英语": { bg: "#E1F5FE", text: "#01579B" },
-            "物理": { bg: "#E8EAF6", text: "#1A237E" },
-            "化学": { bg: "#E0F2F1", text: "#004D40" },
-            "地理": { bg: "#EFEBE9", text: "#4E342E" }
+            "语文": { bg: "#F3E5F5", text: "#4A148C" }, "数学": { bg: "#E3F2FD", text: "#0D47A1" },
+            "英语": { bg: "#E1F5FE", text: "#01579B" }, "物理": { bg: "#E8EAF6", text: "#1A237E" },
+            "化学": { bg: "#E0F2F1", text: "#004D40" }, "地理": { bg: "#EFEBE9", text: "#4E342E" }
         };
 
         const SUPABASE_URL = 'https://mamubvgmcetepllznifl.supabase.co';
@@ -790,36 +825,26 @@
             else historyIndex++;
         }
 
-        // Action History
         function undo() {
             if (historyIndex > 0) {
-                historyIndex--;
-                isRestoring = true;
+                historyIndex--; isRestoring = true;
                 appState = JSON.parse(JSON.stringify(historyStack[historyIndex]));
-                saveStateToStorage(false);
-                renderAllComponents();
-                isRestoring = false;
+                saveStateToStorage(false); renderAllComponents(); isRestoring = false;
             }
         }
 
         function redo() {
             if (historyIndex < historyStack.length - 1) {
-                historyIndex++;
-                isRestoring = true;
+                historyIndex++; isRestoring = true;
                 appState = JSON.parse(JSON.stringify(historyStack[historyIndex]));
-                saveStateToStorage(false);
-                renderAllComponents();
-                isRestoring = false;
+                saveStateToStorage(false); renderAllComponents(); isRestoring = false;
             }
         }
 
         function saveStateToStorage(pushHistory = true) {
             if (pushHistory) commitState();
             localStorage.setItem("MD3_ATOMIC_SYSTEM_DATA", JSON.stringify(appState));
-            supabaseClient.storage.from(BUCKET_NAME).upload(FILE_NAME, JSON.stringify(appState), {
-                upsert: true,
-                contentType: 'application/json'
-            }).catch(() => { });
+            supabaseClient.storage.from(BUCKET_NAME).upload(FILE_NAME, JSON.stringify(appState), { upsert: true, contentType: 'application/json' }).catch(() => { });
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
@@ -828,8 +853,16 @@
             commitState();
             initializeTheme();
             setupDragHoverNavigation();
+
+            // Generate continuous calendar
+            generateContinuousCalendar();
+            setupCalendarDelegation();
+
             renderAllComponents();
             document.getElementById("today-date-display").innerText = TODAY_STR;
+
+            // Jump to focused date after brief rendering delay
+            setTimeout(() => { scrollToDate(appState.focusedDate, appState.calendarMode); }, 150);
 
             document.addEventListener("mousedown", (e) => {
                 lastClickX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
@@ -843,31 +876,19 @@
 
             document.addEventListener("click", (e) => {
                 document.getElementById("custom-context-menu").style.display = "none";
+                if (!e.target.closest('#date-quick-menu') && !e.target.closest('[data-date-chip]')) document.getElementById("date-quick-menu").style.display = "none";
+                if (!e.target.closest('#md3-datepicker-modal') && !e.target.closest('#date-quick-menu') && !e.target.closest('#custom-context-menu') && !e.target.closest('[data-date-chip]')) closeMD3DatePicker();
                 if (!e.target.closest('#drawer-search-results') && e.target.id !== 'drawer-search-input') {
                     const res = document.getElementById('drawer-search-results');
-                    if (res) {
-                        res.classList.add('hidden');
-                        res.classList.remove('flex');
-                    }
+                    if (res) { res.classList.add('hidden'); res.classList.remove('flex'); }
                 }
             });
-            document.addEventListener("dragstart", () => {
-                isGlobalDragging = true;
-                hideGlobalTooltip();
-            });
-            document.addEventListener("dragend", () => {
-                isGlobalDragging = false;
-                globalDraggedSubtaskId = null;
-                clearTimeout(dragHoverNavTimer);
-            });
-            document.addEventListener("drop", () => {
-                isGlobalDragging = false;
-                globalDraggedSubtaskId = null;
-                clearTimeout(dragHoverNavTimer);
-            });
+
+            document.addEventListener("dragstart", () => { isGlobalDragging = true; hideGlobalTooltip(); });
+            document.addEventListener("dragend", () => { isGlobalDragging = false; globalDraggedSubtaskId = null; clearTimeout(dragHoverNavTimer); stopAutoScroll(); });
+            document.addEventListener("drop", () => { isGlobalDragging = false; globalDraggedSubtaskId = null; clearTimeout(dragHoverNavTimer); stopAutoScroll(); });
 
             window.addEventListener('touchstart', () => isTouch = true, { passive: true });
-
             document.addEventListener('keydown', e => {
                 if (e.ctrlKey || e.metaKey) {
                     if (e.key === 'z') { e.preventDefault(); undo(); }
@@ -876,7 +897,6 @@
             });
         });
 
-        // Hover Sidebar Navigation while dragging tasks
         function setupDragHoverNavigation() {
             const sidebarNavIds = ['nav-home', 'nav-today', 'nav-calendar'];
             sidebarNavIds.forEach(id => {
@@ -884,27 +904,273 @@
                 if (el) {
                     el.addEventListener('dragover', (e) => {
                         e.preventDefault();
-                        if (isGlobalDragging) {
-                            if (!el.dataset.dragOverActive) {
-                                el.dataset.dragOverActive = "true";
-                                clearTimeout(dragHoverNavTimer);
-                                dragHoverNavTimer = setTimeout(() => {
-                                    const viewName = id.replace('nav-', '');
-                                    switchView(viewName);
-                                }, 800);
-                            }
+                        if (isGlobalDragging && !el.dataset.dragOverActive) {
+                            el.dataset.dragOverActive = "true";
+                            clearTimeout(dragHoverNavTimer);
+                            dragHoverNavTimer = setTimeout(() => { switchView(id.replace('nav-', '')); }, 800);
                         }
                     });
-                    el.addEventListener('dragleave', () => {
-                        el.removeAttribute('data-drag-over-active');
-                        clearTimeout(dragHoverNavTimer);
-                    });
-                    el.addEventListener('drop', () => {
-                        el.removeAttribute('data-drag-over-active');
-                        clearTimeout(dragHoverNavTimer);
-                    });
+                    el.addEventListener('dragleave', () => { el.removeAttribute('data-drag-over-active'); clearTimeout(dragHoverNavTimer); });
+                    el.addEventListener('drop', () => { el.removeAttribute('data-drag-over-active'); clearTimeout(dragHoverNavTimer); });
                 }
             });
+        }
+
+        function generateContinuousCalendar() {
+            const monthGrid = document.getElementById("month-grid-container");
+            const weekGrid = document.getElementById("week-grid-container");
+            monthGrid.innerHTML = ""; weekGrid.innerHTML = "";
+
+            // Generate calendar buffer
+            const startDate = new Date();
+            startDate.setFullYear(startDate.getFullYear() - 1);
+            startDate.setDate(1);
+            let day = startDate.getDay(); if (day === 0) day = 7;
+            startDate.setDate(startDate.getDate() - day + 1);
+
+            const endDate = new Date();
+            endDate.setFullYear(endDate.getFullYear() + 2);
+
+            let currDate = new Date(startDate);
+            let htmlMonth = "", htmlWeek = "";
+            const weekdays = ["日", "一", "二", "三", "四", "五", "六"];
+
+            while (currDate <= endDate) {
+                const dateStr = new Date(currDate.getTime() - currDate.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+                const isToday = dateStr === TODAY_STR;
+                const dayNum = currDate.getDate();
+                const monthNum = currDate.getMonth() + 1;
+                const wdStr = weekdays[currDate.getDay()];
+
+                let dateLabel = dayNum;
+                if (dayNum === 1) dateLabel = `<span class="text-[var(--md-sys-color-primary)] font-black text-[12px] md:text-[13px]">${monthNum}月</span>`;
+
+                // Month Cell
+                htmlMonth += `
+                <div class="p-1 border-r border-b border-[var(--md-sys-color-outline-variant)] flex flex-col gap-1 hover:bg-black/5 dark:hover:bg-white/5 transition-colors min-h-[60px] md:min-h-[80px] relative cell-target" data-date="${dateStr}">
+                    <div class="flex justify-between items-center px-1 pt-0.5 md:pt-1 flex-shrink-0 pointer-events-none">
+                        <span class="w-1.5 h-1.5 rounded-full bg-transparent focus-dot"></span>
+                        <span class="w-auto px-1.5 h-5 md:h-6 rounded-full flex items-center justify-center font-bold text-[10px] md:text-[11px] ${isToday ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md' : 'text-[var(--md-sys-color-on-surface-variant)]'}">${dateLabel}</span>
+                    </div>
+                    <div class="task-box flex flex-col gap-1 px-0.5 md:px-1 flex-1 overflow-y-auto md-scrollbar pb-1 pointer-events-auto"></div>
+                </div>`;
+
+                // Week Cell
+                htmlWeek += `
+                <div class="p-1 border-r border-[var(--md-sys-color-outline-variant)] flex flex-col gap-1 hover:bg-black/5 dark:hover:bg-white/5 transition-colors min-h-[70px] relative flex-shrink-0 cell-target" style="width: 14.2857%; min-width: 60px; max-width: 150px;" data-date="${dateStr}">
+                    <div class="flex justify-between items-center px-1 pt-0.5 md:pt-1 flex-shrink-0 pointer-events-none">
+                        <span class="text-[9px] text-[var(--md-sys-color-outline)] font-bold">周${wdStr}</span>
+                        <span class="w-auto px-1.5 h-5 md:h-6 rounded-full flex items-center justify-center font-bold text-[10px] md:text-[11px] ${isToday ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md' : 'text-[var(--md-sys-color-on-surface-variant)]'}">${monthNum}/${dayNum}</span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-transparent focus-dot absolute top-1.5 right-1.5"></span>
+                    </div>
+                    <div class="task-box flex flex-col gap-1 px-0.5 md:px-1 flex-1 overflow-y-auto md-scrollbar pb-1 pointer-events-auto"></div>
+                </div>`;
+
+                currDate.setDate(currDate.getDate() + 1);
+            }
+            monthGrid.innerHTML = htmlMonth;
+            weekGrid.innerHTML = htmlWeek;
+            isCalendarGridGenerated = true;
+        }
+
+        function updateCalendarTaskRendering() {
+            if (!isCalendarGridGenerated) return;
+            const monthGrid = document.getElementById("month-grid-container");
+            const weekGrid = document.getElementById("week-grid-container");
+
+            document.querySelectorAll('#view-calendar .task-box').forEach(box => box.innerHTML = '');
+            document.querySelectorAll('#view-calendar .focus-dot').forEach(dot => dot.className = dot.className.replace('bg-[var(--md-sys-color-primary)]', 'bg-transparent'));
+            document.querySelectorAll('#view-calendar .focused-cell-bg').forEach(cell => cell.classList.remove('bg-[var(--md-sys-color-secondary-container)]/40', 'shadow-inner', 'focused-cell-bg'));
+
+            if (appState.focusedDate) {
+                const mCell = monthGrid.querySelector(`[data-date="${appState.focusedDate}"]`);
+                if (mCell && appState.calendarMode === 'week') {
+                    mCell.classList.add('bg-[var(--md-sys-color-secondary-container)]/40', 'shadow-inner', 'focused-cell-bg');
+                }
+                const wCell = weekGrid.querySelector(`[data-date="${appState.focusedDate}"]`);
+                if (wCell) {
+                    wCell.classList.add('bg-[var(--md-sys-color-secondary-container)]/40', 'shadow-inner', 'focused-cell-bg');
+                    const dot = wCell.querySelector('.focus-dot');
+                    if (dot) dot.className = dot.className.replace('bg-transparent', 'bg-[var(--md-sys-color-primary)]');
+                }
+            }
+
+            let tasksHtmlMap = {};
+            appState.batches.forEach(batch => {
+                batch.subtasks.forEach(subtask => {
+                    if (subtask.endDate) {
+                        if (!tasksHtmlMap[subtask.endDate]) tasksHtmlMap[subtask.endDate] = '';
+                        const starredHighlight = subtask.starred ? 'starred-calendar-item font-black ring-1 ring-amber-400' : '';
+                        const starIcon = subtask.starred ? '<span class="material-symbols-outlined star-filled text-[12px] flex-shrink-0">grade</span>' : '';
+                        const bgColor = subjectColors[batch.subject]?.text || "#6750A4";
+                        const doneClass = subtask.done ? 'opacity-50 line-through saturate-50' : '';
+
+                        tasksHtmlMap[subtask.endDate] += `<div id="cal-sub-${subtask.id}" class="cal-task-item text-[8px] md:text-[9px] px-1 md:px-1.5 py-0.5 md:py-1 rounded truncate font-bold text-white shadow-sm cursor-grab hover:brightness-110 active:scale-95 transition-all flex items-center gap-0.5 ${starredHighlight} ${doneClass}" style="background-color: ${bgColor}; min-height: 20px; flex-shrink: 0;" draggable="true" data-subtask-id="${subtask.id}" data-batch-id="${batch.id}">${starIcon}<span class="truncate">${subtask.text}</span></div>`;
+                    }
+                });
+            });
+
+            for (const [dateStr, htmlStr] of Object.entries(tasksHtmlMap)) {
+                const mBox = monthGrid.querySelector(`[data-date="${dateStr}"] .task-box`);
+                if (mBox) mBox.innerHTML = htmlStr;
+                const wBox = weekGrid.querySelector(`[data-date="${dateStr}"] .task-box`);
+                if (wBox) wBox.innerHTML = htmlStr;
+            }
+        }
+
+        function setupCalendarDelegation() {
+            const monthGrid = document.getElementById("calendar-month-scroll");
+            const weekGrid = document.getElementById("calendar-week-scroll");
+
+            [monthGrid, weekGrid].forEach(container => {
+                container.addEventListener("dragenter", (e) => {
+                    const cell = e.target.closest('.cell-target');
+                    if (cell && !cell.classList.contains("drag-hover")) {
+                        document.querySelectorAll('.drag-hover').forEach(el => el.classList.remove('drag-hover'));
+                        cell.classList.add("drag-hover");
+                    }
+                });
+                container.addEventListener("dragover", (e) => {
+                    e.preventDefault();
+                    handleAutoScroll(e, container, container.id === "calendar-month-scroll");
+                });
+                container.addEventListener("dragleave", (e) => {
+                    const cell = e.target.closest('.cell-target');
+                    if (cell && e.relatedTarget && !cell.contains(e.relatedTarget)) cell.classList.remove("drag-hover");
+                });
+                container.addEventListener("drop", (e) => {
+                    e.preventDefault();
+                    stopAutoScroll();
+                    const cell = e.target.closest('.cell-target');
+                    if (cell) {
+                        cell.classList.remove("drag-hover");
+                        dropToCalendarCell(e, cell.getAttribute("data-date"), cell);
+                    }
+                });
+
+                container.addEventListener("click", (e) => {
+                    const taskEl = e.target.closest('.cal-task-item');
+                    if (taskEl) return;
+                    const cell = e.target.closest('.cell-target');
+                    if (cell) {
+                        appState.focusedDate = cell.getAttribute("data-date");
+                        if (appState.calendarMode === 'month') switchCalendarMode('week');
+                        else { focusDayTimeline(appState.focusedDate); scrollToDate(appState.focusedDate, 'week'); }
+                        updateCalendarTaskRendering();
+                    }
+                });
+            });
+
+            document.addEventListener("dragstart", (e) => {
+                const taskItem = e.target.closest('.cal-task-item');
+                if (taskItem) handleSubtaskDragStart(e, taskItem.dataset.subtaskId);
+            });
+            document.addEventListener("click", (e) => {
+                const taskItem = e.target.closest('.cal-task-item');
+                if (taskItem) { e.stopPropagation(); expandToDrawerTask(taskItem.dataset.subtaskId); }
+            });
+
+            let touchTimer = null;
+            document.addEventListener("touchstart", (e) => {
+                const taskItem = e.target.closest('.cal-task-item');
+                if (taskItem) touchTimer = setTimeout(() => handleContextMenu(e, 'task_calendar', taskItem.dataset.batchId, taskItem.dataset.subtaskId), 500);
+            }, { passive: true });
+            document.addEventListener("touchend", () => clearTimeout(touchTimer));
+            document.addEventListener("touchmove", () => clearTimeout(touchTimer));
+
+            document.addEventListener("contextmenu", (e) => {
+                const taskItem = e.target.closest('.cal-task-item');
+                if (taskItem) { e.preventDefault(); handleContextMenu(e, 'task_calendar', taskItem.dataset.batchId, taskItem.dataset.subtaskId); }
+            });
+
+            document.addEventListener("mousemove", (e) => {
+                const taskItem = e.target.closest('.cal-task-item');
+                if (taskItem) showGlobalTooltip(e, taskItem.dataset.subtaskId);
+                else hideGlobalTooltip();
+            });
+        }
+
+        function handleAutoScroll(e, container, isVertical) {
+            if (!isGlobalDragging) return;
+            const rect = container.getBoundingClientRect();
+            const threshold = 50; // Sensitive zone threshold (50px)
+            let speedX = 0, speedY = 0;
+
+            if (isVertical) {
+                const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+                const y = clientY - rect.top;
+                if (y < threshold) {
+                    speedY = -8; // Lowered scroll speed for smoother control
+                } else if (y > rect.height - threshold) {
+                    speedY = 8;
+                }
+            } else {
+                const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+                const x = clientX - rect.left;
+                if (x < threshold) {
+                    speedX = -8;
+                } else if (x > rect.width - threshold) {
+                    speedX = 8;
+                }
+            }
+
+            if (speedX !== 0 || speedY !== 0) {
+                if (!calScrollInterval) {
+                    calScrollInterval = setInterval(() => {
+                        if (isVertical) container.scrollTop += speedY;
+                        else container.scrollLeft += speedX;
+                    }, 20);
+                }
+            } else {
+                stopAutoScroll();
+            }
+        }
+
+        function stopAutoScroll() {
+            if (calScrollInterval) {
+                clearInterval(calScrollInterval);
+                calScrollInterval = null;
+            }
+        }
+
+        function handleCalendarScroll(e, isVertical) {
+            if (!scrollDebounceTimer) {
+                scrollDebounceTimer = setTimeout(() => {
+                    scrollDebounceTimer = null;
+                    const container = e.target;
+                    const rect = container.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+
+                    const elem = document.elementFromPoint(centerX, centerY);
+                    const dateCell = elem?.closest('.cell-target');
+                    if (dateCell) {
+                        const dStr = dateCell.getAttribute('data-date');
+                        const parts = dStr.split('-');
+                        appState.calendarYear = parseInt(parts[0]);
+                        appState.calendarMonth = parseInt(parts[1]);
+                        document.getElementById("calendar-month-title").innerText = `${appState.calendarYear}年 ${appState.calendarMonth}月`;
+                    }
+                }, 80);
+            }
+        }
+
+        function scrollToDate(dateStr, mode) {
+            if (!dateStr) return;
+            const container = mode === 'month' ? document.getElementById('calendar-month-scroll') : document.getElementById('calendar-week-scroll');
+            const targetCell = container?.querySelector(`[data-date="${dateStr}"]`);
+
+            if (targetCell && container) {
+                if (mode === 'month') {
+                    const offset = targetCell.offsetTop - container.clientHeight / 2 + targetCell.clientHeight / 2;
+                    container.scrollTo({ top: offset, behavior: 'smooth' });
+                } else {
+                    const offset = targetCell.offsetLeft - container.clientWidth / 2 + targetCell.clientWidth / 2;
+                    container.scrollTo({ left: offset, behavior: 'smooth' });
+                }
+                const parts = dateStr.split('-');
+                document.getElementById("calendar-month-title").innerText = `${parts[0]}年 ${parseInt(parts[1])}月`;
+            }
         }
 
         function findSubtask(subtaskId) {
@@ -915,36 +1181,112 @@
             return null;
         }
 
-        function openDatePicker(subtaskId, event) {
-            currentDatePickerSubtaskId = subtaskId;
-            const task = findSubtask(subtaskId);
-            const picker = document.getElementById('global-date-picker');
-            picker.value = task.subtask.endDate || '';
-
-            // Re-anchor date picker element immediately to viewport coordinate of the click to prevent top-left jumping
-            const x = event ? event.clientX : lastClickX;
-            const y = event ? event.clientY : lastClickY;
-            picker.style.left = (x || 100) + 'px';
-            picker.style.top = (y || 100) + 'px';
-
-            try {
-                picker.showPicker();
-            } catch (e) {
-                picker.focus();
-                picker.click();
+        function toggleSubtaskStar(subtaskId, event, btnEl) {
+            if (event) event.stopPropagation();
+            const target = findSubtask(subtaskId);
+            if (target) {
+                target.subtask.starred = !target.subtask.starred;
+                if (btnEl) {
+                    const icon = btnEl.querySelector('.material-symbols-outlined') || btnEl;
+                    icon.classList.add('star-pop'); setTimeout(() => icon.classList.remove('star-pop'), 400);
+                }
+                saveStateToStorage(); renderAllComponents();
             }
         }
 
-        function handleDatePickerChange(e) {
-            if (!currentDatePickerSubtaskId) return;
-            const val = e.target.value;
-            const task = findSubtask(currentDatePickerSubtaskId);
-            if (task) {
-                task.subtask.endDate = val || null;
-                saveStateToStorage();
-                renderAllComponents();
+        function expandToDrawerTask(subId, query = '') {
+            if (query) document.getElementById('drawer-search-input').value = query;
+            locateDrawerSearchResult(subId, query);
+        }
+
+        function openDateQuickMenu(subtaskId, event) {
+            if (event) event.stopPropagation();
+            currentDateActionSubtaskId = subtaskId;
+            activeDateTriggerEl = event ? event.currentTarget : null;
+            const menu = document.getElementById('date-quick-menu');
+            let x = event ? event.clientX : lastClickX, y = event ? event.clientY : lastClickY;
+            if (activeDateTriggerEl) { const rect = activeDateTriggerEl.getBoundingClientRect(); x = rect.left; y = rect.bottom + 4; }
+            menu.style.display = "flex";
+            const width = 140, height = 80;
+            if (x + width > window.innerWidth - 8) x = window.innerWidth - width - 8;
+            if (y + height > window.innerHeight - 8) y = y - height - 30;
+            menu.style.left = `${x}px`; menu.style.top = `${y}px`;
+        }
+
+        function executeDateAction(type) {
+            document.getElementById('date-quick-menu').style.display = "none";
+            if (!currentDateActionSubtaskId) return;
+            if (type === 'today') {
+                const target = findSubtask(currentDateActionSubtaskId);
+                if (target) { target.subtask.endDate = TODAY_STR; saveStateToStorage(); renderAllComponents(); }
+            } else if (type === 'custom') { openMD3DatePicker(currentDateActionSubtaskId); }
+        }
+
+        function openMD3DatePicker(subtaskId) {
+            currentDateActionSubtaskId = subtaskId;
+            const target = findSubtask(subtaskId);
+            const currentVal = target?.subtask.endDate || TODAY_STR;
+            md3PickerSelectedDate = currentVal;
+            const parts = currentVal.split('-');
+            md3PickerYear = parseInt(parts[0]) || parseInt(TODAY_STR.split('-')[0]);
+            md3PickerMonth = parseInt(parts[1]) || parseInt(TODAY_STR.split('-')[1]);
+
+            renderMD3DatePicker();
+            const pickerEl = document.getElementById('md3-datepicker-modal');
+            let anchorX = lastClickX, anchorY = lastClickY;
+            if (activeDateTriggerEl) { const rect = activeDateTriggerEl.getBoundingClientRect(); anchorX = rect.left; anchorY = rect.bottom + 6; }
+            pickerEl.style.display = 'flex'; pickerEl.style.position = 'fixed';
+            const width = 300, height = 320;
+            if (anchorX + width > window.innerWidth - 12) anchorX = window.innerWidth - width - 12;
+            if (anchorX < 12) anchorX = 12;
+            if (anchorY + height > window.innerHeight - 12) anchorY = anchorY - height - 40;
+            if (anchorY < 12) anchorY = 12;
+            pickerEl.style.left = `${anchorX}px`; pickerEl.style.top = `${anchorY}px`;
+            requestAnimationFrame(() => { pickerEl.classList.remove('opacity-0', 'scale-95'); pickerEl.classList.add('opacity-100', 'scale-100'); });
+        }
+
+        function closeMD3DatePicker() {
+            const pickerEl = document.getElementById('md3-datepicker-modal');
+            pickerEl.classList.remove('opacity-100', 'scale-100'); pickerEl.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => { pickerEl.style.display = 'none'; }, 150);
+        }
+
+        function navigateMD3PickerMonth(dir) {
+            md3PickerMonth += dir;
+            if (md3PickerMonth > 12) { md3PickerMonth = 1; md3PickerYear++; }
+            if (md3PickerMonth < 1) { md3PickerMonth = 12; md3PickerYear--; }
+            renderMD3DatePicker();
+        }
+
+        function selectMD3PickerDate(dateStr) { md3PickerSelectedDate = dateStr; renderMD3DatePicker(); }
+
+        function confirmMD3DatePicker() {
+            if (currentDateActionSubtaskId && md3PickerSelectedDate) {
+                const target = findSubtask(currentDateActionSubtaskId);
+                if (target) { target.subtask.endDate = md3PickerSelectedDate; saveStateToStorage(); renderAllComponents(); }
             }
-            currentDatePickerSubtaskId = null;
+            closeMD3DatePicker();
+        }
+
+        function renderMD3DatePicker() {
+            document.getElementById('md3-picker-month-year').innerText = `${md3PickerYear}年 ${md3PickerMonth}月`;
+            const selParts = md3PickerSelectedDate.split('-');
+            document.getElementById('md3-picker-header-date').innerText = `${selParts[0]}年${parseInt(selParts[1])}月${parseInt(selParts[2])}日`;
+            const grid = document.getElementById('md3-picker-days-grid');
+            grid.innerHTML = '';
+            const firstDay = new Date(md3PickerYear, md3PickerMonth - 1, 1).getDay();
+            const totalDays = new Date(md3PickerYear, md3PickerMonth, 0).getDate();
+            for (let i = 0; i < firstDay; i++) grid.insertAdjacentHTML('beforeend', `<div></div>`);
+            for (let day = 1; day <= totalDays; day++) {
+                const dateStr = `${md3PickerYear}-${String(md3PickerMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const isSelected = dateStr === md3PickerSelectedDate;
+                const isToday = dateStr === TODAY_STR;
+                let btnClass = "w-7 h-7 rounded-full mx-auto flex items-center justify-center text-xs font-semibold transition-all ";
+                if (isSelected) btnClass += "bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md font-bold";
+                else if (isToday) btnClass += "border-2 border-[var(--md-sys-color-primary)] text-[var(--md-sys-color-primary)] font-bold";
+                else btnClass += "hover:bg-black/10 dark:hover:bg-white/10 text-[var(--md-sys-color-on-surface)]";
+                grid.insertAdjacentHTML('beforeend', `<button type="button" onclick="selectMD3PickerDate('${dateStr}')" class="${btnClass}">${day}</button>`);
+            }
         }
 
         function jumpToCalendar(dateStr) {
@@ -956,66 +1298,14 @@
             appState.calendarMonth = d.getMonth() + 1;
             switchCalendarMode('month');
             switchView('calendar');
+            scrollToDate(dateStr, 'month');
             setTimeout(() => {
-                const cells = document.querySelectorAll('#month-grid-container > div');
-                cells.forEach(el => {
-                    if (el.dataset.date === dateStr) {
-                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        el.classList.add('locate-highlight');
-                        setTimeout(() => el.classList.remove('locate-highlight'), 2000);
-                    }
-                });
-            }, 300);
-        }
-
-        function syncDrawerLocation(subtaskId) {
-            const drawer = document.getElementById('task-drawer');
-            if (!drawer.classList.contains('collapsed')) {
-                expandToDrawerTask(subtaskId);
-            }
-        }
-
-        function determineBestArrange(batch, subtask, keyword) {
-            const kw = keyword.toLowerCase();
-            if (batch.subject.toLowerCase().includes(kw)) return 'subject';
-            if (batch.tags.some(t => t.toLowerCase().includes(kw))) return 'tag';
-            if (subtask.endDate && subtask.endDate.includes(kw)) return 'time';
-            return 'group';
-        }
-
-        function expandToDrawerTask(subtaskId, keyword = '') {
-            const target = findSubtask(subtaskId);
-            let targetMode = 'time';
-            if (target && keyword) {
-                targetMode = determineBestArrange(target.batch, target.subtask, keyword);
-            }
-            changeDrawerArrange(targetMode);
-            const drawer = document.getElementById('task-drawer');
-            drawer.classList.remove('collapsed');
-            document.getElementById('drawer-restore-btn').classList.add('hidden');
-
-            setTimeout(() => {
-                const el = document.querySelector(`#drawer-task-container [data-subtask-id="${subtaskId}"]`);
-                if (el) {
-                    let parent = el.parentElement;
-                    while (parent && parent.id !== 'drawer-task-container') {
-                        if (parent.classList.contains('folder-content')) {
-                            parent.classList.add('open');
-                            const header = parent.previousElementSibling;
-                            if (header) {
-                                const icon = header.querySelector('.folder-icon');
-                                if (icon) icon.classList.add('open');
-                                const folderId = header.getAttribute('data-folder-id');
-                                if (folderId) drawerFolderStates[folderId] = true;
-                            }
-                        }
-                        parent = parent.parentElement;
-                    }
-                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    el.classList.add('locate-highlight');
-                    setTimeout(() => el.classList.remove('locate-highlight'), 2000);
+                const cell = document.querySelector(`#calendar-month-scroll [data-date="${dateStr}"]`);
+                if (cell) {
+                    cell.classList.add('locate-highlight');
+                    setTimeout(() => cell.classList.remove('locate-highlight'), 2000);
                 }
-            }, 100);
+            }, 300);
         }
 
         function allowDrop(e) { e.preventDefault(); }
@@ -1024,12 +1314,8 @@
         function handleSubtaskDragStart(e, subtaskId) {
             e.dataTransfer.setData("text/plain", subtaskId);
             e.dataTransfer.effectAllowed = "move";
-            isGlobalDragging = true;
-            globalDraggedSubtaskId = subtaskId;
-            hideGlobalTooltip();
-            document.getElementById("custom-context-menu").style.display = "none";
-
-            // Instantly collapse parent folder containing the task being dragged
+            isGlobalDragging = true; globalDraggedSubtaskId = subtaskId;
+            hideGlobalTooltip(); document.getElementById("custom-context-menu").style.display = "none";
             const taskEl = document.querySelector(`[data-subtask-id="${subtaskId}"]`);
             if (taskEl) {
                 let parent = taskEl.parentElement;
@@ -1050,17 +1336,15 @@
         }
 
         function dropToCalendarCell(e, dateStr, cellEl) {
-            e.preventDefault();
-            cellEl.classList.remove("drag-hover");
+            e.preventDefault(); cellEl.classList.remove("drag-hover");
             const subtaskId = e.dataTransfer.getData("text/plain") || globalDraggedSubtaskId;
             const target = findSubtask(subtaskId);
             if (target) {
-                target.subtask.endDate = dateStr;
-                saveStateToStorage();
-                renderAllComponents();
+                target.subtask.endDate = dateStr; saveStateToStorage(); renderAllComponents();
                 if (appState.calendarMode === 'week') focusDayTimeline(appState.focusedDate);
             }
             isGlobalDragging = false;
+            stopAutoScroll();
         }
 
         function dropToTimelineTrack(e) {
@@ -1068,66 +1352,46 @@
             const subtaskId = e.dataTransfer.getData("text/plain") || globalDraggedSubtaskId;
             const target = findSubtask(subtaskId);
             if (!target) return;
-            const rect = document.getElementById("timeline-track-wrapper").getBoundingClientRect();
+            const rect = document.getElementById("timeline-track-wrapper")?.getBoundingClientRect() || e.currentTarget.getBoundingClientRect();
             const dropY = (e.clientY || (e.changedTouches && e.changedTouches[0].clientY)) - rect.top;
             let targetMinute = Math.round(dropY / 10) * 10;
             targetMinute = Math.max(0, Math.min(1440 - target.subtask.durationMinutes, targetMinute));
-            target.subtask.endDate = appState.focusedDate;
-            target.subtask.startMinute = targetMinute;
-            saveStateToStorage();
-            renderAllComponents();
-            focusDayTimeline(appState.focusedDate);
+            target.subtask.endDate = appState.focusedDate; target.subtask.startMinute = targetMinute;
+            saveStateToStorage(); renderAllComponents(); focusDayTimeline(appState.focusedDate);
             isGlobalDragging = false;
+            stopAutoScroll();
         }
 
-        // Support dragging tasks directly to "今日任务/今日概览" columns
-        function allowDropToday(e) {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'copy';
-        }
-
+        function allowDropToday(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; }
         function dropToTodayArea(e) {
             e.preventDefault();
             const subtaskId = e.dataTransfer.getData("text/plain") || globalDraggedSubtaskId;
             const target = findSubtask(subtaskId);
-            if (target) {
-                target.subtask.endDate = TODAY_STR;
-                saveStateToStorage();
-                renderAllComponents();
-            }
+            if (target) { target.subtask.endDate = TODAY_STR; saveStateToStorage(); renderAllComponents(); }
             isGlobalDragging = false;
+            stopAutoScroll();
         }
 
         function startTimelineCardDrag(e, subtaskId) {
-            e.stopPropagation();
-            if (e.type !== 'touchstart') e.preventDefault();
-            timelineInteractionCtx.type = 'drag';
-            timelineInteractionCtx.subtaskId = subtaskId;
+            e.stopPropagation(); if (e.type !== 'touchstart') e.preventDefault();
+            timelineInteractionCtx.type = 'drag'; timelineInteractionCtx.subtaskId = subtaskId;
             timelineInteractionCtx.initialY = e.clientY || (e.touches && e.touches[0].clientY);
             const target = findSubtask(subtaskId);
             timelineInteractionCtx.initialStartMinute = target.subtask.startMinute;
-            isGlobalDragging = true;
-            hideGlobalTooltip();
-            window.addEventListener("mousemove", doTimelineResizeOrDrag);
-            window.addEventListener("mouseup", stopTimelineResizeOrDrag);
-            window.addEventListener("touchmove", doTimelineResizeOrDrag, { passive: false });
-            window.addEventListener("touchend", stopTimelineResizeOrDrag);
+            isGlobalDragging = true; hideGlobalTooltip();
+            window.addEventListener("mousemove", doTimelineResizeOrDrag); window.addEventListener("mouseup", stopTimelineResizeOrDrag);
+            window.addEventListener("touchmove", doTimelineResizeOrDrag, { passive: false }); window.addEventListener("touchend", stopTimelineResizeOrDrag);
         }
 
         function startTimelineResize(e, subtaskId) {
-            e.stopPropagation();
-            if (e.type !== 'touchstart') e.preventDefault();
-            timelineInteractionCtx.type = 'resize';
-            timelineInteractionCtx.subtaskId = subtaskId;
+            e.stopPropagation(); if (e.type !== 'touchstart') e.preventDefault();
+            timelineInteractionCtx.type = 'resize'; timelineInteractionCtx.subtaskId = subtaskId;
             timelineInteractionCtx.initialY = e.clientY || (e.touches && e.touches[0].clientY);
             const target = findSubtask(subtaskId);
             timelineInteractionCtx.initialDuration = target.subtask.durationMinutes;
-            isGlobalDragging = true;
-            hideGlobalTooltip();
-            window.addEventListener("mousemove", doTimelineResizeOrDrag);
-            window.addEventListener("mouseup", stopTimelineResizeOrDrag);
-            window.addEventListener("touchmove", doTimelineResizeOrDrag, { passive: false });
-            window.addEventListener("touchend", stopTimelineResizeOrDrag);
+            isGlobalDragging = true; hideGlobalTooltip();
+            window.addEventListener("mousemove", doTimelineResizeOrDrag); window.addEventListener("mouseup", stopTimelineResizeOrDrag);
+            window.addEventListener("touchmove", doTimelineResizeOrDrag, { passive: false }); window.addEventListener("touchend", stopTimelineResizeOrDrag);
         }
 
         function doTimelineResizeOrDrag(e) {
@@ -1150,15 +1414,10 @@
 
         function stopTimelineResizeOrDrag() {
             if (timelineInteractionCtx.type) {
-                timelineInteractionCtx.type = null;
-                timelineInteractionCtx.subtaskId = null;
-                window.removeEventListener("mousemove", doTimelineResizeOrDrag);
-                window.removeEventListener("mouseup", stopTimelineResizeOrDrag);
-                window.removeEventListener("touchmove", doTimelineResizeOrDrag);
-                window.removeEventListener("touchend", stopTimelineResizeOrDrag);
-                isGlobalDragging = false;
-                saveStateToStorage();
-                renderAllComponents();
+                timelineInteractionCtx.type = null; timelineInteractionCtx.subtaskId = null;
+                window.removeEventListener("mousemove", doTimelineResizeOrDrag); window.removeEventListener("mouseup", stopTimelineResizeOrDrag);
+                window.removeEventListener("touchmove", doTimelineResizeOrDrag); window.removeEventListener("touchend", stopTimelineResizeOrDrag);
+                isGlobalDragging = false; saveStateToStorage(); renderAllComponents();
             }
         }
 
@@ -1174,162 +1433,91 @@
             let endH = String(Math.floor(endTotal / 60)).padStart(2, '0');
             let endM = String(endTotal % 60).padStart(2, '0');
             tooltip.innerHTML = `
-                <div class="font-bold text-[var(--md-sys-color-primary)] text-sm mb-1">${target.subtask.text}</div>
+                <div class="font-bold text-[var(--md-sys-color-primary)] text-sm mb-1 flex items-center justify-between">
+                    <span>${target.subtask.text}</span>
+                    ${target.subtask.starred ? '<span class="material-symbols-outlined star-filled text-sm ml-1">grade</span>' : ''}
+                </div>
                 <div class="text-[var(--md-sys-color-on-surface-variant)] font-medium">属: ${target.batch.title}</div>
                 <div class="mt-1.5 flex gap-2"><span class="px-1.5 py-0.5 bg-black/5 dark:bg-white/10 rounded border border-[var(--md-sys-color-outline-variant)]">科: ${target.batch.subject}</span></div>
                 <div class="text-[var(--md-sys-color-outline)] font-mono mt-1.5">排程: ${target.subtask.startMinute === null ? '未分配时间' : `${startH}:${startM} - ${endH}:${endM} (${target.subtask.durationMinutes}分)`}</div>
             `;
-            tooltip.style.display = "block";
-            tooltip.style.left = `${(e.clientX || (e.touches && e.touches[0].clientX)) + 14}px`;
-            tooltip.style.top = `${(e.clientY || (e.touches && e.touches[0].clientY)) + 14}px`;
+            tooltip.style.display = "block"; tooltip.style.left = `${(e.clientX || (e.touches && e.touches[0].clientX)) + 14}px`; tooltip.style.top = `${(e.clientY || (e.touches && e.touches[0].clientY)) + 14}px`;
         }
-
         function hideGlobalTooltip() { document.getElementById("global-tooltip").style.display = "none"; }
 
         function handleContextMenu(e, type, arg1, arg2, arg3) {
-            e.preventDefault();
-            e.stopPropagation();
-            hideGlobalTooltip();
-            contextMenuCtx = { type, arg1, arg2, arg3 };
+            e.preventDefault(); e.stopPropagation(); hideGlobalTooltip(); contextMenuCtx = { type, arg1, arg2, arg3 };
             const menu = document.getElementById("custom-context-menu");
             let html = '';
-
             if (type === 'task_home' || type === 'task_drawer' || type === 'task_calendar' || type === 'task_today') {
-                const subtaskId = arg2;
-                const target = findSubtask(subtaskId);
+                const target = findSubtask(arg2);
                 const hasDate = target && !!target.subtask.endDate;
-
+                const isStarred = target && !!target.subtask.starred;
                 if (target) {
-                    html += `<button onclick="executeContextMenuAction('toggle_status')" class="w-full text-left px-3 py-2 rounded-md ${target.subtask.done ? 'hover:bg-amber-500/10 text-amber-600' : 'hover:bg-emerald-500/10 text-emerald-600'} flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm">${target.subtask.done ? 'undo' : 'check_circle'}</span>${target.subtask.done ? '取消完成' : '完成此任务'}</button>`;
+                    html += `<button onclick="executeContextMenuAction('toggle_star')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 text-amber-500 font-medium flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm ${isStarred ? 'star-filled' : 'star-outline'}">grade</span>${isStarred ? '取消星标' : '设为星标'}</button>`;
+                    html += `<button onclick="executeContextMenuAction('toggle_status')" class="w-full text-left px-3 py-2 rounded-lg ${target.subtask.done ? 'hover:bg-black/5 dark:hover:bg-white/5 text-amber-600' : 'hover:bg-black/5 dark:hover:bg-white/5 text-emerald-600'} flex items-center gap-2 font-medium transition-colors"><span class="material-symbols-outlined text-sm">${target.subtask.done ? 'undo' : 'check_circle'}</span>${target.subtask.done ? '取消完成' : '完成此任务'}</button>`;
                 }
-
-                html += `<button onclick="executeContextMenuAction('set_date')" class="w-full text-left px-3 py-2 rounded-md hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2 text-[var(--md-sys-color-on-surface)] transition-colors"><span class="material-symbols-outlined text-sm">calendar_today</span>${hasDate ? '更改日期' : '设置日期'}</button>`;
-
-                if (type !== 'task_calendar') {
-                    html += `<button onclick="executeContextMenuAction('locate_calendar')" class="w-full text-left px-3 py-2 rounded-md hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2 text-[var(--md-sys-color-on-surface)] transition-colors ${!hasDate ? 'opacity-50 cursor-not-allowed' : ''}" ${!hasDate ? 'disabled' : ''}><span class="material-symbols-outlined text-sm">explore</span>定位到日历</button>`;
-                }
-
-                html += `<button onclick="executeContextMenuAction('edit')" class="w-full text-left px-3 py-2 rounded-md hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2 text-[var(--md-sys-color-on-surface)] transition-colors"><span class="material-symbols-outlined text-sm">edit</span>编辑主任务</button>`;
-
+                html += `<button onclick="executeContextMenuAction('set_date')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2 text-[var(--md-sys-color-on-surface)] transition-colors"><span class="material-symbols-outlined text-sm">calendar_today</span>${hasDate ? '更改日期' : '设置日期'}</button>`;
+                if (type !== 'task_calendar') html += `<button onclick="executeContextMenuAction('locate_calendar')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2 text-[var(--md-sys-color-on-surface)] transition-colors ${!hasDate ? 'opacity-50 cursor-not-allowed' : ''}" ${!hasDate ? 'disabled' : ''}><span class="material-symbols-outlined text-sm">explore</span>定位到日历</button>`;
+                html += `<button onclick="executeContextMenuAction('edit')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2 text-[var(--md-sys-color-on-surface)] transition-colors"><span class="material-symbols-outlined text-sm">edit</span>编辑主任务</button>`;
                 if (type === 'task_calendar') {
-                    html += `<button onclick="executeContextMenuAction('unassign')" class="w-full text-left px-3 py-2 rounded-md hover:bg-orange-500/10 text-orange-500 flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm">event_busy</span>取消分配</button>`;
-                    html += `<button onclick="executeContextMenuAction('unassign_time')" class="w-full text-left px-3 py-2 rounded-md hover:bg-orange-500/10 text-orange-500 flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm">timer_off</span>取消具体时间</button>`;
+                    html += `<button onclick="executeContextMenuAction('unassign')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-orange-500/10 text-orange-500 flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm">event_busy</span>取消分配</button>`;
+                    html += `<button onclick="executeContextMenuAction('unassign_time')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-orange-500/10 text-orange-500 flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm">timer_off</span>取消具体时间</button>`;
                 }
                 html += `<hr class="my-1 border-[var(--md-sys-color-outline-variant)]">`;
-                html += `<button onclick="executeContextMenuAction('delete_task')" class="w-full text-left px-3 py-2 rounded-md hover:bg-red-500/10 dark:hover:bg-red-500/20 text-red-500 flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm">delete</span>删除此子任务</button>`;
+                html += `<button onclick="executeContextMenuAction('delete_task')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-red-500/10 dark:hover:bg-red-500/20 text-red-500 flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm">delete</span>删除此子任务</button>`;
             } else if (type === 'folder_main') {
-                html += `<button onclick="executeContextMenuAction('add_subtask')" class="w-full text-left px-3 py-2 rounded-md hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2 text-[var(--md-sys-color-on-surface)] transition-colors"><span class="material-symbols-outlined text-sm">add</span>添加子任务</button>`;
-                html += `<button onclick="executeContextMenuAction('delete_main')" class="w-full text-left px-3 py-2 rounded-md hover:bg-red-500/10 dark:hover:bg-red-500/20 text-red-500 flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm">delete</span>删除主任务</button>`;
+                html += `<button onclick="executeContextMenuAction('add_subtask')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2 text-[var(--md-sys-color-on-surface)] transition-colors"><span class="material-symbols-outlined text-sm">add</span>添加子任务</button>`;
+                html += `<button onclick="executeContextMenuAction('delete_main')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-red-500/10 dark:hover:bg-red-500/20 text-red-500 flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm">delete</span>删除主任务</button>`;
             } else if (type === 'folder_subject') {
-                html += `<button onclick="executeContextMenuAction('add_subject_task')" class="w-full text-left px-3 py-2 rounded-md hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2 text-[var(--md-sys-color-on-surface)] transition-colors"><span class="material-symbols-outlined text-sm">add</span>添加 [${arg1}] 任务</button>`;
-                html += `<button onclick="executeContextMenuAction('delete_subject')" class="w-full text-left px-3 py-2 rounded-md hover:bg-red-500/10 dark:hover:bg-red-500/20 text-red-500 flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm">delete</span>删除此学科</button>`;
+                html += `<button onclick="executeContextMenuAction('add_subject_task')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2 text-[var(--md-sys-color-on-surface)] transition-colors"><span class="material-symbols-outlined text-sm">add</span>添加 [${arg1}] 任务</button>`;
+                html += `<button onclick="executeContextMenuAction('delete_subject')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-red-500/10 dark:hover:bg-red-500/20 text-red-500 flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm">delete</span>删除此学科</button>`;
             } else if (type === 'folder_batch_tag') {
-                html += `<button onclick="executeContextMenuAction('remove_tag_from_batch')" class="w-full text-left px-3 py-2 rounded-md hover:bg-orange-500/10 text-orange-500 flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm">label_off</span>移除「${arg3}」标签</button>`;
+                html += `<button onclick="executeContextMenuAction('remove_tag_from_batch')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-orange-500/10 text-orange-500 flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm">label_off</span>移除「${arg3}」标签</button>`;
             } else if (type === 'folder_tag') {
-                html += `<button onclick="executeContextMenuAction('delete_tag')" class="w-full text-left px-3 py-2 rounded-md hover:bg-red-500/10 dark:hover:bg-red-500/20 text-red-500 flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm">delete</span>删除此标签</button>`;
+                html += `<button onclick="executeContextMenuAction('delete_tag')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-red-500/10 dark:hover:bg-red-500/20 text-red-500 flex items-center gap-2 transition-colors"><span class="material-symbols-outlined text-sm">delete</span>删除此标签</button>`;
             }
-
-            menu.innerHTML = html;
-            menu.style.display = "block";
-            let x = e.clientX || (e.touches && e.touches[0].clientX);
-            let y = e.clientY || (e.touches && e.touches[0].clientY);
+            menu.innerHTML = html; menu.style.display = "block";
+            let x = e.clientX || (e.touches && e.touches[0].clientX); let y = e.clientY || (e.touches && e.touches[0].clientY);
             const menuWidth = 150, menuHeight = menu.offsetHeight || 120;
             if (x + menuWidth > window.innerWidth) x -= menuWidth;
             if (y + menuHeight > window.innerHeight) y -= menuHeight;
-            menu.style.left = `${x}px`;
-            menu.style.top = `${y}px`;
+            menu.style.left = `${x}px`; menu.style.top = `${y}px`;
         }
 
         function executeContextMenuAction(action) {
             const { type, arg1, arg2, arg3 } = contextMenuCtx;
-            if (action === 'locate_calendar') {
-                const target = findSubtask(arg2);
-                if (!target || !target.subtask.endDate) return;
-                jumpToCalendar(target.subtask.endDate);
-            } else if (action === 'locate_home') {
-                switchView('home');
-                setTimeout(() => {
+            if (action === 'toggle_star') { toggleSubtaskStar(arg2); }
+            else if (action === 'locate_calendar') { const target = findSubtask(arg2); if (target && target.subtask.endDate) jumpToCalendar(target.subtask.endDate); }
+            else if (action === 'locate_home') {
+                switchView('home'); setTimeout(() => {
                     const el = document.getElementById('home-sub-' + arg2);
-                    if (el) {
-                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        el.classList.add('locate-highlight');
-                        setTimeout(() => el.classList.remove('locate-highlight'), 2000);
-                    }
+                    if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('locate-highlight'); setTimeout(() => el.classList.remove('locate-highlight'), 2000); }
                 }, 300);
-            } else if (action === 'toggle_status') {
-                toggleSubtaskStatus(arg2);
-            } else if (action === 'set_date') {
-                openDatePicker(arg2);
-            } else if (action === 'edit') { openEditTaskModal(arg1); }
-            else if (action === 'unassign') {
-                const target = findSubtask(arg2);
-                if (target) {
-                    target.subtask.endDate = null;
-                    saveStateToStorage();
-                    renderAllComponents();
-                }
-            } else if (action === 'unassign_time') {
-                const target = findSubtask(arg2);
-                if (target) {
-                    target.subtask.startMinute = null;
-                    saveStateToStorage();
-                    renderAllComponents();
-                    if (appState.calendarMode === 'week') focusDayTimeline(appState.focusedDate);
-                }
-            } else if (action === 'delete_task') {
-                const b = appState.batches.find(x => x.id === arg1);
-                if (b) {
-                    b.subtasks = b.subtasks.filter(s => s.id !== arg2);
-                    saveStateToStorage();
-                    renderAllComponents();
-                }
-            } else if (action === 'add_subtask') {
-                openEditTaskModal(arg1);
-                addChecklistItemSlot();
-                setTimeout(() => {
-                    const s = document.getElementById("form-checklist-slots");
-                    s.parentElement.scrollTop = s.parentElement.scrollHeight;
-                }, 50);
-            } else if (action === 'delete_main') {
-                appState.batches = appState.batches.filter(b => b.id !== id);
-                saveStateToStorage();
-                renderAllComponents();
-            } else if (action === 'add_subject_task') {
-                openAddTaskModal();
-                selectFormSubject(arg1);
-            } else if (action === 'delete_subject') {
-                appState.subjects = appState.subjects.filter(s => s !== arg1);
-                saveStateToStorage();
-                renderAllComponents();
-            } else if (action === 'remove_tag_from_batch') {
-                const b = appState.batches.find(x => x.id === arg1);
-                if (b) {
-                    b.tags = b.tags.filter(t => t !== arg3);
-                    saveStateToStorage();
-                    renderAllComponents();
-                }
-            } else if (action === 'delete_tag') {
-                deleteMetaAsset('tag', arg1);
             }
+            else if (action === 'toggle_status') { toggleSubtaskStatus(arg2); }
+            else if (action === 'set_date') { openMD3DatePicker(arg2); }
+            else if (action === 'edit') { openEditTaskModal(arg1); }
+            else if (action === 'unassign') { const target = findSubtask(arg2); if (target) { target.subtask.endDate = null; saveStateToStorage(); renderAllComponents(); } }
+            else if (action === 'unassign_time') { const target = findSubtask(arg2); if (target) { target.subtask.startMinute = null; saveStateToStorage(); renderAllComponents(); if (appState.calendarMode === 'week') focusDayTimeline(appState.focusedDate); } }
+            else if (action === 'delete_task') { const b = appState.batches.find(x => x.id === arg1); if (b) { b.subtasks = b.subtasks.filter(s => s.id !== arg2); saveStateToStorage(); renderAllComponents(); } }
+            else if (action === 'add_subtask') { openEditTaskModal(arg1); addChecklistItemSlot(); setTimeout(() => { const s = document.getElementById("form-checklist-slots"); s.parentElement.scrollTop = s.parentElement.scrollHeight; }, 50); }
+            else if (action === 'delete_main') { appState.batches = appState.batches.filter(b => b.id !== arg1); saveStateToStorage(); renderAllComponents(); }
+            else if (action === 'add_subject_task') { openAddTaskModal(); selectFormSubject(arg1); }
+            else if (action === 'delete_subject') { appState.subjects = appState.subjects.filter(s => s !== arg1); saveStateToStorage(); renderAllComponents(); }
+            else if (action === 'remove_tag_from_batch') { const b = appState.batches.find(x => x.id === arg1); if (b) { b.tags = b.tags.filter(t => t !== arg3); saveStateToStorage(); renderAllComponents(); } }
+            else if (action === 'delete_tag') { deleteMetaAsset('tag', arg1); }
         }
 
-        function executeContextMenuActionObj(type, arg1, arg2, action) {
-            contextMenuCtx = { type, arg1, arg2, arg3: null };
-            executeContextMenuAction(action);
-        }
+        function executeContextMenuActionObj(type, arg1, arg2, action) { contextMenuCtx = { type, arg1, arg2, arg3: null }; executeContextMenuAction(action); }
 
-        // Global deep search supporting multiple criteria
         function handleDrawerSearch(val) {
             clearTimeout(drawerSearchTimer);
             drawerSearchTimer = setTimeout(() => {
                 const query = val.trim().toLowerCase();
                 const resultsContainer = document.getElementById('drawer-search-results');
                 const countContainer = document.getElementById('drawer-search-count');
-                if (!query) {
-                    resultsContainer.classList.add('hidden');
-                    countContainer.innerText = '';
-                    return;
-                }
+                if (!query) { resultsContainer.classList.add('hidden'); countContainer.innerText = ''; return; }
                 const keywords = query.split(/\s+/).filter(k => k);
                 let results = [];
                 appState.batches.forEach(b => {
@@ -1337,9 +1525,7 @@
                         const tagsStr = b.tags.join(' ');
                         const dateStr = s.endDate || '待排程';
                         const textToSearch = (b.title + ' ' + b.content + ' ' + b.subject + ' ' + s.text + ' ' + tagsStr + ' ' + dateStr).toLowerCase();
-                        if (keywords.every(k => textToSearch.includes(k))) {
-                            results.push({ batch: b, subtask: s, matchedKeyword: keywords[0] });
-                        }
+                        if (keywords.every(k => textToSearch.includes(k))) results.push({ batch: b, subtask: s, matchedKeyword: keywords[0] });
                     });
                 });
                 countContainer.innerText = results.length;
@@ -1347,29 +1533,20 @@
                     resultsContainer.innerHTML = results.map(r => `
                         <div class="p-2.5 border-b border-[var(--md-sys-color-outline-variant)] last:border-0 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors" onclick="locateDrawerSearchResult('${r.subtask.id}', '${r.matchedKeyword}')">
                             <div class="text-[10px] font-bold text-[var(--md-sys-color-primary)] flex items-center justify-between">
-                                <span>${r.batch.title}</span>
-                                <span class="opacity-70 font-mono text-[9px]">${r.subtask.endDate || '未分配'}</span>
+                                <span>${r.batch.title}</span><span class="opacity-70 font-mono text-[9px]">${r.subtask.endDate || '未分配'}</span>
                             </div>
                             <div class="text-xs text-[var(--md-sys-color-on-surface)] truncate mt-0.5">${r.subtask.text}</div>
-                        </div>
-                    `).join('');
-                    resultsContainer.classList.remove('hidden');
-                    resultsContainer.classList.add('flex');
-                } else {
-                    resultsContainer.classList.add('hidden');
-                    resultsContainer.classList.remove('flex');
-                }
+                        </div>`).join('');
+                    resultsContainer.classList.remove('hidden'); resultsContainer.classList.add('flex');
+                } else { resultsContainer.classList.add('hidden'); resultsContainer.classList.remove('flex'); }
             }, 200);
         }
 
-        function locateDrawerSearchResult(subtaskId, keyword) {
+        function locateDrawerSearchResult(subtaskId, keyword = '') {
             document.getElementById('drawer-search-input').value = '';
             document.getElementById('drawer-search-results').classList.add('hidden');
             document.getElementById('drawer-search-count').innerText = '';
-
-            // Switch to default classification (group) first, then expand/locate as requested
-            changeDrawerArrange('group');
-
+            changeDrawerArrange('starred');
             const drawer = document.getElementById('task-drawer');
             drawer.classList.remove('collapsed');
             document.getElementById('drawer-restore-btn').classList.add('hidden');
@@ -1408,53 +1585,31 @@
                 const color = document.getElementById("drawer-quick-color").value;
                 appState.tags.push({ name: value, color: color });
             }
-            input.value = "";
-            saveStateToStorage();
-            renderAllComponents();
+            input.value = ""; saveStateToStorage(); renderAllComponents();
         }
 
         function checkDragCompatibility(subtaskId, targetArrange, dropValue) {
             if (!subtaskId) return true;
             const task = findSubtask(subtaskId);
             if (!task) return true;
-            if (targetArrange === 'group') {
-                // Must be belonging to the same master batch
-                return task.batch.title === dropValue;
-            }
-            if (targetArrange === 'subject') {
-                // Must be belonging to the same subject batch
-                return task.batch.subject === dropValue;
-            }
+            if (targetArrange === 'group') return task.batch.title === dropValue;
+            if (targetArrange === 'subject') return task.batch.subject === dropValue;
             return true;
         }
 
         function dropToMetaCategory(e, dimension, value, element) {
-            e.preventDefault();
-            element.classList.remove("meta-drop-hover");
+            e.preventDefault(); element.classList.remove("meta-drop-hover");
             const subtaskId = e.dataTransfer.getData("text/plain") || globalDraggedSubtaskId;
-            if (!subtaskId) return;
-
-            const isComp = checkDragCompatibility(subtaskId, dimension, value);
-            if (!isComp) {
-                isGlobalDragging = false;
-                return;
-            }
-
+            if (!subtaskId || !checkDragCompatibility(subtaskId, dimension, value)) { isGlobalDragging = false; return; }
             const target = findSubtask(subtaskId);
             if (!target) return;
-
-            if (dimension === 'tag') {
-                if (!target.batch.tags.includes(value)) {
-                    target.batch.tags.push(value);
-                }
-            } else if (dimension === 'time') {
+            if (dimension === 'tag') { if (!target.batch.tags.includes(value)) target.batch.tags.push(value); }
+            else if (dimension === 'time') {
                 if (value === '待排程') { target.subtask.endDate = null; }
                 else if (value && /^\d{4}-\d{2}-\d{2}$/.test(value)) { target.subtask.endDate = value; }
-                else { return; }
+                else return;
             }
-            saveStateToStorage();
-            renderAllComponents();
-            isGlobalDragging = false;
+            saveStateToStorage(); renderAllComponents(); isGlobalDragging = false;
         }
 
         function toggleFolder(el) {
@@ -1466,20 +1621,11 @@
             if (folderId) drawerFolderStates[folderId] = isNowOpen;
         }
 
-        // Collapse sibling folders on drag hover with type-safety check (cursor turns into forbid for non-compatible elements)
         function handleFolderDragOver(e, folderId, folderCategory, dropValue) {
             e.preventDefault();
             const subtaskId = e.dataTransfer.getData("text/plain") || globalDraggedSubtaskId;
-            if (!subtaskId) return;
-
-            const isComp = checkDragCompatibility(subtaskId, folderCategory, dropValue);
-            if (!isComp) {
-                e.dataTransfer.dropEffect = 'none'; // Shows "not-allowed" cursor sign dynamically
-                return;
-            }
+            if (!subtaskId || !checkDragCompatibility(subtaskId, folderCategory, dropValue)) { e.dataTransfer.dropEffect = 'none'; return; }
             e.dataTransfer.dropEffect = 'move';
-
-            // Collapse siblings
             const selfHeader = document.querySelector(`[data-folder-id="${folderId}"]`);
             if (selfHeader) {
                 const parentBox = selfHeader.closest('.target-inner') || document.getElementById('drawer-task-container');
@@ -1505,7 +1651,6 @@
             const timeTodayId = `time_d_${TODAY_STR}`;
             const targetFolder = document.querySelector(`[data-folder-id="${timeTodayId}"]`);
             if (targetFolder) {
-                // Ensure ancestors are expanded
                 let parent = targetFolder.parentElement;
                 while (parent && parent.id !== 'drawer-task-container') {
                     if (parent.classList.contains('folder-content')) {
@@ -1523,33 +1668,21 @@
                 targetFolder.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 targetFolder.classList.add('locate-highlight');
                 setTimeout(() => targetFolder.classList.remove('locate-highlight'), 2000);
-            } else {
-                alert("今日无安排");
-            }
+            } else { alert("今日无安排"); }
         }
 
         function renderLeftDrawerPool() {
             const container = document.getElementById("drawer-task-container");
             container.innerHTML = "";
             const currentMode = appState.currentDrawerArrange;
-
-            // Handle bottom locator today button visibility
             const locatorContainer = document.getElementById('drawer-today-locator-container');
-            if (currentMode === 'time') {
-                locatorContainer.classList.remove('hidden');
-                locatorContainer.classList.add('flex');
-            } else {
-                locatorContainer.classList.remove('flex');
-                locatorContainer.classList.add('hidden');
-            }
+            if (currentMode === 'time') { locatorContainer.classList.remove('hidden'); locatorContainer.classList.add('flex'); }
+            else { locatorContainer.classList.remove('flex'); locatorContainer.classList.add('hidden'); }
 
-            // Standard folders have no color gradients now, keeping a uniform high-end MD3 style
             function createFolderDom(title, dropValue = null, contextMenuAttr = '', extraHtml = '', iconColor = 'var(--md-sys-color-primary)', folderId = '') {
                 const wrapper = document.createElement("div");
                 wrapper.className = "flex flex-col rounded-xl mb-0.5 transition-colors border border-transparent w-full";
-                let counter = 0;
-                let dragExpandTimer;
-
+                let counter = 0; let dragExpandTimer;
                 wrapper.addEventListener("dragenter", (e) => {
                     e.preventDefault(); e.stopPropagation(); counter++;
                     if (counter === 1) {
@@ -1565,18 +1698,11 @@
                         }
                     }
                 });
-                wrapper.addEventListener("dragleave", (e) => {
-                    e.stopPropagation(); counter--;
-                    if (counter === 0) { wrapper.classList.remove("meta-drop-hover"); clearTimeout(dragExpandTimer); }
-                });
-                wrapper.addEventListener("dragover", (e) => {
-                    handleFolderDragOver(e, folderId, currentMode, dropValue);
-                });
+                wrapper.addEventListener("dragleave", (e) => { e.stopPropagation(); counter--; if (counter === 0) { wrapper.classList.remove("meta-drop-hover"); clearTimeout(dragExpandTimer); } });
+                wrapper.addEventListener("dragover", (e) => { handleFolderDragOver(e, folderId, currentMode, dropValue); });
                 wrapper.addEventListener("drop", (e) => {
                     e.stopPropagation(); counter = 0; wrapper.classList.remove("meta-drop-hover"); clearTimeout(dragExpandTimer);
-                    if (dropValue !== null && dropValue !== 'group_disabled' && dropValue !== 'subject_disabled') {
-                        dropToMetaCategory(e, currentMode, dropValue, wrapper);
-                    }
+                    if (dropValue !== null && dropValue !== 'group_disabled' && dropValue !== 'subject_disabled') dropToMetaCategory(e, currentMode, dropValue, wrapper);
                 });
 
                 const isOpen = drawerFolderStates[folderId];
@@ -1588,13 +1714,23 @@
                         </div>
                         <div class="flex items-center gap-0.5 flex-shrink-0 text-[var(--md-sys-color-on-surface)]">${extraHtml}</div>
                     </div>
-                    <!-- Guided lines styled precisely without applying parent opacity to prevent folder content fading -->
                     <div class="folder-content ${isOpen ? 'open' : ''}"><div class="folder-inner"><div class="flex flex-col gap-1 px-1 pb-1 pt-0.5 target-inner" style="margin-left: 14px; border-left: 1px solid var(--md-sys-color-outline-variant); padding-left: 8px;"></div></div></div>
                 `;
                 return wrapper;
             }
 
             const standardFolderColor = 'var(--md-sys-color-primary)';
+            if (currentMode === 'starred') {
+                const starredItems = [];
+                appState.batches.forEach(b => { b.subtasks.forEach(s => { if (s.starred) starredItems.push({ batch: b, subtask: s }); }); });
+                const folderId = 'starred_all_tasks';
+                if (drawerFolderStates[folderId] === undefined) drawerFolderStates[folderId] = true;
+                const folder = createFolderDom(`重要任务 <span class="text-[10px] font-normal text-[var(--md-sys-color-outline)] ml-1">(${starredItems.length})</span>`, null, '', '', 'var(--md-sys-color-gold)', folderId);
+                const inner = folder.querySelector('.target-inner');
+                if (starredItems.length === 0) inner.innerHTML = `<div class="text-[10px] text-[var(--md-sys-color-outline)] p-3 text-center border border-dashed rounded-lg border-[var(--md-sys-color-outline-variant)]">暂无星标重要任务<br/>鼠标悬浮在任务上点击 ☆ 即可设为重要</div>`;
+                else starredItems.forEach(item => { renderDrawerTask(item, '重要', inner); });
+                container.appendChild(folder); return;
+            }
 
             if (currentMode === 'time') {
                 const timeTree = { unassigned: [], years: {} };
@@ -1618,7 +1754,6 @@
                     timeTree.unassigned.forEach(item => renderDrawerTask(item, '待排程', unassignedFolder.querySelector('.target-inner')));
                     container.appendChild(unassignedFolder);
                 }
-
                 Object.keys(timeTree.years).sort((a, b) => b - a).forEach(y => {
                     const yFolder = createFolderDom(`${y}年`, null, '', '', standardFolderColor, `time_y_${y}`);
                     Object.keys(timeTree.years[y]).sort((a, b) => b - a).forEach(m => {
@@ -1659,15 +1794,13 @@
 
                 let folderContextAttr = '', hoverAddHtml = '', delHtml = '', dropVal = catName;
                 if (currentMode === 'group') {
-                    dropVal = 'group_disabled';
-                    const batch = appState.batches.find(b => b.title === catName);
+                    dropVal = 'group_disabled'; const batch = appState.batches.find(b => b.title === catName);
                     if (batch) {
                         folderContextAttr = `oncontextmenu="handleContextMenu(event, 'folder_main', '${batch.id}')"`;
                         hoverAddHtml = `<button onclick="event.stopPropagation(); executeContextMenuActionObj('folder_main', '${batch.id}', null, 'add_subtask')" class="opacity-0 group-hover:opacity-100 text-[var(--md-sys-color-outline)] hover:text-[var(--md-sys-color-primary)] transition-opacity p-0.5"><span class="material-symbols-outlined text-sm">add</span></button>`;
                     }
                 } else if (currentMode === 'subject') {
-                    dropVal = 'subject_disabled';
-                    folderContextAttr = `oncontextmenu="handleContextMenu(event, 'folder_subject', '${catName}')"`;
+                    dropVal = 'subject_disabled'; folderContextAttr = `oncontextmenu="handleContextMenu(event, 'folder_subject', '${catName}')"`;
                     hoverAddHtml = `<button onclick="event.stopPropagation(); executeContextMenuActionObj('folder_subject', '${catName}', null, 'add_subject_task')" class="opacity-0 group-hover:opacity-100 text-[var(--md-sys-color-outline)] hover:text-[var(--md-sys-color-primary)] transition-opacity p-0.5"><span class="material-symbols-outlined text-sm">add</span></button>`;
                     delHtml = `<button onclick="event.stopPropagation(); deleteMetaAsset('${currentMode}', '${catName}')" class="opacity-0 group-hover:opacity-100 text-[var(--md-sys-color-outline)] hover:text-red-500 transition-opacity p-0.5"><span class="material-symbols-outlined text-sm">delete</span></button>`;
                 } else if (currentMode === 'tag') {
@@ -1675,14 +1808,8 @@
                     delHtml = `<button onclick="event.stopPropagation(); deleteMetaAsset('${currentMode}', '${catName}')" class="opacity-0 group-hover:opacity-100 text-[var(--md-sys-color-outline)] hover:text-red-500 transition-opacity p-0.5"><span class="material-symbols-outlined text-sm">delete</span></button>`;
                 }
 
-                // Fix: When arranged by tag, folders adopt custom tag color, otherwise standard primary color is used.
                 let folderIconColor = standardFolderColor;
-                if (currentMode === 'tag') {
-                    const tagObj = appState.tags.find(t => t.name === catName);
-                    if (tagObj) {
-                        folderIconColor = tagObj.color;
-                    }
-                }
+                if (currentMode === 'tag') { const tagObj = appState.tags.find(t => t.name === catName); if (tagObj) folderIconColor = tagObj.color; }
 
                 const catFolderId = `${currentMode}_${catName.replace(/<[^>]*>?/gm, '')}`;
                 const wrapper = createFolderDom(`${catName} <span class="text-[10px] font-normal text-[var(--md-sys-color-outline)] ml-1">(${matchingItems.length})</span>`, dropVal, folderContextAttr, hoverAddHtml + delHtml, folderIconColor, catFolderId);
@@ -1690,9 +1817,8 @@
 
                 if (matchingItems.length === 0) innerContainer.innerHTML = `<div class="text-[10px] text-[var(--md-sys-color-outline)] p-2 text-center border border-dashed rounded-lg border-[var(--md-sys-color-outline-variant)]">空</div>`;
                 else {
-                    if (currentMode === 'group') {
-                        matchingItems.forEach(item => { renderDrawerTask(item, catName, innerContainer); });
-                    } else {
+                    if (currentMode === 'group') { matchingItems.forEach(item => { renderDrawerTask(item, catName, innerContainer); }); }
+                    else {
                         const batchMap = new Map();
                         matchingItems.forEach(item => {
                             if (!batchMap.has(item.batch.id)) batchMap.set(item.batch.id, { batch: item.batch, subtasks: [] });
@@ -1702,9 +1828,7 @@
                             let subCtxAttr = currentMode === 'tag' ? `oncontextmenu="handleContextMenu(event, 'folder_batch_tag', '${data.batch.id}', null, '${catName}')"` : `oncontextmenu="handleContextMenu(event, 'folder_main', '${data.batch.id}')"`;
                             const subFolderId = `${currentMode}_${catName}_${data.batch.id}`;
                             const subFolder = createFolderDom(data.batch.title, null, subCtxAttr, '', folderIconColor, subFolderId);
-                            data.subtasks.forEach(sub => {
-                                renderDrawerTask({ batch: data.batch, subtask: sub }, catName, subFolder.querySelector('.target-inner'));
-                            });
+                            data.subtasks.forEach(sub => { renderDrawerTask({ batch: data.batch, subtask: sub }, catName, subFolder.querySelector('.target-inner')); });
                             innerContainer.appendChild(subFolder);
                         });
                     }
@@ -1716,16 +1840,12 @@
         function renderDrawerTask(item, catName, container) {
             const { batch, subtask } = item;
             const taskEl = document.createElement("div");
-            taskEl.className = `p-2 rounded-lg border flex flex-col gap-1 bg-[var(--md-sys-color-surface-container-highest)] border-[var(--md-sys-color-outline-variant)] cursor-grab active:cursor-grabbing hover:shadow-sm transition-shadow ${subtask.done ? 'opacity-50 saturate-50 line-through' : ''}`;
-            taskEl.setAttribute("draggable", "true");
-            taskEl.setAttribute("data-subtask-id", subtask.id);
+            taskEl.className = `group/item p-2 rounded-lg border flex flex-col gap-1 bg-[var(--md-sys-color-surface-container-highest)] border-[var(--md-sys-color-outline-variant)] cursor-grab active:cursor-grabbing hover:shadow-sm transition-shadow ${subtask.done ? 'opacity-50 saturate-50 line-through' : ''}`;
+            taskEl.setAttribute("draggable", "true"); taskEl.setAttribute("data-subtask-id", subtask.id);
             taskEl.addEventListener("dragstart", (e) => handleSubtaskDragStart(e, subtask.id));
             let timer;
-            taskEl.addEventListener("touchstart", (e) => {
-                timer = setTimeout(() => handleContextMenu(e, 'task_drawer', batch.id, subtask.id, catName), 500);
-            });
-            taskEl.addEventListener("touchend", () => clearTimeout(timer));
-            taskEl.addEventListener("touchmove", () => clearTimeout(timer));
+            taskEl.addEventListener("touchstart", (e) => { timer = setTimeout(() => handleContextMenu(e, 'task_drawer', batch.id, subtask.id, catName), 500); });
+            taskEl.addEventListener("touchend", () => clearTimeout(timer)); taskEl.addEventListener("touchmove", () => clearTimeout(timer));
             taskEl.addEventListener("contextmenu", (e) => handleContextMenu(e, 'task_drawer', batch.id, subtask.id, catName));
 
             taskEl.addEventListener("click", () => {
@@ -1738,15 +1858,20 @@
                 } else if (subtask.endDate) { jumpToCalendar(subtask.endDate); }
             });
 
+            const starIconClass = subtask.starred ? 'star-filled opacity-100' : 'star-outline opacity-0 group-hover/item:opacity-100 hover:text-amber-500';
             taskEl.innerHTML = `
                 <div class="flex justify-between items-center text-[9px]">
                     <span class="font-bold px-1.5 rounded shadow-sm" style="background-color:${subjectColors[batch.subject]?.bg || '#E0E0E0'}; color:${subjectColors[batch.subject]?.text || '#333'};">${batch.subject}</span>
                     <span class="text-[var(--md-sys-color-outline)] font-mono">${subtask.endDate ? subtask.endDate.substring(5) : '待排程'}</span>
                 </div>
-                <div class="text-xs font-bold truncate text-[var(--md-sys-color-on-surface)]" title="${subtask.text}">${subtask.text}</div>
+                <div class="flex items-end justify-between gap-1 mt-0.5">
+                    <div class="text-xs font-bold truncate text-[var(--md-sys-color-on-surface)] flex-1 min-w-0" title="${subtask.text}">${subtask.text}</div>
+                    <button onclick="toggleSubtaskStar('${subtask.id}', event, this)" class="text-[16px] flex items-center justify-center transition-all p-0.5 rounded-full hover:bg-amber-500/10 flex-shrink-0 self-end"><span class="material-symbols-outlined text-[16px] ${starIconClass}">grade</span></button>
+                </div>
             `;
             container.appendChild(taskEl);
         }
+
 
         function deleteMetaAsset(dimension, itemValue) {
             if (dimension === 'subject') appState.subjects = appState.subjects.filter(s => s !== itemValue);
@@ -1775,6 +1900,7 @@
             renderLeftDrawerPool();
         }
 
+
         function renderHomeChecklist() {
             const container = document.getElementById("home-checklist-container");
             container.innerHTML = "";
@@ -1790,12 +1916,18 @@
                 return;
             }
             filteredBatches.forEach(batch => {
+                let totalW = 0, doneW = 0;
+                batch.subtasks.forEach(s => { const w = s.weight || 1; totalW += w; if (s.done) doneW += w; });
+                const taskPct = totalW === 0 ? 0 : Math.round((doneW / totalW) * 100);
+
                 const box = document.createElement("div");
                 box.className = "p-4 md:p-5 rounded-2xl flex flex-col gap-3 border shadow-sm bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)] hover:shadow-md transition-shadow";
+
                 let tagsHtml = batch.tags.map(tagName => {
                     const tObj = appState.tags.find(t => t.name === tagName);
                     return `<span class="text-[9px] px-1.5 py-0.5 rounded-full text-white font-bold shadow-sm" style="background-color: ${tObj?.color || '#6750A4'};">${tagName}</span>`;
                 }).join('');
+
                 box.innerHTML = `
                     <div class="flex justify-between items-start gap-2">
                         <div class="flex items-center flex-wrap gap-2 flex-1">
@@ -1808,38 +1940,49 @@
                             <button onclick="deleteEntireBatch('${batch.id}')" class="w-8 h-8 rounded-full flex items-center justify-center text-[var(--md-sys-color-outline)] hover:text-red-500 hover:bg-red-500/10 transition-colors"><span class="material-symbols-outlined text-[20px]">delete_sweep</span></button>
                         </div>
                     </div>
-                    <p class="text-[11px] md:text-xs text-[var(--md-sys-color-on-surface-variant)] mb-1 pl-1 border-l-2 border-[var(--md-sys-color-outline-variant)]">${batch.content}</p>
+                    <p class="text-[11px] md:text-xs text-[var(--md-sys-color-on-surface-variant)] border-l-2 border-[var(--md-sys-color-outline-variant)] pl-2">${batch.content}</p>
+                    <div class="flex flex-col gap-1 my-0.5">
+                        <div class="flex justify-between items-center text-[10px] font-bold text-[var(--md-sys-color-on-surface-variant)]">
+                            <span>任务进度</span><span class="font-mono text-[var(--md-sys-color-primary)]">${doneW}/${totalW} (${taskPct}%)</span>
+                        </div>
+                        <div class="w-full h-1.5 rounded-full bg-[var(--md-sys-color-surface-variant)] overflow-hidden">
+                            <div class="h-full rounded-full bg-[var(--md-sys-color-primary)] transition-all duration-500 ease-out" style="width: ${taskPct}%;"></div>
+                        </div>
+                    </div>
                     <div class="subtask-list-zone flex flex-col gap-1.5 pt-2 border-t border-dashed border-[var(--md-sys-color-outline-variant)]"></div>
                 `;
+
                 const subContainer = box.querySelector(".subtask-list-zone");
                 batch.subtasks.forEach(sub => {
                     const subRow = document.createElement("div");
                     subRow.id = `home-sub-${sub.id}`;
-                    subRow.className = "flex items-center justify-between p-2.5 rounded-xl bg-[var(--md-sys-color-surface-container-low)] border border-transparent text-xs cursor-grab active:cursor-grabbing hover:bg-[var(--md-sys-color-surface-container-high)] hover:border-[var(--md-sys-color-outline-variant)] transition-all";
+                    subRow.className = "group/sub flex items-center justify-between p-2.5 rounded-xl bg-[var(--md-sys-color-surface-container-low)] border border-transparent text-xs cursor-grab active:cursor-grabbing hover:bg-[var(--md-sys-color-surface-container-high)] hover:border-[var(--md-sys-color-outline-variant)] transition-all";
                     subRow.setAttribute("draggable", "true");
-
                     subRow.addEventListener("dragstart", (e) => handleSubtaskDragStart(e, sub.id));
                     let timer;
                     subRow.addEventListener("touchstart", (e) => { timer = setTimeout(() => handleContextMenu(e, 'task_home', batch.id, sub.id), 500); });
-                    subRow.addEventListener("touchend", () => clearTimeout(timer));
-                    subRow.addEventListener("touchmove", () => clearTimeout(timer));
+                    subRow.addEventListener("touchend", () => clearTimeout(timer)); subRow.addEventListener("touchmove", () => clearTimeout(timer));
                     subRow.addEventListener("contextmenu", (e) => handleContextMenu(e, 'task_home', batch.id, sub.id));
                     subRow.addEventListener("click", (e) => {
                         if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'button' || e.target.closest('button')) return;
-                        // Auto detect best category on navigation trigger
-                        const query = document.getElementById('global-search').value.trim();
-                        expandToDrawerTask(sub.id, query);
+                        expandToDrawerTask(sub.id, document.getElementById('global-search').value.trim());
                     });
 
+                    const starIconClass = sub.starred ? 'star-filled opacity-100' : 'star-outline opacity-0 group-hover/sub:opacity-100 hover:text-amber-500';
                     subRow.innerHTML = `
-                        <label class="flex items-center gap-3 cursor-pointer flex-1 overflow-hidden">
+                        <label class="flex items-center gap-2 cursor-pointer flex-1 overflow-hidden min-w-0">
                             <div class="relative flex items-center justify-center flex-shrink-0">
                                 <input type="checkbox" ${sub.done ? 'checked' : ''} onchange="toggleSubtaskStatus('${sub.id}')" class="w-4 h-4 appearance-none rounded border-2 border-[var(--md-sys-color-outline)] checked:border-[var(--md-sys-color-primary)] checked:bg-[var(--md-sys-color-primary)] transition-colors peer" onclick="event.stopPropagation()"/>
                                 <span class="material-symbols-outlined text-[14px] text-white absolute opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity font-bold">check</span>
                             </div>
                             <span class="font-medium truncate text-[var(--md-sys-color-on-surface)] transition-all ${sub.done ? 'line-through opacity-50 saturate-50' : ''}">${sub.text}</span>
                         </label>
-                        <button onclick="openDatePicker('${sub.id}', event)" class="text-[10px] flex-shrink-0 ml-2 text-[var(--md-sys-color-on-secondary-container)] font-mono font-bold bg-[var(--md-sys-color-secondary-container)] hover:brightness-110 px-2 py-1 rounded-lg transition-all md-ripple">${sub.endDate ? sub.endDate : '设置日期'}</button>
+                        <div class="flex items-center gap-1.5 flex-shrink-0 ml-2">
+                            <button type="button" onclick="toggleSubtaskStar('${sub.id}', event, this)" class="text-[18px] flex items-center justify-center transition-all p-0.5 rounded-full hover:bg-amber-500/10">
+                                <span class="material-symbols-outlined text-[18px] ${starIconClass}">grade</span>
+                            </button>
+                            <button type="button" data-date-chip="true" onclick="openDateQuickMenu('${sub.id}', event)" class="text-[10px] text-[var(--md-sys-color-on-secondary-container)] font-mono font-bold bg-[var(--md-sys-color-secondary-container)] hover:brightness-110 px-2 py-1 rounded-lg transition-all md-ripple">${sub.endDate ? sub.endDate : '设置日期'}</button>
+                        </div>
                     `;
                     subContainer.appendChild(subRow);
                 });
@@ -1847,55 +1990,14 @@
             });
         }
 
+
         function getWeekNumberInMonth(dateStr) {
             const d = new Date(dateStr);
             const firstDay = new Date(d.getFullYear(), d.getMonth(), 1);
             const pastDays = d.getDate() + (firstDay.getDay() === 0 ? 7 : firstDay.getDay()) - 1;
             return Math.ceil(pastDays / 7);
         }
-
-        function getDatesForWeek(dateStr) {
-            const d = new Date(dateStr);
-            let day = d.getDay();
-            if (day === 0) day = 7;
-            d.setDate(d.getDate() - day + 1);
-            const dates = [];
-            for (let i = 0; i < 7; i++) {
-                dates.push(new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0]);
-                d.setDate(d.getDate() + 1);
-            }
-            return dates;
-        }
-
-        function switchCalendarDate(dir) {
-            if (appState.calendarMode === 'month') {
-                appState.calendarMonth += dir;
-                if (appState.calendarMonth > 12) { appState.calendarMonth = 1; appState.calendarYear++; }
-                if (appState.calendarMonth < 1) { appState.calendarMonth = 12; appState.calendarYear--; }
-                appState.focusedDate = `${appState.calendarYear}-${String(appState.calendarMonth).padStart(2, '0')}-01`;
-                renderCalendarWorkspace();
-            } else {
-                // Instantly slide via programmed triggers
-                const track = document.getElementById('slider-track');
-                if (track) {
-                    track.style.transition = 'transform 0.25s cubic-bezier(0.2, 0, 0, 1)';
-                    const targetPercent = dir === 1 ? -66.6666 : 0;
-                    track.style.transform = `translateX(${targetPercent}%)`;
-                    setTimeout(() => {
-                        const d = new Date(appState.focusedDate);
-                        d.setDate(d.getDate() + dir * 7);
-                        appState.focusedDate = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
-                        appState.calendarMonth = d.getMonth() + 1;
-                        appState.calendarYear = d.getFullYear();
-
-                        track.style.transition = 'none';
-                        track.style.transform = `translateX(-33.3333%)`;
-                        renderCalendarWorkspace();
-                    }, 250);
-                }
-            }
-        }
-
+        
         function switchCalendarMode(mode) {
             appState.calendarMode = mode;
             const activeClass = 'px-3 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] transition-all';
@@ -1904,134 +2006,36 @@
             document.getElementById("view-mode-month").className = mode === 'month' ? activeClass : inactiveClass;
             document.getElementById("view-mode-week").className = mode === 'week' ? activeClass : inactiveClass;
 
-            const calViewWrapper = document.getElementById("calendar-month-view-wrapper");
+            const monthWrapper = document.getElementById("calendar-month-view-wrapper");
+            const weekWrapper = document.getElementById("calendar-week-view-wrapper");
             const tlPane = document.getElementById("calendar-timeline-pane");
 
-            calViewWrapper.classList.add("hidden");
-            tlPane.classList.add("hidden");
+            monthWrapper.classList.add("hidden"); weekWrapper.classList.add("hidden"); tlPane.classList.add("hidden");
 
             if (mode === 'week') {
-                calViewWrapper.classList.remove("hidden");
-                calViewWrapper.style.height = "auto";
+                weekWrapper.classList.remove("hidden");
                 tlPane.classList.remove("hidden");
                 focusDayTimeline(appState.focusedDate);
+                scrollToDate(appState.focusedDate, 'week');
             } else if (mode === 'month') {
-                calViewWrapper.classList.remove("hidden");
-                calViewWrapper.style.height = "100%";
+                monthWrapper.classList.remove("hidden");
+                scrollToDate(appState.focusedDate, 'month');
             }
-            renderCalendarWorkspace();
+            updateCalendarTaskRendering();
         }
 
-        function renderCalendarWorkspace() {
-            const grid = document.getElementById("month-grid-container");
-            grid.innerHTML = "";
-            grid.className = `calendar-grid flex-1 w-full text-xs transition-all ${appState.calendarMode === 'week' ? 'calendar-grid-week' : 'calendar-grid-month'}`;
-            const titleEl = document.getElementById("calendar-month-title");
-            titleEl.innerText = `${appState.calendarYear}年 ${appState.calendarMonth}月`;
-
-            const weeks = ["一", "二", "三", "四", "五", "六", "日"];
-            weeks.forEach(w => {
-                grid.insertAdjacentHTML('beforeend', `<div class="text-center font-bold py-1.5 md:py-2 border-b border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface-variant)]">${w}</div>`);
-            });
-
-            let daysToRender = [];
-            if (appState.calendarMode === 'month') {
-                const firstDay = new Date(appState.calendarYear, appState.calendarMonth - 1, 1).getDay();
-                const startOffset = firstDay === 0 ? 7 : firstDay;
-                const totalDays = new Date(appState.calendarYear, appState.calendarMonth, 0).getDate();
-                for (let i = startOffset - 1; i > 0; i--) daysToRender.push(null);
-                for (let day = 1; day <= totalDays; day++) daysToRender.push(`${appState.calendarYear}-${String(appState.calendarMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
-                while (daysToRender.length < 42) daysToRender.push(null);
-            } else { daysToRender = getDatesForWeek(appState.focusedDate); }
-
-            daysToRender.forEach(finalDateStr => {
-                const cell = document.createElement("div");
-                if (!finalDateStr) {
-                    cell.className = "p-1 bg-[var(--md-sys-color-surface-container-highest)] border-r border-b border-[var(--md-sys-color-outline-variant)] min-h-[40px] md:min-h-[60px] opacity-40";
-                    grid.appendChild(cell); return;
-                }
-                const isToday = finalDateStr === TODAY_STR;
-                const isFocused = finalDateStr === appState.focusedDate;
-                const dayNum = parseInt(finalDateStr.split('-')[2]);
-                cell.className = `p-1 border-r border-b border-[var(--md-sys-color-outline-variant)] flex flex-col gap-1 hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors min-h-[50px] md:min-h-[60px] relative ${isFocused && appState.calendarMode === 'week' ? 'bg-[var(--md-sys-color-secondary-container)]/40 shadow-inner' : ''}`;
-                cell.setAttribute("data-date", finalDateStr);
-                cell.innerHTML = `
-                    <div class="flex justify-between items-center px-1 pt-0.5 md:pt-1 flex-shrink-0">
-                        <span class="w-1.5 h-1.5 rounded-full ${isFocused && appState.calendarMode === 'week' ? 'bg-[var(--md-sys-color-primary)]' : 'bg-transparent'}"></span>
-                        <span class="w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center font-black text-[10px] md:text-[11px] ${isToday ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md' : 'text-[var(--md-sys-color-on-surface-variant)]'}">${dayNum}</span>
-                    </div>
-                `;
-                let counter = 0;
-                cell.addEventListener("dragenter", (e) => { e.preventDefault(); counter++; if (counter === 1) cell.classList.add("drag-hover"); });
-                cell.addEventListener("dragleave", () => { counter--; if (counter === 0) cell.classList.remove("drag-hover"); });
-                cell.addEventListener("drop", (e) => { counter = 0; cell.classList.remove("drag-hover"); dropToCalendarCell(e, finalDateStr, cell); });
-                cell.addEventListener("dragover", allowDrop);
-                cell.addEventListener("click", () => {
-                    appState.focusedDate = finalDateStr;
-                    if (appState.calendarMode === 'month') switchCalendarMode('week');
-                    else { renderCalendarWorkspace(); focusDayTimeline(finalDateStr); }
-                });
-
-                const taskBox = document.createElement("div");
-                taskBox.className = "flex flex-col gap-1 px-0.5 md:px-1 flex-1 overflow-y-auto md-scrollbar pb-1";
-
-                if (appState.calendarMode === 'month') {
-                    taskBox.classList.add("max-h-[80px]");
-                } else {
-                    taskBox.classList.add("max-h-[120px]");
-                }
-
-                appState.batches.forEach(batch => {
-                    batch.subtasks.forEach(subtask => {
-                        if (subtask.endDate === finalDateStr) {
-                            const block = document.createElement("div");
-                            block.id = `cal-sub-${subtask.id}`;
-                            block.className = `text-[8px] md:text-[9px] px-1 md:px-1.5 py-0.5 md:py-1 rounded truncate font-bold text-white shadow-sm cursor-grab hover:brightness-110 active:scale-95 transition-all ${subtask.done ? 'opacity-50 line-through saturate-50' : ''}`;
-                            block.style.backgroundColor = subjectColors[batch.subject]?.text || "#6750A4";
-                            block.style.minHeight = "20px";
-                            block.style.flexShrink = "0";
-                            block.innerText = subtask.text;
-                            block.setAttribute("draggable", "true");
-
-                            block.addEventListener("dragstart", (e) => handleSubtaskDragStart(e, subtask.id));
-                            let timer;
-                            block.addEventListener("touchstart", (e) => { timer = setTimeout(() => handleContextMenu(e, 'task_calendar', batch.id, subtask.id), 500); });
-                            block.addEventListener("touchend", () => clearTimeout(timer));
-                            block.addEventListener("touchmove", () => clearTimeout(timer));
-                            block.addEventListener("contextmenu", (e) => handleContextMenu(e, 'task_calendar', batch.id, subtask.id));
-                            block.addEventListener("mousemove", (e) => showGlobalTooltip(e, subtask.id));
-                            block.addEventListener("mouseleave", hideGlobalTooltip);
-                            block.addEventListener("click", (e) => { e.stopPropagation(); expandToDrawerTask(subtask.id); });
-
-                            taskBox.appendChild(block);
-                        }
-                    });
-                });
-                cell.appendChild(taskBox);
-                grid.appendChild(cell);
-            });
-
-            if (appState.calendarMode === 'week') {
-                focusDayTimeline(appState.focusedDate);
-            }
-        }
-
-        // Render adjacent timeline panes side-by-side inside sliding track (mobile swiping deleted)
         function focusDayTimeline(centerDateStr) {
             if (appState.calendarMode !== 'week') return;
             document.getElementById("timeline-focused-title").innerHTML = `<span class="material-symbols-outlined text-sm">schedule</span> ${centerDateStr.substring(5)} 时间轴`;
-
             const prevDateStr = getAdjacentDateStr(centerDateStr, -1);
             const nextDateStr = getAdjacentDateStr(centerDateStr, 1);
-
             renderTimelinePaneContent("slider-pane-prev", prevDateStr);
             renderTimelinePaneContent("slider-pane-current", centerDateStr);
             renderTimelinePaneContent("slider-pane-next", nextDateStr);
         }
 
         function getAdjacentDateStr(baseDateStr, delta) {
-            const d = new Date(baseDateStr);
-            d.setDate(d.getDate() + delta);
+            const d = new Date(baseDateStr); d.setDate(d.getDate() + delta);
             return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
         }
 
@@ -2039,18 +2043,11 @@
             const pane = document.getElementById(paneId);
             if (!pane) return;
             pane.innerHTML = "";
-
             const container = document.createElement("div");
-            container.className = "timeline-track-container w-full relative";
-            container.id = `timeline-track-${paneId}`;
+            container.className = "timeline-track-container w-full relative"; container.id = `timeline-track-${paneId}`;
+            container.addEventListener("dragover", allowDrop); container.addEventListener("drop", dropToTimelineTrack);
 
-            // Allow dropped items
-            container.addEventListener("dragover", allowDrop);
-            container.addEventListener("drop", dropToTimelineTrack);
-
-            // Render bg hours
-            const bgTrack = document.createElement("div");
-            bgTrack.className = "absolute inset-0 z-0 pointer-events-none";
+            const bgTrack = document.createElement("div"); bgTrack.className = "absolute inset-0 z-0 pointer-events-none";
             for (let h = 0; h < 24; h++) {
                 const row = document.createElement("div");
                 row.className = "timeline-hour-row flex items-start pl-10 md:pl-12 pt-1 border-[var(--md-sys-color-outline-variant)]";
@@ -2059,15 +2056,10 @@
             }
             container.appendChild(bgTrack);
 
-            // Render timeline cards pool
-            const cardPool = document.createElement("div");
-            cardPool.className = "absolute top-0 bottom-0 left-12 md:left-14 right-2 md:right-4 z-10";
-
+            const cardPool = document.createElement("div"); cardPool.className = "absolute top-0 bottom-0 left-12 md:left-14 right-2 md:right-4 z-10";
             let dayTasks = [];
             appState.batches.forEach(b => b.subtasks.forEach(s => {
-                if (s.endDate === dateStr && s.startMinute !== null && s.startMinute !== undefined) {
-                    dayTasks.push({ batch: b, subtask: s });
-                }
+                if (s.endDate === dateStr && s.startMinute !== null && s.startMinute !== undefined) dayTasks.push({ batch: b, subtask: s });
             }));
             dayTasks.sort((a, b) => a.subtask.startMinute - b.subtask.startMinute);
 
@@ -2088,23 +2080,17 @@
 
             dayTasks.forEach(item => {
                 const { batch, subtask } = item;
-                const topPx = subtask.startMinute;
-                const heightPx = subtask.durationMinutes;
-                const widthPct = 100 / item.groupTotal;
-                const leftPct = item.colIndex * widthPct;
-                const block = document.createElement("div");
-                block.id = `tl-sub-${subtask.id}`;
-                block.className = `absolute rounded-xl p-1.5 md:p-2.5 text-[10px] md:text-xs text-white font-bold shadow-md select-none group flex flex-col border border-white/20 transition-all active:scale-[0.99] active:shadow-lg ${subtask.done ? 'opacity-60 saturate-50 line-through' : ''}`;
-                block.style.top = `${topPx}px`;
-                block.style.height = `${heightPx}px`;
-                block.style.left = `calc(${leftPct}% + 2px)`;
-                block.style.width = `calc(${widthPct}% - 4px)`;
+                const topPx = subtask.startMinute, heightPx = subtask.durationMinutes;
+                const widthPct = 100 / item.groupTotal, leftPct = item.colIndex * widthPct;
+                const block = document.createElement("div"); block.id = `tl-sub-${subtask.id}`;
+                const starBorder = subtask.starred ? 'border-2 border-amber-400 shadow-amber-400/30' : 'border border-white/20';
+                block.className = `absolute rounded-xl p-1.5 md:p-2.5 text-[10px] md:text-xs text-white font-bold shadow-md select-none group flex flex-col ${starBorder} transition-all active:scale-[0.99] active:shadow-lg ${subtask.done ? 'opacity-60 saturate-50 line-through' : ''}`;
+                block.style.top = `${topPx}px`; block.style.height = `${heightPx}px`; block.style.left = `calc(${leftPct}% + 2px)`; block.style.width = `calc(${widthPct}% - 4px)`;
                 block.style.backgroundColor = subjectColors[batch.subject]?.text || "var(--md-sys-color-primary)";
-                let startH = String(Math.floor(subtask.startMinute / 60)).padStart(2, '0');
-                let startM = String(subtask.startMinute % 60).padStart(2, '0');
+                let startH = String(Math.floor(subtask.startMinute / 60)).padStart(2, '0'), startM = String(subtask.startMinute % 60).padStart(2, '0');
                 block.innerHTML = `
                     <div class="flex-1 overflow-hidden pointer-events-none">
-                        <div class="truncate">${subtask.text}</div>
+                        <div class="truncate flex items-center justify-between"><span class="truncate">${subtask.text}</span>${subtask.starred ? '<span class="material-symbols-outlined star-filled text-sm ml-1 flex-shrink-0">grade</span>' : ''}</div>
                         <div class="text-[9px] md:text-[10px] opacity-90 font-mono mt-0.5 font-normal tracking-wide ${subtask.done ? 'hidden' : ''}">${startH}:${startM} (${subtask.durationMinutes}m)</div>
                     </div>
                     <div class="resize-handle" onmousedown="startTimelineResize(event, '${subtask.id}')" ontouchstart="startTimelineResize(event, '${subtask.id}')">
@@ -2114,78 +2100,54 @@
 
                 block.addEventListener("mousedown", (e) => { if (!e.target.closest('.resize-handle')) startTimelineCardDrag(e, subtask.id); });
                 block.addEventListener("touchstart", (e) => { if (!e.target.closest('.resize-handle')) startTimelineCardDrag(e, subtask.id); }, { passive: false });
-
                 let timer;
                 block.addEventListener("touchstart", (e) => { timer = setTimeout(() => handleContextMenu(e, 'task_calendar', batch.id, subtask.id), 500); });
-                block.addEventListener("touchend", () => clearTimeout(timer));
-                block.addEventListener("touchmove", () => clearTimeout(timer));
+                block.addEventListener("touchend", () => clearTimeout(timer)); block.addEventListener("touchmove", () => clearTimeout(timer));
                 block.addEventListener("contextmenu", (e) => handleContextMenu(e, 'task_calendar', batch.id, subtask.id));
-                block.addEventListener("mousemove", (e) => showGlobalTooltip(e, subtask.id));
-                block.addEventListener("mouseleave", hideGlobalTooltip);
+                block.addEventListener("mousemove", (e) => showGlobalTooltip(e, subtask.id)); block.addEventListener("mouseleave", hideGlobalTooltip);
                 cardPool.appendChild(block);
             });
-
-            container.appendChild(cardPool);
-            pane.appendChild(container);
+            container.appendChild(cardPool); pane.appendChild(container);
         }
 
         function toggleModal(isOpen) {
-            const backdrop = document.getElementById('modal-backdrop');
-            const modal = backdrop.querySelector('.transform');
+            const backdrop = document.getElementById('modal-backdrop'); const modal = backdrop.querySelector('.transform');
             if (isOpen) {
-                backdrop.classList.remove('pointer-events-none', 'opacity-0');
-                backdrop.classList.add('opacity-100', 'pointer-events-auto');
+                backdrop.classList.remove('pointer-events-none', 'opacity-0'); backdrop.classList.add('opacity-100', 'pointer-events-auto');
                 modal?.classList.replace('scale-90', 'scale-100');
             } else {
                 modal?.classList.replace('scale-100', 'scale-90');
-                backdrop.classList.remove('opacity-100', 'pointer-events-auto');
-                backdrop.classList.add('opacity-0', 'pointer-events-none');
+                backdrop.classList.remove('opacity-100', 'pointer-events-auto'); backdrop.classList.add('opacity-0', 'pointer-events-none');
             }
         }
 
         function openAddTaskModal() {
-            document.getElementById("modal-form-title").innerText = "创建新任务";
-            document.getElementById("form-task-id").value = "";
+            document.getElementById("modal-form-title").innerText = "创建新任务"; document.getElementById("form-task-id").value = "";
             document.getElementById("form-subject-container").innerHTML = appState.subjects.map(sub =>
                 `<button type="button" onclick="selectFormSubject('${sub}')" id="form-sub-${sub}" class="px-3.5 py-1.5 rounded-full text-[11px] font-bold border border-[var(--md-sys-color-outline-variant)] transition-all hover:bg-black/5 ${appState.selectedFormSubject === sub ? 'chip-active shadow-sm' : 'text-[var(--md-sys-color-on-surface-variant)]'}">${sub}</button>`
             ).join('');
-            appState.selectedFormTags = [];
-            renderFormTagsPool();
-            document.getElementById("task-form").reset();
-            document.getElementById("form-checklist-slots").innerHTML = "";
-            toggleModal(true);
+            appState.selectedFormTags = []; renderFormTagsPool(); document.getElementById("task-form").reset(); document.getElementById("form-checklist-slots").innerHTML = ""; toggleModal(true);
         }
 
         function openEditTaskModal(batchId) {
-            const batch = appState.batches.find(b => b.id === batchId);
-            if (!batch) return;
+            const batch = appState.batches.find(b => b.id === batchId); if (!batch) return;
             openAddTaskModal();
-            document.getElementById("modal-form-title").innerText = "编辑任务";
-            document.getElementById("form-task-id").value = batch.id;
-            document.getElementById("form-title").value = batch.title;
-            document.getElementById("form-content").value = batch.content;
+            document.getElementById("modal-form-title").innerText = "编辑任务"; document.getElementById("form-task-id").value = batch.id;
+            document.getElementById("form-title").value = batch.title; document.getElementById("form-content").value = batch.content;
             selectFormSubject(batch.subject);
-            const box = document.getElementById("form-checklist-slots");
-            box.innerHTML = "";
+            const box = document.getElementById("form-checklist-slots"); box.innerHTML = "";
             batch.subtasks.forEach(sub => {
-                const div = document.createElement("div");
-                div.className = "flex gap-2 items-center group";
-                div.dataset.subId = sub.id;
-                div.dataset.endDate = sub.endDate || "";
-                div.dataset.startMinute = sub.startMinute === null ? "null" : sub.startMinute;
-                div.dataset.durationMinutes = sub.durationMinutes || 120;
+                const div = document.createElement("div"); div.className = "flex gap-2 items-center group";
+                div.dataset.subId = sub.id; div.dataset.endDate = sub.endDate || ""; div.dataset.starred = sub.starred ? "true" : "false";
+                div.dataset.startMinute = sub.startMinute === null ? "null" : sub.startMinute; div.dataset.durationMinutes = sub.durationMinutes || 120;
                 div.innerHTML = `
                     <input type="text" value="${sub.text}" required class="flex-1 p-2 rounded-lg border text-xs bg-[var(--md-sys-color-surface-container-lowest)] outline-none focus:border-[var(--md-sys-color-primary)] transition-colors checklist-text-input" onkeydown="if(event.key==='Enter'){event.preventDefault(); addChecklistItemSlot(this);}" />
-                    <div class="flex items-center gap-1 w-20">
-                        <span class="text-[10px] text-[var(--md-sys-color-outline)]">权重</span>
-                        <input type="number" min="1" value="${sub.weight || 1}" class="w-full p-1.5 rounded-lg border text-xs bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)] outline-none focus:border-[var(--md-sys-color-primary)] transition-colors checklist-weight-input" />
-                    </div>
+                    <div class="flex items-center gap-1 w-20"><span class="text-[10px] text-[var(--md-sys-color-outline)]">权重</span><input type="number" min="1" value="${sub.weight || 1}" class="w-full p-1.5 rounded-lg border text-xs bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)] outline-none focus:border-[var(--md-sys-color-primary)] transition-colors checklist-weight-input" /></div>
                     <button type="button" onclick="this.parentElement.remove()" class="text-[var(--md-sys-color-outline)] hover:text-red-500 transition-colors p-1"><span class="material-symbols-outlined text-lg">do_not_disturb_on</span></button>
                 `;
                 box.appendChild(div);
             });
-            appState.selectedFormTags = [...batch.tags];
-            renderFormTagsPool();
+            appState.selectedFormTags = [...batch.tags]; renderFormTagsPool();
         }
 
         function closeAddTaskModal() { toggleModal(false); }
@@ -2206,288 +2168,162 @@
             container.innerHTML = html;
         }
 
-        function showAddTagUI() {
-            document.getElementById('btn-show-add-tag').classList.add('hidden');
-            document.getElementById('new-tag-ui').classList.remove('hidden');
-            document.getElementById('new-tag-ui').classList.add('flex');
-            document.getElementById('new-tag-name-input').focus();
-        }
-
-        function hideAddTagUI() {
-            document.getElementById('btn-show-add-tag').classList.remove('hidden');
-            document.getElementById('new-tag-ui').classList.add('hidden');
-            document.getElementById('new-tag-ui').classList.remove('flex');
-        }
-
+        function showAddTagUI() { document.getElementById('btn-show-add-tag').classList.add('hidden'); document.getElementById('new-tag-ui').classList.remove('hidden'); document.getElementById('new-tag-ui').classList.add('flex'); document.getElementById('new-tag-name-input').focus(); }
+        function hideAddTagUI() { document.getElementById('btn-show-add-tag').classList.remove('hidden'); document.getElementById('new-tag-ui').classList.add('hidden'); document.getElementById('new-tag-ui').classList.remove('flex'); }
         function saveNewTag() {
-            const name = document.getElementById('new-tag-name-input').value.trim();
-            const color = document.getElementById('new-tag-color-input').value;
+            const name = document.getElementById('new-tag-name-input').value.trim(); const color = document.getElementById('new-tag-color-input').value;
             if (!name) { alert('请输入标签名'); return; }
             if (appState.tags.some(t => t.name === name)) { alert('标签已存在'); return; }
-            appState.tags.push({ name, color });
-            appState.selectedFormTags.push(name);
-            saveStateToStorage();
-            renderFormTagsPool();
+            appState.tags.push({ name, color }); appState.selectedFormTags.push(name); saveStateToStorage(); renderFormTagsPool();
             if (appState.currentDrawerArrange === 'tag') renderLeftDrawerPool();
         }
-
-        function toggleFormTagSelection(tagName) {
-            appState.selectedFormTags = appState.selectedFormTags.includes(tagName) ? appState.selectedFormTags.filter(t => t !== tagName) : [...appState.selectedFormTags, tagName];
-            renderFormTagsPool();
-        }
-
+        function toggleFormTagSelection(tagName) { appState.selectedFormTags = appState.selectedFormTags.includes(tagName) ? appState.selectedFormTags.filter(t => t !== tagName) : [...appState.selectedFormTags, tagName]; renderFormTagsPool(); }
         function selectFormSubject(sub) {
             appState.selectedFormSubject = sub;
-            document.querySelectorAll("#form-subject-container button").forEach(b => {
-                b.classList.remove("chip-active", "shadow-sm");
-                b.classList.add("text-[var(--md-sys-color-on-surface-variant)]");
-            });
+            document.querySelectorAll("#form-subject-container button").forEach(b => { b.classList.remove("chip-active", "shadow-sm"); b.classList.add("text-[var(--md-sys-color-on-surface-variant)]"); });
             const el = document.getElementById(`form-sub-${sub}`);
-            if (el) {
-                el.classList.add("chip-active", "shadow-sm");
-                el.classList.remove("text-[var(--md-sys-color-on-surface-variant)]");
-            }
+            if (el) { el.classList.add("chip-active", "shadow-sm"); el.classList.remove("text-[var(--md-sys-color-on-surface-variant)]"); }
         }
 
         function addChecklistItemSlot(currentInput = null) {
-            const box = document.getElementById("form-checklist-slots");
-            const div = document.createElement("div");
+            const box = document.getElementById("form-checklist-slots"); const div = document.createElement("div");
             div.className = "flex gap-2 items-center group";
             div.innerHTML = `
                 <input type="text" placeholder="如：数学暑假作业卷一" required class="flex-1 p-2.5 rounded-xl border text-xs bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)] outline-none focus:border-[var(--md-sys-color-primary)] transition-colors checklist-text-input" onkeydown="if(event.key==='Enter'){event.preventDefault(); addChecklistItemSlot(this);}" />
-                <div class="flex items-center gap-1 w-20">
-                    <span class="text-[10px] text-[var(--md-sys-color-outline)]">权重</span>
-                    <input type="number" min="1" value="1" class="w-full p-1.5 rounded-lg border text-xs bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)] outline-none focus:border-[var(--md-sys-color-primary)] transition-colors checklist-weight-input" />
-                </div>
+                <div class="flex items-center gap-1 w-20"><span class="text-[10px] text-[var(--md-sys-color-outline)]">权重</span><input type="number" min="1" value="1" class="w-full p-1.5 rounded-lg border text-xs bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)] outline-none focus:border-[var(--md-sys-color-primary)] transition-colors checklist-weight-input" /></div>
                 <button type="button" onclick="this.parentElement.remove()" class="text-[var(--md-sys-color-outline)] hover:text-red-500 transition-colors p-1"><span class="material-symbols-outlined text-lg">do_not_disturb_on</span></button>
             `;
-            if (currentInput && currentInput.parentElement) currentInput.parentElement.after(div);
-            else box.appendChild(div);
+            if (currentInput && currentInput.parentElement) currentInput.parentElement.after(div); else box.appendChild(div);
             setTimeout(() => div.querySelector('.checklist-text-input').focus(), 50);
         }
 
         function handleFormSubmit(e) {
             e.preventDefault();
-            const bId = document.getElementById("form-task-id").value;
-            const title = document.getElementById("form-title").value.trim();
-            const content = document.getElementById("form-content").value.trim();
+            const bId = document.getElementById("form-task-id").value, title = document.getElementById("form-title").value.trim(), content = document.getElementById("form-content").value.trim();
             const originalBatch = bId ? appState.batches.find(b => b.id === bId) : null;
             const subtasks = [];
             document.querySelectorAll("#form-checklist-slots > div").forEach((div, idx) => {
-                const text = div.querySelector(".checklist-text-input").value.trim();
-                const weight = parseInt(div.querySelector(".checklist-weight-input")?.value) || 1;
+                const text = div.querySelector(".checklist-text-input").value.trim(); const weight = parseInt(div.querySelector(".checklist-weight-input")?.value) || 1;
                 if (text) {
-                    let doneStatus = false;
-                    let compAt = null;
+                    let doneStatus = false, isStarred = false, compAt = null;
                     if (div.dataset.subId && originalBatch) {
                         const originalSub = originalBatch.subtasks.find(s => s.id === div.dataset.subId);
-                        if (originalSub) { doneStatus = originalSub.done; compAt = originalSub.completedAt; }
+                        if (originalSub) { doneStatus = originalSub.done; isStarred = !!originalSub.starred; compAt = originalSub.completedAt; }
                     }
                     subtasks.push({
-                        id: div.dataset.subId || `sub-${Date.now()}-${idx}`,
-                        text: text, weight: weight, done: doneStatus, completedAt: compAt,
-                        endDate: div.dataset.endDate || null,
-                        startMinute: (div.dataset.startMinute !== "null" && div.dataset.startMinute !== undefined) ? parseInt(div.dataset.startMinute) : 480,
-                        durationMinutes: parseInt(div.dataset.durationMinutes) || 120
+                        id: div.dataset.subId || `sub-${Date.now()}-${idx}`, text: text, weight: weight, done: doneStatus, starred: isStarred, completedAt: compAt,
+                        endDate: div.dataset.endDate || null, startMinute: (div.dataset.startMinute !== "null" && div.dataset.startMinute !== undefined) ? parseInt(div.dataset.startMinute) : 480, durationMinutes: parseInt(div.dataset.durationMinutes) || 120
                     });
                 }
             });
             if (bId) {
                 const existing = appState.batches.find(b => b.id === bId);
-                if (existing) {
-                    existing.title = title; existing.content = content; existing.subject = appState.selectedFormSubject;
-                    existing.tags = [...appState.selectedFormTags]; existing.subtasks = subtasks;
-                }
-            } else {
-                appState.batches.unshift({
-                    id: `batch-${Date.now()}`, title, content, subject: appState.selectedFormSubject, tags: [...appState.selectedFormTags], subtasks
-                });
-            }
-            saveStateToStorage();
-            closeAddTaskModal();
-            renderAllComponents();
+                if (existing) { existing.title = title; existing.content = content; existing.subject = appState.selectedFormSubject; existing.tags = [...appState.selectedFormTags]; existing.subtasks = subtasks; }
+            } else { appState.batches.unshift({ id: `batch-${Date.now()}`, title, content, subject: appState.selectedFormSubject, tags: [...appState.selectedFormTags], subtasks }); }
+            saveStateToStorage(); closeAddTaskModal(); renderAllComponents();
         }
 
         function calculateAndRenderStatistics() {
             let totalWeight = 0, completedWeight = 0, totalItems = 0;
-            appState.batches.forEach(b => b.subtasks.forEach(s => {
-                const w = s.weight || 1;
-                totalItems++; totalWeight += w;
-                if (s.done) completedWeight += w;
-            }));
+            appState.batches.forEach(b => b.subtasks.forEach(s => { const w = s.weight || 1; totalItems++; totalWeight += w; if (s.done) completedWeight += w; }));
             const percent = totalWeight === 0 ? 0 : Math.round((completedWeight / totalWeight) * 100);
-            document.getElementById("global-progress-percent").innerText = `${percent}%`;
-            document.getElementById("global-progress-bar").style.width = `${percent}%`;
+            document.getElementById("global-progress-percent").innerText = `${percent}%`; document.getElementById("global-progress-bar").style.width = `${percent}%`;
             document.getElementById("stats-summary-text").innerText = `共 ${appState.batches.length} 门学科， ${totalItems} 项子任务。`;
         }
 
         function renderSpecialTaskLists() {
-            const overdue = document.getElementById("overdue-tasks-container"),
-                today = document.getElementById("today-tasks-container");
+            const overdue = document.getElementById("overdue-tasks-container"), today = document.getElementById("today-tasks-container");
             if (!overdue || !today) return;
-            overdue.innerHTML = "";
-            today.innerHTML = "";
-
+            overdue.innerHTML = ""; today.innerHTML = "";
             appState.batches.forEach(b => {
                 b.subtasks.forEach(s => {
                     if (s.endDate) {
-                        const isOverdue = s.endDate < TODAY_STR;
-                        const isToday = s.endDate === TODAY_STR;
-
-                        // Overdue tasks completed before today shouldn't be visible in overdue list
-                        if (isOverdue && s.done && (!s.completedAt || s.completedAt < TODAY_STR)) {
-                            return;
-                        }
-
+                        const isOverdue = s.endDate < TODAY_STR, isToday = s.endDate === TODAY_STR;
+                        if (isOverdue && s.done && (!s.completedAt || s.completedAt < TODAY_STR)) return;
                         if (!isOverdue && !isToday) return;
 
-                        const item = document.createElement("div");
-                        item.id = `today-item-${s.id}`;
-                        item.setAttribute("draggable", "true");
+                        const item = document.createElement("div"); item.id = `today-item-${s.id}`; item.setAttribute("draggable", "true");
                         item.addEventListener("dragstart", (e) => handleSubtaskDragStart(e, s.id));
-
-                        let baseClass = "p-2 rounded-lg bg-[var(--md-sys-color-surface-container-lowest)] text-xs font-medium shadow-sm cursor-pointer hover:bg-black/5 flex items-center gap-2 transition-colors";
+                        let baseClass = "group/today p-2 rounded-lg bg-[var(--md-sys-color-surface-container-lowest)] text-xs font-medium shadow-sm cursor-pointer hover:bg-black/5 flex items-center justify-between gap-2 transition-colors";
                         if (s.done) baseClass += " line-through opacity-50 saturate-50";
-
-                        let borderColorClass = "";
-                        if (isOverdue) borderColorClass = "border-l-4 border-rose-500";
-                        else if (isToday) borderColorClass = "border-l-4 border-[var(--md-sys-color-primary)]";
-
-                        item.className = `${baseClass} ${borderColorClass}`;
-
-                        const checkboxClass = isOverdue
-                            ? "w-4 h-4 appearance-none rounded border-2 border-[var(--md-sys-color-outline)] checked:border-rose-500 checked:bg-rose-500 transition-colors peer cursor-pointer"
-                            : "w-4 h-4 appearance-none rounded border-2 border-[var(--md-sys-color-outline)] checked:border-[var(--md-sys-color-primary)] checked:bg-[var(--md-sys-color-primary)] transition-colors peer cursor-pointer";
+                        item.className = `${baseClass} ${isOverdue ? "border-l-4 border-rose-500" : isToday ? "border-l-4 border-[var(--md-sys-color-primary)]" : ""}`;
+                        const checkboxClass = isOverdue ? "w-4 h-4 appearance-none rounded border-2 border-[var(--md-sys-color-outline)] checked:border-rose-500 checked:bg-rose-500 transition-colors peer cursor-pointer" : "w-4 h-4 appearance-none rounded border-2 border-[var(--md-sys-color-outline)] checked:border-[var(--md-sys-color-primary)] checked:bg-[var(--md-sys-color-primary)] transition-colors peer cursor-pointer";
 
                         item.addEventListener("contextmenu", (e) => handleContextMenu(e, 'task_today', b.id, s.id));
                         item.addEventListener("click", (e) => {
-                            if (e.target.tagName.toLowerCase() === 'input') return;
+                            if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'button' || e.target.closest('button')) return;
                             expandToDrawerTask(s.id);
                         });
 
-                        let dateLabel = "";
-                        if (isOverdue) dateLabel = `<span class="text-[9px] text-rose-500 font-mono bg-rose-500/10 px-1 py-0.5 rounded w-max">截止日期: ${s.endDate}</span>`;
-
-                        // Fixed bug: changed sub.done to s.done to prevent ReferenceError
+                        const starIconClass = s.starred ? 'star-filled opacity-100' : 'star-outline opacity-0 group-hover/today:opacity-100 hover:text-amber-500';
                         item.innerHTML = `
-                            <div class="relative flex items-center justify-center flex-shrink-0" onclick="event.stopPropagation()">
-                                <input type="checkbox" ${s.done ? 'checked' : ''} onchange="toggleSubtaskStatus('${s.id}')" class="${checkboxClass}" />
-                                <span class="material-symbols-outlined text-[14px] text-white absolute opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity font-bold">check</span>
+                            <div class="flex items-center gap-2 flex-1 min-w-0">
+                                <div class="relative flex items-center justify-center flex-shrink-0" onclick="event.stopPropagation()">
+                                    <input type="checkbox" ${s.done ? 'checked' : ''} onchange="toggleSubtaskStatus('${s.id}')" class="${checkboxClass}" />
+                                    <span class="material-symbols-outlined text-[14px] text-white absolute opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity font-bold">check</span>
+                                </div>
+                                <div class="flex-1 min-w-0 flex flex-col gap-0.5">
+                                    <span class="truncate block ${isOverdue ? 'text-rose-700 dark:text-rose-400' : 'text-[var(--md-sys-color-primary)]'}">${s.text}</span>
+                                    ${isOverdue ? `<span class="text-[9px] text-rose-500 font-mono bg-rose-500/10 px-1 py-0.5 rounded w-max">截止日期: ${s.endDate}</span>` : ''}
+                                </div>
                             </div>
-                            <div class="flex-1 min-w-0 flex flex-col gap-0.5">
-                                <span class="truncate block ${isOverdue ? 'text-rose-700 dark:text-rose-400' : 'text-[var(--md-sys-color-primary)]'}">${s.text}</span>
-                                ${dateLabel}
-                            </div>
+                            <button type="button" onclick="toggleSubtaskStar('${s.id}', event, this)" class="text-[18px] flex items-center justify-center transition-all p-0.5 rounded-full hover:bg-amber-500/10 flex-shrink-0"><span class="material-symbols-outlined text-[18px] ${starIconClass}">grade</span></button>
                         `;
-
-                        if (isOverdue) overdue.appendChild(item);
-                        else if (isToday) today.appendChild(item);
+                        if (isOverdue) overdue.appendChild(item); else if (isToday) today.appendChild(item);
                     }
                 });
             });
-
             if (!overdue.children.length) overdue.innerHTML = `<div class="text-[10px] text-emerald-500 text-center py-2 font-bold bg-emerald-500/10 rounded-lg">计划内无滞留！</div>`;
             if (!today.children.length) today.innerHTML = `<div class="text-[11px] text-[var(--md-sys-color-outline)] text-center py-4 border border-dashed rounded-lg border-[var(--md-sys-color-outline-variant)]">今日无安排</div>`;
         }
 
         function toggleSubtaskStatus(subtaskId) {
             const target = findSubtask(subtaskId);
-            if (target) {
-                target.subtask.done = !target.subtask.done;
-                target.subtask.completedAt = target.subtask.done ? TODAY_STR : null;
-                saveStateToStorage();
-                renderAllComponents();
-            }
+            if (target) { target.subtask.done = !target.subtask.done; target.subtask.completedAt = target.subtask.done ? TODAY_STR : null; saveStateToStorage(); renderAllComponents(); }
         }
 
-        function deleteEntireBatch(id) {
-            appState.batches = appState.batches.filter(b => b.id !== id);
-            saveStateToStorage();
-            renderAllComponents();
-        }
-
-        function handleSearchDebounced(val) {
-            clearTimeout(searchDebounceTimer);
-            searchDebounceTimer = setTimeout(() => {
-                appState.searchQuery = val.trim();
-                renderHomeChecklist();
-            }, 200);
-        }
+        function deleteEntireBatch(id) { appState.batches = appState.batches.filter(b => b.id !== id); saveStateToStorage(); renderAllComponents(); }
+        function handleSearchDebounced(val) { clearTimeout(searchDebounceTimer); searchDebounceTimer = setTimeout(() => { appState.searchQuery = val.trim(); renderHomeChecklist(); }, 200); }
 
         function switchView(viewName) {
             document.querySelectorAll('.md-nav-item').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.view-pane').forEach(pane => pane.classList.remove('active'));
-            document.getElementById(`nav-${viewName}`)?.classList.add('active');
-            document.getElementById(`view-${viewName}`)?.classList.add('active');
-            if (viewName === 'calendar') {
-                switchCalendarMode('month');
-            }
-            if (viewName === 'today') {
-                document.getElementById("today-date-display").innerText = TODAY_STR;
-                renderSpecialTaskLists();
-            }
+            document.getElementById(`nav-${viewName}`)?.classList.add('active'); document.getElementById(`view-${viewName}`)?.classList.add('active');
+            if (viewName === 'calendar') switchCalendarMode('month');
+            if (viewName === 'today') { document.getElementById("today-date-display").innerText = TODAY_STR; renderSpecialTaskLists(); }
         }
 
-        function toggleDrawer() {
-            const drawer = document.getElementById('task-drawer');
-            drawer.classList.toggle('collapsed');
-            document.getElementById('drawer-restore-btn').classList.toggle('hidden', !drawer.classList.contains('collapsed'));
-        }
+        function toggleDrawer() { const drawer = document.getElementById('task-drawer'); drawer.classList.toggle('collapsed'); document.getElementById('drawer-restore-btn').classList.toggle('hidden', !drawer.classList.contains('collapsed')); }
 
         function toggleDarkMode(manual = false) {
             const isDark = document.documentElement.classList.toggle("dark");
-            if (manual) { localStorage.setItem("THEME_DARK_MODE", isDark ? "true" : "false"); }
+            if (manual) localStorage.setItem("THEME_DARK_MODE", isDark ? "true" : "false");
             document.getElementById("dark-mode-icon").innerText = isDark ? "light_mode" : "dark_mode";
         }
 
         function initializeTheme() {
-            const isDarkSystem = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const savedTheme = localStorage.getItem("THEME_DARK_MODE");
+            const isDarkSystem = window.matchMedia('(prefers-color-scheme: dark)').matches; const savedTheme = localStorage.getItem("THEME_DARK_MODE");
             const isDark = savedTheme !== null ? savedTheme === "true" : isDarkSystem;
-            document.documentElement.classList.toggle("dark", isDark);
-            document.getElementById("dark-mode-icon").innerText = isDark ? "light_mode" : "dark_mode";
+            document.documentElement.classList.toggle("dark", isDark); document.getElementById("dark-mode-icon").innerText = isDark ? "light_mode" : "dark_mode";
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-                if (localStorage.getItem("THEME_DARK_MODE") === null) {
-                    document.documentElement.classList.toggle("dark", e.matches);
-                    document.getElementById("dark-mode-icon").innerText = e.matches ? "light_mode" : "dark_mode";
-                }
+                if (localStorage.getItem("THEME_DARK_MODE") === null) { document.documentElement.classList.toggle("dark", e.matches); document.getElementById("dark-mode-icon").innerText = e.matches ? "light_mode" : "dark_mode"; }
             });
         }
 
         function triggerDataExport() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
-            const anchor = document.createElement('a');
-            anchor.setAttribute("href", dataStr);
-            anchor.setAttribute("download", `MD3_ATOMIC_DATA.json`);
-            anchor.click();
-            anchor.remove();
+            const anchor = document.createElement('a'); anchor.setAttribute("href", dataStr); anchor.setAttribute("download", `MD3_ATOMIC_DATA.json`); anchor.click(); anchor.remove();
         }
-
         function triggerDataImport(e) {
-            const file = e.target.files[0];
-            if (!file) return;
+            const file = e.target.files[0]; if (!file) return;
             const reader = new FileReader();
             reader.onload = function (evt) {
-                try {
-                    const data = JSON.parse(evt.target.result);
-                    if (data.batches) {
-                        appState = data;
-                        saveStateToStorage();
-                        renderAllComponents();
-                        alert("配置复原成功！");
-                    }
-                } catch (err) { alert("非法配置文件。"); }
-            };
-            reader.readAsText(file);
+                try { const data = JSON.parse(evt.target.result); if (data.batches) { appState = data; saveStateToStorage(); renderAllComponents(); alert("配置复原成功！"); } }
+                catch (err) { alert("非法配置文件。"); }
+            }; reader.readAsText(file);
         }
 
-        function renderAllComponents() {
-            calculateAndRenderStatistics();
-            renderHomeChecklist();
-            renderLeftDrawerPool();
-            renderSpecialTaskLists();
-            renderCalendarWorkspace();
-        }
+        function renderAllComponents() { calculateAndRenderStatistics(); renderHomeChecklist(); renderLeftDrawerPool(); renderSpecialTaskLists(); updateCalendarTaskRendering(); }
     </script>
 </body>
 
