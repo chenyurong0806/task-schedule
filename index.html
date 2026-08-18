@@ -92,19 +92,15 @@
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
             color: var(--md-sys-color-outline);
         }
+        
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
 
         @keyframes starPopAnim {
-            0% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.4) rotate(15deg);
-            }
-
-            100% {
-                transform: scale(1) rotate(0deg);
-            }
+            0% { transform: scale(1); }
+            50% { transform: scale(1.4) rotate(15deg); }
+            100% { transform: scale(1) rotate(0deg); }
         }
 
         .star-pop {
@@ -112,7 +108,7 @@
         }
 
         .md-nav-item .md-icon-wrapper {
-            transition: background-color var(--md-motion-duration-short4) var(--md-motion-easing-emphasized);
+            transition: background-color var(--md-motion-duration-short4) var(--md-motion-easing-emphasized), transform 0.2s ease;
         }
 
         .md-nav-item.active .md-icon-wrapper {
@@ -135,13 +131,8 @@
             transition: opacity var(--md-motion-duration-short4) linear;
         }
 
-        .md-ripple:hover::after {
-            opacity: 0.08;
-        }
-
-        .md-ripple:active::after {
-            opacity: 0.16;
-        }
+        .md-ripple:hover::after { opacity: 0.08; }
+        .md-ripple:active::after { opacity: 0.16; }
 
         #task-drawer {
             transition: transform var(--md-motion-duration-long1) var(--md-motion-easing-emphasized),
@@ -157,9 +148,7 @@
         }
 
         @media (min-width: 768px) {
-            #task-drawer.collapsed {
-                transform: none;
-            }
+            #task-drawer.collapsed { transform: none; }
         }
 
         .view-pane {
@@ -167,16 +156,39 @@
             transform: translateY(12px);
             transition: opacity var(--md-motion-duration-long1) var(--md-motion-easing-emphasized),
                 transform var(--md-motion-duration-long1) var(--md-motion-easing-emphasized);
-            pointer-events: none;
+            pointer-events: none !important;
             position: absolute;
             inset: 0;
+            display: none;
         }
 
         .view-pane.active {
             opacity: 1;
             transform: translateY(0);
-            pointer-events: auto;
+            pointer-events: auto !important;
             position: relative;
+            display: flex;
+            animation: viewPaneSlideIn 0.3s cubic-bezier(0.2, 0, 0, 1) forwards;
+        }
+
+        @keyframes viewPaneSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .view-pane:not(.active) {
+            display: none !important;
+            pointer-events: none !important;
+        }
+
+        .view-pane:not(.active) * {
+            pointer-events: none !important;
         }
 
         .calendar-grid {
@@ -200,9 +212,7 @@
             height: 6px;
         }
 
-        .md-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
-        }
+        .md-scrollbar::-webkit-scrollbar-track { background: transparent; }
 
         .md-scrollbar::-webkit-scrollbar-thumb {
             background: var(--md-sys-color-outline-variant);
@@ -216,6 +226,32 @@
         .md-scrollbar {
             scrollbar-width: thin;
             scrollbar-color: var(--md-sys-color-outline-variant) transparent;
+        }
+
+        .cal-scroll-v {
+            touch-action: pan-y;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-y: contain;
+        }
+
+        .cal-scroll-h {
+            touch-action: pan-x pan-y;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-x: contain;
+        }
+        
+        .week-cell {
+            transition: flex-grow 0.3s cubic-bezier(0.2, 0, 0, 1), min-width 0.3s cubic-bezier(0.2, 0, 0, 1), background-color 0.2s;
+        }
+        
+        .week-cell-active {
+            flex: 2 1 0%;
+            min-width: 200px !important;
+        }
+        
+        .week-cell-inactive {
+            flex: 1 1 0%;
+            min-width: 130px !important;
         }
 
         .chip-active {
@@ -270,7 +306,7 @@
         #global-tooltip {
             position: fixed;
             pointer-events: none;
-            z-index: 200;
+            z-index: 350;
             display: none;
             box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
             background-color: var(--md-sys-color-surface-container-highest);
@@ -297,6 +333,18 @@
             padding: 0 !important;
             border: none !important;
         }
+        
+        .home-batch-content {
+            transition: grid-template-rows 0.3s cubic-bezier(0.2, 0, 0, 1), opacity 0.25s ease;
+            display: grid;
+            grid-template-rows: 1fr;
+            opacity: 1;
+        }
+        
+        .home-batch-content.collapsed {
+            grid-template-rows: 0fr;
+            opacity: 0;
+        }
 
         .folder-icon {
             transition: transform var(--md-motion-duration-short4) var(--md-motion-easing-standard);
@@ -307,22 +355,27 @@
             transform: rotate(90deg);
         }
 
+        .batch-expand-icon {
+            transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1);
+        }
+
+        .batch-expand-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .pin-btn {
+            transition: transform 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+        }
+
+        .pin-btn:active {
+            transform: scale(0.85);
+        }
+
         @keyframes locatePulse {
-            0% {
-                box-shadow: 0 0 0 0 rgba(103, 80, 164, 0.8);
-            }
-
-            40% {
-                box-shadow: 0 0 0 3px rgba(103, 80, 164, 0.5);
-            }
-
-            70% {
-                box-shadow: 0 0 0 6px rgba(103, 80, 164, 0);
-            }
-
-            100% {
-                box-shadow: 0 0 0 0 rgba(103, 80, 164, 0);
-            }
+            0% { box-shadow: 0 0 0 0 rgba(103, 80, 164, 0.8); }
+            40% { box-shadow: 0 0 0 3px rgba(103, 80, 164, 0.5); }
+            70% { box-shadow: 0 0 0 6px rgba(103, 80, 164, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(103, 80, 164, 0); }
         }
 
         .locate-highlight {
@@ -355,11 +408,11 @@
     <div id="global-tooltip" class="text-xs flex flex-col gap-1"></div>
 
     <div id="custom-context-menu"
-        class="fixed hidden z-[100] rounded-xl p-1 shadow-xl border text-xs min-w-[150px] bg-[var(--md-sys-color-surface-container-high)] border-[var(--md-sys-color-outline-variant)]">
+        class="fixed hidden z-[300] rounded-xl p-1 shadow-xl border text-xs min-w-[150px] bg-[var(--md-sys-color-surface-container-high)] border-[var(--md-sys-color-outline-variant)]">
     </div>
 
     <div id="date-quick-menu"
-        class="fixed hidden z-[110] rounded-xl p-1 shadow-xl border text-xs min-w-[140px] flex-col gap-0.5 bg-[var(--md-sys-color-surface-container-high)] border-[var(--md-sys-color-outline-variant)]">
+        class="fixed hidden z-[310] rounded-xl p-1 shadow-xl border text-xs min-w-[140px] flex-col gap-0.5 bg-[var(--md-sys-color-surface-container-high)] border-[var(--md-sys-color-outline-variant)]">
         <button onclick="executeDateAction('today')"
             class="w-full text-left px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface)] flex items-center gap-2 font-medium transition-colors">
             <span class="material-symbols-outlined text-sm text-[var(--md-sys-color-primary)]">today</span>今日完成
@@ -371,8 +424,19 @@
         </button>
     </div>
 
+    <!-- Month Day Detail Modal -->
+    <div id="day-detail-modal" class="fixed hidden z-[140] w-[280px] sm:w-[320px] rounded-[24px] shadow-2xl flex-col bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)] transition-all duration-200 opacity-0 scale-95">
+        <div id="day-detail-header" class="flex justify-between items-center px-4 py-3 border-b border-[var(--md-sys-color-outline-variant)] cursor-move rounded-t-[24px] bg-[var(--md-sys-color-surface-container-low)]">
+            <h3 class="text-sm font-bold text-[var(--md-sys-color-primary)] flex items-center gap-2"><span class="material-symbols-outlined text-base">calendar_today</span> <span id="day-detail-date-title"></span></h3>
+            <button type="button" onclick="closeDayDetailModal()" class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10 text-[var(--md-sys-color-on-surface)] transition-colors" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+                <span class="material-symbols-outlined text-base">close</span>
+            </button>
+        </div>
+        <div id="day-detail-tasks" class="flex flex-col gap-1.5 p-3 max-h-[300px] overflow-y-auto md-scrollbar rounded-b-[24px]"></div>
+    </div>
+
     <div id="md3-datepicker-modal"
-        class="fixed hidden z-[130] w-[280px] sm:w-[300px] rounded-[24px] p-4 shadow-2xl flex-col gap-3 bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)] transition-all duration-150 transform scale-95 opacity-0">
+        class="fixed hidden z-[250] w-[280px] sm:w-[300px] rounded-[24px] p-4 shadow-2xl flex-col gap-3 bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)] transition-all duration-150 transform scale-95 opacity-0">
         <div class="flex flex-col gap-0.5 px-1">
             <span class="text-[10px] font-bold tracking-wider uppercase text-[var(--md-sys-color-primary)]">选择日期</span>
             <h3 class="text-base font-black text-[var(--md-sys-color-on-surface)]" id="md3-picker-header-date">
@@ -470,7 +534,7 @@
         style="background-color: var(--md-sys-color-surface-container-lowest); border-color: var(--md-sys-color-outline-variant);"
         ondragover="allowDrop(event)" ondragleave="handleDragLeave(event)">
 
-        <div class="p-4 flex flex-col gap-3 border-b flex-shrink-0 max-w-full overflow-hidden"
+        <div class="p-4 flex flex-col gap-3 border-b flex-shrink-0 max-w-full relative"
             style="border-color: var(--md-sys-color-outline-variant);">
             <div class="flex items-center justify-between">
                 <h2 class="text-sm font-semibold tracking-wide" style="color: var(--md-sys-color-on-surface-variant);">
@@ -493,7 +557,7 @@
                         class="text-[10px] text-[var(--md-sys-color-primary)] font-bold ml-2"></span>
                 </div>
                 <div id="drawer-search-results"
-                    class="absolute left-0 right-0 top-full mt-2 bg-[var(--md-sys-color-surface-container-highest)] border border-[var(--md-sys-color-outline-variant)] rounded-xl shadow-lg z-[60] hidden flex-col max-h-48 overflow-y-auto md-scrollbar">
+                    class="absolute left-0 right-0 top-full mt-2 bg-[var(--md-sys-color-surface-container-highest)] border border-[var(--md-sys-color-outline-variant)] rounded-xl shadow-2xl z-[80] hidden flex-col max-h-48 overflow-y-auto md-scrollbar">
                 </div>
             </div>
 
@@ -579,7 +643,7 @@
         </div>
 
         <!-- Today View Pane -->
-        <div id="view-today" class="view-pane p-4 md:p-6 flex flex-col h-full overflow-hidden gap-4 md:gap-6">
+        <div id="view-today" class="view-pane p-4 md:p-6 flex flex-col h-full overflow-hidden gap-4 md:gap-6" ondragover="allowDropToday(event)" ondrop="dropToTodayArea(event)">
             <div class="flex items-center gap-3 flex-shrink-0">
                 <span
                     class="material-symbols-outlined text-2xl md:text-3xl text-[var(--md-sys-color-primary)]">today</span>
@@ -634,12 +698,11 @@
                 <div id="calendar-month-view-wrapper"
                     class="w-full flex-shrink-0 rounded-2xl border flex flex-col shadow-sm transition-all duration-300 border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-lowest)] overflow-hidden"
                     style="height: 100%;">
-                    <!-- Scrollable Container without visible scrollbar -->
-                    <div id="calendar-month-scroll" class="flex-1 overflow-y-auto hide-scrollbar relative"
+                    <div id="calendar-month-scroll" class="flex-1 overflow-y-auto hide-scrollbar relative cal-scroll-v"
                         onscroll="handleCalendarScroll(event, true)">
-                        <!-- Sticky Pinned Header: Unified theme color (lighter background with backdrop blur) -->
+                        <!-- 高性能吸顶标题 -->
                         <div
-                            class="sticky top-0 z-20 grid grid-cols-7 text-center font-bold py-1.5 md:py-2 border-b border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)]/30 backdrop-blur-md">
+                            class="sticky top-0 z-20 grid grid-cols-7 text-center font-bold py-1.5 md:py-2 border-b border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-surface-container-high)]">
                             <div>一</div>
                             <div>二</div>
                             <div>三</div>
@@ -649,18 +712,16 @@
                             <div>日</div>
                         </div>
 
-                        <!-- Massive list of day cells generated dynamically -->
                         <div class="calendar-grid flex-1 w-full text-xs" id="month-grid-container"></div>
                     </div>
                 </div>
 
                 <div id="calendar-week-view-wrapper"
                     class="w-full flex-shrink-0 rounded-2xl border flex flex-col shadow-sm transition-all duration-300 border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-lowest)] overflow-hidden hidden">
-                    <!-- Native Horizontal Scrollable Container -->
                     <div id="calendar-week-scroll"
-                        class="w-full overflow-x-auto hide-scrollbar flex flex-row relative border-b border-[var(--md-sys-color-outline-variant)]"
+                        class="w-full overflow-x-auto hide-scrollbar flex flex-row relative border-b border-[var(--md-sys-color-outline-variant)] cal-scroll-h"
                         onscroll="handleCalendarScroll(event, false)">
-                        <div id="week-grid-container" class="flex flex-row text-xs h-full min-h-[70px]"></div>
+                        <div id="week-grid-container" class="flex flex-row text-xs h-full min-h-[70px] w-full"></div>
                     </div>
                 </div>
 
@@ -671,9 +732,9 @@
                         <span id="timeline-focused-title"
                             class="text-xs md:text-sm font-black flex items-center gap-2 text-[var(--md-sys-color-primary)]"><span
                                 class="material-symbols-outlined text-sm">schedule</span> 轴流舱</span>
-                        <button onclick="switchCalendarMode('month')"
+                        <button onclick="toggleTimelineExpand()"
                             class="w-6 h-6 md:w-7 md:h-7 rounded-full hover:bg-black/5 dark:hover:bg-white/5 flex items-center justify-center text-[var(--md-sys-color-on-surface)] transition-colors"><span
-                                class="material-symbols-outlined text-sm">close_fullscreen</span></button>
+                                id="timeline-expand-icon" class="material-symbols-outlined text-sm">open_in_full</span></button>
                     </div>
 
                     <div
@@ -758,11 +819,11 @@
 
         const defaultInitialState = {
             batches: [{
-                id: "batch-demo-01", title: "高一物理必修第一册错题回溯", content: "对期末考卷中动力学多体滑块模型与牛顿第二定律综合题重新推导。", subject: "物理", tags: ["高难度", "急需突破"],
+                id: "batch-demo-01", title: "高一物理必修第一册错题回溯", content: "对期末考卷中动力学多体滑块模型与牛顿第二定律综合题重新推导。", subject: "物理", tags: ["高难度", "急需突破"], pinned: false, collapsed: false,
                 subtasks: [{ id: "sub-101", text: "滑块模型核心三题拆解", weight: 1, done: true, starred: true, completedAt: TODAY_STR, endDate: TODAY_STR, startMinute: 480, durationMinutes: 90 },
                 { id: "sub-102", text: "建立隔离法受力方程组", weight: 1, done: false, starred: false, endDate: TODAY_STR, startMinute: 540, durationMinutes: 120 }]
             }, {
-                id: "batch-demo-02", title: "英语3500词高效循环背诵", content: "复习并默写核心变形词及短语。", subject: "英语", tags: ["高频高燃"],
+                id: "batch-demo-02", title: "英语3500词高效循环背诵", content: "复习并默写核心变形词及短语。", subject: "英语", tags: ["高频高燃"], pinned: false, collapsed: false,
                 subtasks: [{ id: "sub-201", text: "Unit 1 核心词默写", weight: 1, done: true, starred: false, completedAt: TODAY_STR, endDate: TODAY_STR, startMinute: 780, durationMinutes: 180 },
                 { id: "sub-202", text: "Unit 2 完形填空精讲", weight: 1, done: false, starred: true, endDate: null, startMinute: null, durationMinutes: 120 }]
             }],
@@ -788,7 +849,21 @@
 
         let isCalendarGridGenerated = false;
         let calScrollInterval = null;
-        let scrollDebounceTimer = null;
+        let isScrollTicking = false;
+        let currentDragHoverCell = null;
+        
+        let isTimelineExpanded = false;
+
+        const monthCellMap = new Map();
+        const weekCellMap = new Map();
+        let previousFocusedDate = null;
+        let calendarBaseStartDate = null;
+        
+        // 渲染视口优化所需变量
+        const visibleMonthCells = new Set();
+        const visibleWeekCells = new Set();
+        let dailyTasksHtmlCache = {};
+        let ioMonth, ioWeek;
 
         const subjectColors = {
             "语文": { bg: "#F3E5F5", text: "#4A148C" }, "数学": { bg: "#E3F2FD", text: "#0D47A1" },
@@ -850,18 +925,51 @@
         document.addEventListener("DOMContentLoaded", async () => {
             appState = await loadStateFromSupabase();
             appState.searchQuery = "";
+            appState.currentView = "home";
             commitState();
             initializeTheme();
             setupDragHoverNavigation();
+            
+            // 初始化 Intersection Observers，大幅优化渲染性能
+            ioMonth = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    const dateStr = entry.target.getAttribute('data-date');
+                    const m = monthCellMap.get(dateStr);
+                    if (entry.isIntersecting) {
+                        visibleMonthCells.add(dateStr);
+                        if (m && m.taskBox.innerHTML === '' && dailyTasksHtmlCache[dateStr]) {
+                            m.taskBox.innerHTML = dailyTasksHtmlCache[dateStr];
+                        }
+                    } else {
+                        visibleMonthCells.delete(dateStr);
+                        if (m) m.taskBox.innerHTML = '';
+                    }
+                });
+            }, { root: document.getElementById('calendar-month-scroll'), rootMargin: '150px' });
+            
+            ioWeek = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    const dateStr = entry.target.getAttribute('data-date');
+                    const w = weekCellMap.get(dateStr);
+                    if (entry.isIntersecting) {
+                        visibleWeekCells.add(dateStr);
+                        if (w && w.taskBox.innerHTML === '' && dailyTasksHtmlCache[dateStr]) {
+                            w.taskBox.innerHTML = dailyTasksHtmlCache[dateStr];
+                        }
+                    } else {
+                        visibleWeekCells.delete(dateStr);
+                        if (w) w.taskBox.innerHTML = '';
+                    }
+                });
+            }, { root: document.getElementById('calendar-week-scroll'), rootMargin: '150px' });
 
-            // Generate continuous calendar
             generateContinuousCalendar();
             setupCalendarDelegation();
+            setupModalDrag();
 
             renderAllComponents();
             document.getElementById("today-date-display").innerText = TODAY_STR;
 
-            // Jump to focused date after brief rendering delay
             setTimeout(() => { scrollToDate(appState.focusedDate, appState.calendarMode); }, 150);
 
             document.addEventListener("mousedown", (e) => {
@@ -885,8 +993,8 @@
             });
 
             document.addEventListener("dragstart", () => { isGlobalDragging = true; hideGlobalTooltip(); });
-            document.addEventListener("dragend", () => { isGlobalDragging = false; globalDraggedSubtaskId = null; clearTimeout(dragHoverNavTimer); stopAutoScroll(); });
-            document.addEventListener("drop", () => { isGlobalDragging = false; globalDraggedSubtaskId = null; clearTimeout(dragHoverNavTimer); stopAutoScroll(); });
+            document.addEventListener("dragend", () => { isGlobalDragging = false; globalDraggedSubtaskId = null; clearTimeout(dragHoverNavTimer); stopAutoScroll(); clearDragHover(); });
+            document.addEventListener("drop", () => { isGlobalDragging = false; globalDraggedSubtaskId = null; clearTimeout(dragHoverNavTimer); stopAutoScroll(); clearDragHover(); });
 
             window.addEventListener('touchstart', () => isTouch = true, { passive: true });
             document.addEventListener('keydown', e => {
@@ -904,36 +1012,127 @@
                 if (el) {
                     el.addEventListener('dragover', (e) => {
                         e.preventDefault();
-                        if (isGlobalDragging && !el.dataset.dragOverActive) {
-                            el.dataset.dragOverActive = "true";
-                            clearTimeout(dragHoverNavTimer);
-                            dragHoverNavTimer = setTimeout(() => { switchView(id.replace('nav-', '')); }, 800);
+                        if (isGlobalDragging) {
+                            el.classList.add('drag-hover');
+                            if (!el.dataset.dragOverActive) {
+                                el.dataset.dragOverActive = "true";
+                                clearTimeout(dragHoverNavTimer);
+                                dragHoverNavTimer = setTimeout(() => { switchView(id.replace('nav-', '')); }, 600);
+                            }
                         }
                     });
-                    el.addEventListener('dragleave', () => { el.removeAttribute('data-drag-over-active'); clearTimeout(dragHoverNavTimer); });
-                    el.addEventListener('drop', () => { el.removeAttribute('data-drag-over-active'); clearTimeout(dragHoverNavTimer); });
+                    el.addEventListener('dragleave', () => { 
+                        el.classList.remove('drag-hover');
+                        el.removeAttribute('data-drag-over-active'); 
+                        clearTimeout(dragHoverNavTimer); 
+                    });
+                    el.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        el.classList.remove('drag-hover');
+                        el.removeAttribute('data-drag-over-active'); 
+                        clearTimeout(dragHoverNavTimer);
+                        
+                        const targetView = id.replace('nav-', '');
+                        const subtaskId = e.dataTransfer.getData("text/plain") || globalDraggedSubtaskId;
+                        if (subtaskId) {
+                            const target = findSubtask(subtaskId);
+                            if (target) {
+                                if (targetView === 'today') {
+                                    target.subtask.endDate = TODAY_STR;
+                                    saveStateToStorage();
+                                    renderAllComponents();
+                                    switchView('today');
+                                } else {
+                                    switchView(targetView);
+                                }
+                            }
+                        }
+                        isGlobalDragging = false;
+                        stopAutoScroll();
+                    });
                 }
             });
         }
 
+        function setupModalDrag() {
+            const modal = document.getElementById("day-detail-modal");
+            const header = document.getElementById("day-detail-header");
+            let isDraggingModal = false, startX, startY, initialLeft, initialTop;
+            let dragRafId = null;
+
+            const startDrag = (e) => {
+                if (e.target.closest('button')) return;
+                isDraggingModal = true;
+                modal.style.transition = 'none';
+                startX = e.clientX || (e.touches && e.touches[0].clientX);
+                startY = e.clientY || (e.touches && e.touches[0].clientY);
+                const rect = modal.getBoundingClientRect();
+                initialLeft = rect.left;
+                initialTop = rect.top;
+                modal.style.transform = "none";
+                modal.style.left = initialLeft + "px";
+                modal.style.top = initialTop + "px";
+                modal.style.margin = "0";
+
+                document.addEventListener("mousemove", dragMove);
+                document.addEventListener("touchmove", dragMove, {passive: false});
+                document.addEventListener("mouseup", stopDrag);
+                document.addEventListener("touchend", stopDrag);
+            };
+
+            const dragMove = (e) => {
+                if (!isDraggingModal) return;
+                if (e.cancelable) e.preventDefault();
+                const currentX = e.clientX || (e.touches && e.touches[0].clientX);
+                const currentY = e.clientY || (e.touches && e.touches[0].clientY);
+                
+                if (!dragRafId) {
+                    dragRafId = requestAnimationFrame(() => {
+                        modal.style.left = (initialLeft + (currentX - startX)) + "px";
+                        modal.style.top = (initialTop + (currentY - startY)) + "px";
+                        dragRafId = null;
+                    });
+                }
+            };
+
+            const stopDrag = () => {
+                if (!isDraggingModal) return;
+                isDraggingModal = false;
+                if (dragRafId) {
+                    cancelAnimationFrame(dragRafId);
+                    dragRafId = null;
+                }
+                modal.style.transition = '';
+                document.removeEventListener("mousemove", dragMove);
+                document.removeEventListener("touchmove", dragMove);
+                document.removeEventListener("mouseup", stopDrag);
+                document.removeEventListener("touchend", stopDrag);
+                modal.dataset.moved = "true";
+            };
+
+            header.addEventListener("mousedown", startDrag);
+            header.addEventListener("touchstart", startDrag, {passive: false});
+        }
+
+        // 连续日历构建与 DOM 节点 Map 预存
         function generateContinuousCalendar() {
             const monthGrid = document.getElementById("month-grid-container");
             const weekGrid = document.getElementById("week-grid-container");
             monthGrid.innerHTML = ""; weekGrid.innerHTML = "";
+            monthCellMap.clear(); weekCellMap.clear();
 
-            // Generate calendar buffer
-            const startDate = new Date();
-            startDate.setFullYear(startDate.getFullYear() - 1);
-            startDate.setDate(1);
+            // 从2026年6月起，向后排一年
+            const startDate = new Date(2026, 5, 1);
             let day = startDate.getDay(); if (day === 0) day = 7;
             startDate.setDate(startDate.getDate() - day + 1);
+            calendarBaseStartDate = new Date(startDate);
 
-            const endDate = new Date();
-            endDate.setFullYear(endDate.getFullYear() + 2);
+            const endDate = new Date(2027, 5, 30);
 
             let currDate = new Date(startDate);
-            let htmlMonth = "", htmlWeek = "";
             const weekdays = ["日", "一", "二", "三", "四", "五", "六"];
+            const monthFrag = document.createDocumentFragment();
+            const weekFrag = document.createDocumentFragment();
 
             while (currDate <= endDate) {
                 const dateStr = new Date(currDate.getTime() - currDate.getTimezoneOffset() * 60000).toISOString().split('T')[0];
@@ -945,76 +1144,111 @@
                 let dateLabel = dayNum;
                 if (dayNum === 1) dateLabel = `<span class="text-[var(--md-sys-color-primary)] font-black text-[12px] md:text-[13px]">${monthNum}月</span>`;
 
-                // Month Cell
-                htmlMonth += `
-                <div class="p-1 border-r border-b border-[var(--md-sys-color-outline-variant)] flex flex-col gap-1 hover:bg-black/5 dark:hover:bg-white/5 transition-colors min-h-[60px] md:min-h-[80px] relative cell-target" data-date="${dateStr}">
+                // 月历节点
+                const mCell = document.createElement('div');
+                mCell.className = `p-1 border-r border-b border-[var(--md-sys-color-outline-variant)] flex flex-col gap-1 hover:bg-black/5 dark:hover:bg-white/5 transition-colors min-h-[60px] md:min-h-[80px] relative cell-target`;
+                mCell.setAttribute('data-date', dateStr);
+                mCell.innerHTML = `
                     <div class="flex justify-between items-center px-1 pt-0.5 md:pt-1 flex-shrink-0 pointer-events-none">
                         <span class="w-1.5 h-1.5 rounded-full bg-transparent focus-dot"></span>
                         <span class="w-auto px-1.5 h-5 md:h-6 rounded-full flex items-center justify-center font-bold text-[10px] md:text-[11px] ${isToday ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md' : 'text-[var(--md-sys-color-on-surface-variant)]'}">${dateLabel}</span>
                     </div>
-                    <div class="task-box flex flex-col gap-1 px-0.5 md:px-1 flex-1 overflow-y-auto md-scrollbar pb-1 pointer-events-auto"></div>
-                </div>`;
+                    <div class="task-box flex flex-col gap-1 px-0.5 md:px-1 flex-1 overflow-y-auto md-scrollbar pb-1 pointer-events-auto"></div>`;
 
-                // Week Cell
-                htmlWeek += `
-                <div class="p-1 border-r border-[var(--md-sys-color-outline-variant)] flex flex-col gap-1 hover:bg-black/5 dark:hover:bg-white/5 transition-colors min-h-[70px] relative flex-shrink-0 cell-target" style="width: 14.2857%; min-width: 60px; max-width: 150px;" data-date="${dateStr}">
+                // 周历节点
+                const wCell = document.createElement('div');
+                wCell.className = `week-cell week-cell-inactive p-1.5 border-r border-[var(--md-sys-color-outline-variant)] flex flex-col gap-1 hover:bg-black/5 dark:hover:bg-white/5 min-h-[70px] relative cell-target`;
+                wCell.setAttribute('data-date', dateStr);
+                wCell.innerHTML = `
                     <div class="flex justify-between items-center px-1 pt-0.5 md:pt-1 flex-shrink-0 pointer-events-none">
-                        <span class="text-[9px] text-[var(--md-sys-color-outline)] font-bold">周${wdStr}</span>
+                        <span class="text-[10px] text-[var(--md-sys-color-outline)] font-bold">周${wdStr}</span>
                         <span class="w-auto px-1.5 h-5 md:h-6 rounded-full flex items-center justify-center font-bold text-[10px] md:text-[11px] ${isToday ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md' : 'text-[var(--md-sys-color-on-surface-variant)]'}">${monthNum}/${dayNum}</span>
-                        <span class="w-1.5 h-1.5 rounded-full bg-transparent focus-dot absolute top-1.5 right-1.5"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-transparent focus-dot absolute top-1.5 right-1.5 transition-colors"></span>
                     </div>
-                    <div class="task-box flex flex-col gap-1 px-0.5 md:px-1 flex-1 overflow-y-auto md-scrollbar pb-1 pointer-events-auto"></div>
-                </div>`;
+                    <div class="task-box flex flex-col gap-1 px-0.5 md:px-1 flex-1 overflow-y-auto md-scrollbar pb-1 pointer-events-auto"></div>`;
+
+                monthFrag.appendChild(mCell);
+                weekFrag.appendChild(wCell);
+                
+                ioMonth.observe(mCell);
+                ioWeek.observe(wCell);
+
+                monthCellMap.set(dateStr, { cell: mCell, taskBox: mCell.querySelector('.task-box'), dot: mCell.querySelector('.focus-dot') });
+                weekCellMap.set(dateStr, { cell: wCell, taskBox: wCell.querySelector('.task-box'), dot: wCell.querySelector('.focus-dot') });
 
                 currDate.setDate(currDate.getDate() + 1);
             }
-            monthGrid.innerHTML = htmlMonth;
-            weekGrid.innerHTML = htmlWeek;
+
+            monthGrid.appendChild(monthFrag);
+            weekGrid.appendChild(weekFrag);
             isCalendarGridGenerated = true;
         }
 
+        // 高性能差量 DOM 渲染：结合 Observer 动态注入
         function updateCalendarTaskRendering() {
             if (!isCalendarGridGenerated) return;
-            const monthGrid = document.getElementById("month-grid-container");
-            const weekGrid = document.getElementById("week-grid-container");
 
-            document.querySelectorAll('#view-calendar .task-box').forEach(box => box.innerHTML = '');
-            document.querySelectorAll('#view-calendar .focus-dot').forEach(dot => dot.className = dot.className.replace('bg-[var(--md-sys-color-primary)]', 'bg-transparent'));
-            document.querySelectorAll('#view-calendar .focused-cell-bg').forEach(cell => cell.classList.remove('bg-[var(--md-sys-color-secondary-container)]/40', 'shadow-inner', 'focused-cell-bg'));
-
-            if (appState.focusedDate) {
-                const mCell = monthGrid.querySelector(`[data-date="${appState.focusedDate}"]`);
-                if (mCell && appState.calendarMode === 'week') {
-                    mCell.classList.add('bg-[var(--md-sys-color-secondary-container)]/40', 'shadow-inner', 'focused-cell-bg');
-                }
-                const wCell = weekGrid.querySelector(`[data-date="${appState.focusedDate}"]`);
-                if (wCell) {
-                    wCell.classList.add('bg-[var(--md-sys-color-secondary-container)]/40', 'shadow-inner', 'focused-cell-bg');
-                    const dot = wCell.querySelector('.focus-dot');
-                    if (dot) dot.className = dot.className.replace('bg-transparent', 'bg-[var(--md-sys-color-primary)]');
+            if (previousFocusedDate) {
+                const pm = monthCellMap.get(previousFocusedDate);
+                if (pm) pm.cell.classList.remove('bg-[var(--md-sys-color-secondary-container)]/40', 'shadow-inner', 'focused-cell-bg');
+                const pw = weekCellMap.get(previousFocusedDate);
+                if (pw) {
+                    pw.cell.classList.remove('bg-[var(--md-sys-color-secondary-container)]/40', 'shadow-inner', 'focused-cell-bg', 'week-cell-active');
+                    pw.cell.classList.add('week-cell-inactive');
+                    if (pw.dot) { pw.dot.classList.remove('bg-[var(--md-sys-color-primary)]'); pw.dot.classList.add('bg-transparent'); }
                 }
             }
 
-            let tasksHtmlMap = {};
+            if (appState.focusedDate) {
+                const m = monthCellMap.get(appState.focusedDate);
+                if (m && appState.calendarMode === 'week') m.cell.classList.add('bg-[var(--md-sys-color-secondary-container)]/40', 'shadow-inner', 'focused-cell-bg');
+                const w = weekCellMap.get(appState.focusedDate);
+                if (w) {
+                    w.cell.classList.add('bg-[var(--md-sys-color-secondary-container)]/40', 'shadow-inner', 'focused-cell-bg', 'week-cell-active');
+                    w.cell.classList.remove('week-cell-inactive');
+                    if (w.dot) { w.dot.classList.remove('bg-transparent'); w.dot.classList.add('bg-[var(--md-sys-color-primary)]'); }
+                }
+                previousFocusedDate = appState.focusedDate;
+            }
+
+            dailyTasksHtmlCache = {};
             appState.batches.forEach(batch => {
                 batch.subtasks.forEach(subtask => {
                     if (subtask.endDate) {
-                        if (!tasksHtmlMap[subtask.endDate]) tasksHtmlMap[subtask.endDate] = '';
+                        if (!dailyTasksHtmlCache[subtask.endDate]) dailyTasksHtmlCache[subtask.endDate] = '';
                         const starredHighlight = subtask.starred ? 'starred-calendar-item font-black ring-1 ring-amber-400' : '';
                         const starIcon = subtask.starred ? '<span class="material-symbols-outlined star-filled text-[12px] flex-shrink-0">grade</span>' : '';
                         const bgColor = subjectColors[batch.subject]?.text || "#6750A4";
                         const doneClass = subtask.done ? 'opacity-50 line-through saturate-50' : '';
 
-                        tasksHtmlMap[subtask.endDate] += `<div id="cal-sub-${subtask.id}" class="cal-task-item text-[8px] md:text-[9px] px-1 md:px-1.5 py-0.5 md:py-1 rounded truncate font-bold text-white shadow-sm cursor-grab hover:brightness-110 active:scale-95 transition-all flex items-center gap-0.5 ${starredHighlight} ${doneClass}" style="background-color: ${bgColor}; min-height: 20px; flex-shrink: 0;" draggable="true" data-subtask-id="${subtask.id}" data-batch-id="${batch.id}">${starIcon}<span class="truncate">${subtask.text}</span></div>`;
+                        dailyTasksHtmlCache[subtask.endDate] += `<div id="cal-sub-${subtask.id}" class="cal-task-item text-[8px] md:text-[9px] px-1 md:px-1.5 py-0.5 md:py-1 rounded truncate font-bold text-white shadow-sm cursor-grab hover:brightness-110 active:scale-95 transition-all flex items-center gap-0.5 ${starredHighlight} ${doneClass}" style="background-color: ${bgColor}; min-height: 20px; flex-shrink: 0;" draggable="true" data-subtask-id="${subtask.id}" data-batch-id="${batch.id}">${starIcon}<span class="truncate">${subtask.text}</span></div>`;
                     }
                 });
             });
 
-            for (const [dateStr, htmlStr] of Object.entries(tasksHtmlMap)) {
-                const mBox = monthGrid.querySelector(`[data-date="${dateStr}"] .task-box`);
-                if (mBox) mBox.innerHTML = htmlStr;
-                const wBox = weekGrid.querySelector(`[data-date="${dateStr}"] .task-box`);
-                if (wBox) wBox.innerHTML = htmlStr;
+            for (const dateStr of visibleMonthCells) {
+                const m = monthCellMap.get(dateStr);
+                if (m) m.taskBox.innerHTML = dailyTasksHtmlCache[dateStr] || '';
+            }
+            for (const dateStr of visibleWeekCells) {
+                const w = weekCellMap.get(dateStr);
+                if (w) w.taskBox.innerHTML = dailyTasksHtmlCache[dateStr] || '';
+            }
+            
+            // 如果弹窗打开且数据更新，同步刷新弹窗内部UI
+            const modal = document.getElementById("day-detail-modal");
+            if(modal && !modal.classList.contains("opacity-0")) {
+                const activeDate = document.getElementById("day-detail-date-title").innerText;
+                if(activeDate) {
+                    renderDayDetailModalContent(activeDate);
+                }
+            }
+        }
+
+        function clearDragHover() {
+            if (currentDragHoverCell) {
+                currentDragHoverCell.classList.remove('drag-hover');
+                currentDragHoverCell = null;
             }
         }
 
@@ -1025,9 +1259,10 @@
             [monthGrid, weekGrid].forEach(container => {
                 container.addEventListener("dragenter", (e) => {
                     const cell = e.target.closest('.cell-target');
-                    if (cell && !cell.classList.contains("drag-hover")) {
-                        document.querySelectorAll('.drag-hover').forEach(el => el.classList.remove('drag-hover'));
+                    if (cell && currentDragHoverCell !== cell) {
+                        clearDragHover();
                         cell.classList.add("drag-hover");
+                        currentDragHoverCell = cell;
                     }
                 });
                 container.addEventListener("dragover", (e) => {
@@ -1036,14 +1271,16 @@
                 });
                 container.addEventListener("dragleave", (e) => {
                     const cell = e.target.closest('.cell-target');
-                    if (cell && e.relatedTarget && !cell.contains(e.relatedTarget)) cell.classList.remove("drag-hover");
+                    if (cell && e.relatedTarget && !cell.contains(e.relatedTarget)) {
+                        clearDragHover();
+                    }
                 });
                 container.addEventListener("drop", (e) => {
                     e.preventDefault();
                     stopAutoScroll();
                     const cell = e.target.closest('.cell-target');
                     if (cell) {
-                        cell.classList.remove("drag-hover");
+                        clearDragHover();
                         dropToCalendarCell(e, cell.getAttribute("data-date"), cell);
                     }
                 });
@@ -1054,8 +1291,12 @@
                     const cell = e.target.closest('.cell-target');
                     if (cell) {
                         appState.focusedDate = cell.getAttribute("data-date");
-                        if (appState.calendarMode === 'month') switchCalendarMode('week');
-                        else { focusDayTimeline(appState.focusedDate); scrollToDate(appState.focusedDate, 'week'); }
+                        if (appState.calendarMode === 'month') {
+                            openDayDetailModal(appState.focusedDate, e);
+                        } else { 
+                            focusDayTimeline(appState.focusedDate); 
+                            scrollToDate(appState.focusedDate, 'week'); 
+                        }
                         updateCalendarTaskRendering();
                     }
                 });
@@ -1065,18 +1306,19 @@
                 const taskItem = e.target.closest('.cal-task-item');
                 if (taskItem) handleSubtaskDragStart(e, taskItem.dataset.subtaskId);
             });
+            
+            // 统一所有任务项的点击逻辑：手机上唤出菜单，桌面上定位Drawer
             document.addEventListener("click", (e) => {
                 const taskItem = e.target.closest('.cal-task-item');
-                if (taskItem) { e.stopPropagation(); expandToDrawerTask(taskItem.dataset.subtaskId); }
+                if (taskItem) { 
+                    e.stopPropagation(); 
+                    if (isTouch) {
+                        handleContextMenu(e, 'task_calendar', taskItem.dataset.batchId, taskItem.dataset.subtaskId);
+                    } else {
+                        expandToDrawerTask(taskItem.dataset.subtaskId); 
+                    }
+                }
             });
-
-            let touchTimer = null;
-            document.addEventListener("touchstart", (e) => {
-                const taskItem = e.target.closest('.cal-task-item');
-                if (taskItem) touchTimer = setTimeout(() => handleContextMenu(e, 'task_calendar', taskItem.dataset.batchId, taskItem.dataset.subtaskId), 500);
-            }, { passive: true });
-            document.addEventListener("touchend", () => clearTimeout(touchTimer));
-            document.addEventListener("touchmove", () => clearTimeout(touchTimer));
 
             document.addEventListener("contextmenu", (e) => {
                 const taskItem = e.target.closest('.cal-task-item');
@@ -1090,39 +1332,91 @@
             });
         }
 
-        function handleAutoScroll(e, container, isVertical) {
-            if (!isGlobalDragging) return;
-            const rect = container.getBoundingClientRect();
-            const threshold = 50; // Sensitive zone threshold (50px)
-            let speedX = 0, speedY = 0;
+        function renderDayDetailModalContent(dateStr) {
+            const container = document.getElementById('day-detail-tasks');
+            if (!container) return;
+            
+            let tasksForDay = [];
+            appState.batches.forEach(b => {
+                b.subtasks.forEach(s => {
+                    if (s.endDate === dateStr) tasksForDay.push({ batch: b, subtask: s });
+                });
+            });
 
-            if (isVertical) {
-                const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-                const y = clientY - rect.top;
-                if (y < threshold) {
-                    speedY = -8; // Lowered scroll speed for smoother control
-                } else if (y > rect.height - threshold) {
-                    speedY = 8;
-                }
+            if (tasksForDay.length === 0) {
+                container.innerHTML = '<div class="text-xs text-[var(--md-sys-color-outline)] text-center py-6">这一天没有任务安排</div>';
             } else {
-                const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-                const x = clientX - rect.left;
-                if (x < threshold) {
-                    speedX = -8;
-                } else if (x > rect.width - threshold) {
-                    speedX = 8;
-                }
+                container.innerHTML = tasksForDay.map(item => {
+                    const { batch, subtask } = item;
+                    const bgColor = subjectColors[batch.subject]?.text || "var(--md-sys-color-primary)";
+                    const isToday = subtask.endDate === TODAY_STR;
+                    const doneClass = subtask.done ? 'opacity-50 line-through saturate-50' : '';
+                    const starIcon = subtask.starred ? '<span class="material-symbols-outlined star-filled text-xs flex-shrink-0">grade</span>' : '';
+                    
+                    return `
+                    <div id="modal-sub-${subtask.id}" 
+                         class="cal-task-item p-2.5 rounded-xl text-xs font-bold text-white shadow-sm cursor-grab active:cursor-grabbing hover:brightness-110 transition-all flex items-center justify-between gap-2 ${doneClass}" 
+                         style="background-color: ${bgColor};" 
+                         draggable="true" 
+                         ondragstart="handleSubtaskDragStart(event, '${subtask.id}')"
+                         data-subtask-id="${subtask.id}" 
+                         data-batch-id="${batch.id}">
+                        <div class="flex items-center gap-1.5 min-w-0 flex-1 pointer-events-none">
+                            ${starIcon}
+                            <span class="truncate">${subtask.text}</span>
+                        </div>
+                        <div class="flex items-center gap-1 flex-shrink-0">
+                            ${!isToday ? `<button type="button" onclick="setSubtaskToday('${subtask.id}', event)" class="px-2 py-0.5 rounded-md bg-white/20 hover:bg-white/30 text-[10px] font-bold text-white transition-colors" title="设为今日任务">设为今日</button>` : '<span class="text-[9px] bg-white/20 px-1.5 py-0.5 rounded text-white font-mono">今日</span>'}
+                        </div>
+                    </div>`;
+                }).join('');
             }
+        }
+        
+        function openDayDetailModal(dateStr, e) {
+            const modal = document.getElementById('day-detail-modal');
+            document.getElementById('day-detail-date-title').innerText = dateStr;
+            
+            renderDayDetailModalContent(dateStr);
+            
+            modal.style.display = "flex";
+            
+            if(!modal.dataset.moved) {
+                let x = e ? (e.clientX || (e.touches && e.touches[0].clientX) || window.innerWidth/2) : window.innerWidth/2;
+                let y = e ? (e.clientY || (e.touches && e.touches[0].clientY) || window.innerHeight/2) : window.innerHeight/2;
+                
+                const width = 320, height = 250;
+                if (x + width > window.innerWidth) x = window.innerWidth - width - 10;
+                if (y + height > window.innerHeight) y = window.innerHeight - height - 10;
+                if (x < 10) x = 10; if (y < 10) y = 10;
+                
+                modal.style.left = `${x}px`;
+                modal.style.top = `${y}px`;
+                modal.style.transform = "none";
+            }
+            
+            requestAnimationFrame(() => {
+                modal.classList.remove('opacity-0', 'scale-95');
+                modal.classList.add('opacity-100', 'scale-100');
+            });
+        }
 
-            if (speedX !== 0 || speedY !== 0) {
-                if (!calScrollInterval) {
-                    calScrollInterval = setInterval(() => {
-                        if (isVertical) container.scrollTop += speedY;
-                        else container.scrollLeft += speedX;
-                    }, 20);
-                }
-            } else {
-                stopAutoScroll();
+        function closeDayDetailModal() {
+            const modal = document.getElementById('day-detail-modal');
+            modal.classList.remove('opacity-100', 'scale-100');
+            modal.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => { modal.style.display = "none"; }, 200);
+        }
+
+        function setSubtaskToday(subtaskId, event) {
+            if (event) event.stopPropagation();
+            const target = findSubtask(subtaskId);
+            if (target) {
+                target.subtask.endDate = TODAY_STR;
+                saveStateToStorage();
+                renderAllComponents();
+                const activeDate = document.getElementById("day-detail-date-title").innerText;
+                if (activeDate) renderDayDetailModalContent(activeDate);
             }
         }
 
@@ -1134,31 +1428,51 @@
         }
 
         function handleCalendarScroll(e, isVertical) {
-            if (!scrollDebounceTimer) {
-                scrollDebounceTimer = setTimeout(() => {
-                    scrollDebounceTimer = null;
-                    const container = e.target;
-                    const rect = container.getBoundingClientRect();
-                    const centerX = rect.left + rect.width / 2;
-                    const centerY = rect.top + rect.height / 2;
-
-                    const elem = document.elementFromPoint(centerX, centerY);
-                    const dateCell = elem?.closest('.cell-target');
-                    if (dateCell) {
-                        const dStr = dateCell.getAttribute('data-date');
-                        const parts = dStr.split('-');
-                        appState.calendarYear = parseInt(parts[0]);
-                        appState.calendarMonth = parseInt(parts[1]);
-                        document.getElementById("calendar-month-title").innerText = `${appState.calendarYear}年 ${appState.calendarMonth}月`;
+            if (isScrollTicking) return;
+            isScrollTicking = true;
+            requestAnimationFrame(() => {
+                isScrollTicking = false;
+                const container = e.target;
+                if (isVertical) {
+                    const grid = document.getElementById("month-grid-container");
+                    if (!grid || !grid.firstElementChild) return;
+                    const cellHeight = grid.firstElementChild.offsetHeight || 65;
+                    const rowIndex = Math.floor((container.scrollTop + 40) / cellHeight);
+                    const dayOffset = rowIndex * 7;
+                    const refDate = new Date(calendarBaseStartDate.getTime() + dayOffset * 86400000);
+                    if (!isNaN(refDate.getTime())) {
+                        const y = refDate.getFullYear();
+                        const m = refDate.getMonth() + 1;
+                        if (appState.calendarYear !== y || appState.calendarMonth !== m) {
+                            appState.calendarYear = y;
+                            appState.calendarMonth = m;
+                            document.getElementById("calendar-month-title").innerText = `${y}年 ${m}月`;
+                        }
                     }
-                }, 80);
-            }
+                } else {
+                    const grid = document.getElementById("week-grid-container");
+                    if (!grid || !grid.firstElementChild) return;
+                    const cellWidth = grid.firstElementChild.offsetWidth || 70;
+                    const colIndex = Math.floor((container.scrollLeft + cellWidth / 2) / cellWidth);
+                    const refDate = new Date(calendarBaseStartDate.getTime() + colIndex * 86400000);
+                    if (!isNaN(refDate.getTime())) {
+                        const y = refDate.getFullYear();
+                        const m = refDate.getMonth() + 1;
+                        if (appState.calendarYear !== y || appState.calendarMonth !== m) {
+                            appState.calendarYear = y;
+                            appState.calendarMonth = m;
+                            document.getElementById("calendar-month-title").innerText = `${y}年 ${m}月`;
+                        }
+                    }
+                }
+            });
         }
 
         function scrollToDate(dateStr, mode) {
             if (!dateStr) return;
             const container = mode === 'month' ? document.getElementById('calendar-month-scroll') : document.getElementById('calendar-week-scroll');
-            const targetCell = container?.querySelector(`[data-date="${dateStr}"]`);
+            const cellObj = mode === 'month' ? monthCellMap.get(dateStr) : weekCellMap.get(dateStr);
+            const targetCell = cellObj?.cell;
 
             if (targetCell && container) {
                 if (mode === 'month') {
@@ -1300,7 +1614,7 @@
             switchView('calendar');
             scrollToDate(dateStr, 'month');
             setTimeout(() => {
-                const cell = document.querySelector(`#calendar-month-scroll [data-date="${dateStr}"]`);
+                const cell = monthCellMap.get(dateStr)?.cell;
                 if (cell) {
                     cell.classList.add('locate-highlight');
                     setTimeout(() => cell.classList.remove('locate-highlight'), 2000);
@@ -1309,7 +1623,7 @@
         }
 
         function allowDrop(e) { e.preventDefault(); }
-        function handleDragLeave(e) { e.currentTarget.classList.remove("drag-hover", "meta-drop-hover"); }
+        function handleDragLeave(e) { e.currentTarget.classList.remove("drag-hover", "meta-drop-hover"); clearDragHover(); }
 
         function handleSubtaskDragStart(e, subtaskId) {
             e.dataTransfer.setData("text/plain", subtaskId);
@@ -1336,7 +1650,7 @@
         }
 
         function dropToCalendarCell(e, dateStr, cellEl) {
-            e.preventDefault(); cellEl.classList.remove("drag-hover");
+            e.preventDefault(); clearDragHover();
             const subtaskId = e.dataTransfer.getData("text/plain") || globalDraggedSubtaskId;
             const target = findSubtask(subtaskId);
             if (target) {
@@ -1367,7 +1681,11 @@
             e.preventDefault();
             const subtaskId = e.dataTransfer.getData("text/plain") || globalDraggedSubtaskId;
             const target = findSubtask(subtaskId);
-            if (target) { target.subtask.endDate = TODAY_STR; saveStateToStorage(); renderAllComponents(); }
+            if (target) { 
+                target.subtask.endDate = TODAY_STR; 
+                saveStateToStorage(); 
+                renderAllComponents(); 
+            }
             isGlobalDragging = false;
             stopAutoScroll();
         }
@@ -1423,8 +1741,11 @@
 
         function showGlobalTooltip(e, subtaskId) {
             if (isGlobalDragging || isTouch) return;
+            if (e.target && !e.target.closest('.view-pane.active, #task-drawer, #day-detail-modal')) {
+                return hideGlobalTooltip();
+            }
             const target = findSubtask(subtaskId);
-            if (!target) return;
+            if (!target) return hideGlobalTooltip();
             const tooltip = document.getElementById("global-tooltip");
             let startM_v = target.subtask.startMinute || 480;
             let startH = String(Math.floor(startM_v / 60)).padStart(2, '0');
@@ -1840,22 +2161,31 @@
         function renderDrawerTask(item, catName, container) {
             const { batch, subtask } = item;
             const taskEl = document.createElement("div");
-            taskEl.className = `group/item p-2 rounded-lg border flex flex-col gap-1 bg-[var(--md-sys-color-surface-container-highest)] border-[var(--md-sys-color-outline-variant)] cursor-grab active:cursor-grabbing hover:shadow-sm transition-shadow ${subtask.done ? 'opacity-50 saturate-50 line-through' : ''}`;
+            taskEl.className = `group/item p-2 rounded-lg border flex flex-col gap-1 bg-[var(--md-sys-color-surface-container-highest)] border-[var(--md-sys-color-outline-variant)] cursor-grab active:cursor-grabbing hover:shadow-sm transition-all ${subtask.done ? 'opacity-50 saturate-50 line-through' : ''}`;
             taskEl.setAttribute("draggable", "true"); taskEl.setAttribute("data-subtask-id", subtask.id);
             taskEl.addEventListener("dragstart", (e) => handleSubtaskDragStart(e, subtask.id));
-            let timer;
-            taskEl.addEventListener("touchstart", (e) => { timer = setTimeout(() => handleContextMenu(e, 'task_drawer', batch.id, subtask.id, catName), 500); });
-            taskEl.addEventListener("touchend", () => clearTimeout(timer)); taskEl.addEventListener("touchmove", () => clearTimeout(timer));
+            
             taskEl.addEventListener("contextmenu", (e) => handleContextMenu(e, 'task_drawer', batch.id, subtask.id, catName));
-
-            taskEl.addEventListener("click", () => {
-                if (document.getElementById('view-home').classList.contains('active')) {
-                    switchView('home');
-                    setTimeout(() => {
-                        const el = document.getElementById('home-sub-' + subtask.id);
-                        if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('locate-highlight'); setTimeout(() => el.classList.remove('locate-highlight'), 2000); }
-                    }, 300);
-                } else if (subtask.endDate) { jumpToCalendar(subtask.endDate); }
+            taskEl.addEventListener("click", (e) => {
+                if(e.target.closest('button')) return;
+                if(isTouch) {
+                    handleContextMenu(e, 'task_drawer', batch.id, subtask.id, catName);
+                } else {
+                    if (document.getElementById('view-home').classList.contains('active')) {
+                        switchView('home');
+                        setTimeout(() => {
+                            const el = document.getElementById('home-sub-' + subtask.id);
+                            if (el) { 
+                                // 若主任务被折叠需先展开
+                                const batchCard = el.closest('.home-batch-content');
+                                if(batchCard && batchCard.classList.contains('collapsed')) toggleBatchCollapse(batch.id);
+                                el.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
+                                el.classList.add('locate-highlight'); 
+                                setTimeout(() => el.classList.remove('locate-highlight'), 2000); 
+                            }
+                        }, 300);
+                    } else if (subtask.endDate) { jumpToCalendar(subtask.endDate); }
+                }
             });
 
             const starIconClass = subtask.starred ? 'star-filled opacity-100' : 'star-outline opacity-0 group-hover/item:opacity-100 hover:text-amber-500';
@@ -1866,12 +2196,11 @@
                 </div>
                 <div class="flex items-end justify-between gap-1 mt-0.5">
                     <div class="text-xs font-bold truncate text-[var(--md-sys-color-on-surface)] flex-1 min-w-0" title="${subtask.text}">${subtask.text}</div>
-                    <button onclick="toggleSubtaskStar('${subtask.id}', event, this)" class="text-[16px] flex items-center justify-center transition-all p-0.5 rounded-full hover:bg-amber-500/10 flex-shrink-0 self-end"><span class="material-symbols-outlined text-[16px] ${starIconClass}">grade</span></button>
+                    <button type="button" onclick="toggleSubtaskStar('${subtask.id}', event, this)" class="text-[16px] flex items-center justify-center transition-all p-0.5 rounded-full hover:bg-amber-500/10 flex-shrink-0 self-end"><span class="material-symbols-outlined text-[16px] ${starIconClass}">grade</span></button>
                 </div>
             `;
             container.appendChild(taskEl);
         }
-
 
         function deleteMetaAsset(dimension, itemValue) {
             if (dimension === 'subject') appState.subjects = appState.subjects.filter(s => s !== itemValue);
@@ -1885,7 +2214,7 @@
 
         function changeDrawerArrange(dimension) {
             if (appState.currentDrawerArrange !== dimension) {
-                drawerFolderStates = {}; // Clear folder expanded cache
+                drawerFolderStates = {};
             }
             appState.currentDrawerArrange = dimension;
             document.querySelectorAll("#drawer-filter-chips button").forEach(btn => btn.className = 'text-[11px] py-1.5 px-3 rounded-full text-center font-semibold md-ripple border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0');
@@ -1899,12 +2228,37 @@
             } else { quickAdd.style.display = 'none'; }
             renderLeftDrawerPool();
         }
-
+        
+        function toggleBatchCollapse(id) {
+            const batch = appState.batches.find(b => b.id === id);
+            if(batch) {
+                batch.collapsed = !batch.collapsed;
+                saveStateToStorage(false);
+                renderHomeChecklist();
+            }
+        }
+        
+        function toggleBatchPin(id) {
+            const batch = appState.batches.find(b => b.id === id);
+            if(batch) {
+                batch.pinned = !batch.pinned;
+                saveStateToStorage(false);
+                renderHomeChecklist();
+            }
+        }
 
         function renderHomeChecklist() {
             const container = document.getElementById("home-checklist-container");
             container.innerHTML = "";
-            const filteredBatches = appState.batches.filter(b => {
+            
+            let sortedBatches = [...appState.batches];
+            sortedBatches.sort((a, b) => {
+                if (a.pinned && !b.pinned) return -1;
+                if (!a.pinned && b.pinned) return 1;
+                return 0;
+            });
+            
+            const filteredBatches = sortedBatches.filter(b => {
                 const query = appState.searchQuery.toLowerCase();
                 const keywords = query.split(/\s+/).filter(k => k);
                 if (!keywords.length) return true;
@@ -1915,6 +2269,7 @@
                 container.innerHTML = `<div class="text-xs text-[var(--md-sys-color-outline)] p-10 text-center bg-[var(--md-sys-color-surface-container-low)] rounded-2xl border border-dashed border-[var(--md-sys-color-outline-variant)]">暂无契合指标，去部署新的战斗任务吧！</div>`;
                 return;
             }
+            
             filteredBatches.forEach(batch => {
                 let totalW = 0, doneW = 0;
                 batch.subtasks.forEach(s => { const w = s.weight || 1; totalW += w; if (s.done) doneW += w; });
@@ -1936,46 +2291,54 @@
                             ${tagsHtml}
                         </div>
                         <div class="flex items-center gap-1 flex-shrink-0">
+                            <button onclick="toggleBatchPin('${batch.id}')" class="pin-btn w-8 h-8 rounded-full flex items-center justify-center ${batch.pinned ? 'text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary)]/10' : 'text-[var(--md-sys-color-outline)] hover:text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary)]/10'}"><span class="material-symbols-outlined text-[20px] ${batch.pinned ? 'filled' : ''}">push_pin</span></button>
                             <button onclick="openEditTaskModal('${batch.id}')" class="w-8 h-8 rounded-full flex items-center justify-center text-[var(--md-sys-color-outline)] hover:text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary)]/10 transition-colors"><span class="material-symbols-outlined text-[20px]">edit</span></button>
                             <button onclick="deleteEntireBatch('${batch.id}')" class="w-8 h-8 rounded-full flex items-center justify-center text-[var(--md-sys-color-outline)] hover:text-red-500 hover:bg-red-500/10 transition-colors"><span class="material-symbols-outlined text-[20px]">delete_sweep</span></button>
+                            <button onclick="toggleBatchCollapse('${batch.id}')" class="w-8 h-8 rounded-full flex items-center justify-center text-[var(--md-sys-color-outline)] hover:bg-black/5 transition-colors"><span class="material-symbols-outlined text-[24px] batch-expand-icon ${batch.collapsed ? 'collapsed' : ''}">expand_more</span></button>
                         </div>
                     </div>
-                    <p class="text-[11px] md:text-xs text-[var(--md-sys-color-on-surface-variant)] border-l-2 border-[var(--md-sys-color-outline-variant)] pl-2">${batch.content}</p>
-                    <div class="flex flex-col gap-1 my-0.5">
-                        <div class="flex justify-between items-center text-[10px] font-bold text-[var(--md-sys-color-on-surface-variant)]">
-                            <span>任务进度</span><span class="font-mono text-[var(--md-sys-color-primary)]">${doneW}/${totalW} (${taskPct}%)</span>
-                        </div>
-                        <div class="w-full h-1.5 rounded-full bg-[var(--md-sys-color-surface-variant)] overflow-hidden">
-                            <div class="h-full rounded-full bg-[var(--md-sys-color-primary)] transition-all duration-500 ease-out" style="width: ${taskPct}%;"></div>
+                    <div class="home-batch-content ${batch.collapsed ? 'collapsed' : ''}">
+                        <div class="overflow-hidden min-h-0">
+                            <p class="text-[11px] md:text-xs text-[var(--md-sys-color-on-surface-variant)] border-l-2 border-[var(--md-sys-color-outline-variant)] pl-2 mb-3">${batch.content}</p>
+                            <div class="flex flex-col gap-1 my-0.5">
+                                <div class="flex justify-between items-center text-[10px] font-bold text-[var(--md-sys-color-on-surface-variant)]">
+                                    <span>任务进度</span><span class="font-mono text-[var(--md-sys-color-primary)]">${doneW}/${totalW} (${taskPct}%)</span>
+                                </div>
+                                <div class="w-full h-1.5 rounded-full bg-[var(--md-sys-color-surface-variant)] overflow-hidden">
+                                    <div class="h-full rounded-full bg-[var(--md-sys-color-primary)] transition-all duration-500 ease-out" style="width: ${taskPct}%;"></div>
+                                </div>
+                            </div>
+                            <div class="subtask-list-zone flex flex-col gap-1.5 pt-2 border-t border-dashed border-[var(--md-sys-color-outline-variant)] mt-2"></div>
                         </div>
                     </div>
-                    <div class="subtask-list-zone flex flex-col gap-1.5 pt-2 border-t border-dashed border-[var(--md-sys-color-outline-variant)]"></div>
                 `;
 
                 const subContainer = box.querySelector(".subtask-list-zone");
                 batch.subtasks.forEach(sub => {
                     const subRow = document.createElement("div");
                     subRow.id = `home-sub-${sub.id}`;
-                    subRow.className = "group/sub flex items-center justify-between p-2.5 rounded-xl bg-[var(--md-sys-color-surface-container-low)] border border-transparent text-xs cursor-grab active:cursor-grabbing hover:bg-[var(--md-sys-color-surface-container-high)] hover:border-[var(--md-sys-color-outline-variant)] transition-all";
+                    subRow.className = "group/sub flex items-center justify-between px-3 py-1 rounded-xl bg-[var(--md-sys-color-surface-container-low)] border border-transparent text-xs cursor-grab active:cursor-grabbing hover:bg-[var(--md-sys-color-surface-container-high)] hover:border-[var(--md-sys-color-outline-variant)] transition-all";
                     subRow.setAttribute("draggable", "true");
                     subRow.addEventListener("dragstart", (e) => handleSubtaskDragStart(e, sub.id));
-                    let timer;
-                    subRow.addEventListener("touchstart", (e) => { timer = setTimeout(() => handleContextMenu(e, 'task_home', batch.id, sub.id), 500); });
-                    subRow.addEventListener("touchend", () => clearTimeout(timer)); subRow.addEventListener("touchmove", () => clearTimeout(timer));
                     subRow.addEventListener("contextmenu", (e) => handleContextMenu(e, 'task_home', batch.id, sub.id));
+                    
                     subRow.addEventListener("click", (e) => {
-                        if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'button' || e.target.closest('button')) return;
-                        expandToDrawerTask(sub.id, document.getElementById('global-search').value.trim());
+                        if (e.target.closest('input') || e.target.closest('button') || e.target.closest('label.interactive')) return;
+                        if(isTouch) {
+                            handleContextMenu(e, 'task_home', batch.id, sub.id);
+                        } else {
+                            expandToDrawerTask(sub.id, document.getElementById('global-search').value.trim());
+                        }
                     });
 
                     const starIconClass = sub.starred ? 'star-filled opacity-100' : 'star-outline opacity-0 group-hover/sub:opacity-100 hover:text-amber-500';
                     subRow.innerHTML = `
-                        <label class="flex items-center gap-2 cursor-pointer flex-1 overflow-hidden min-w-0">
-                            <div class="relative flex items-center justify-center flex-shrink-0">
-                                <input type="checkbox" ${sub.done ? 'checked' : ''} onchange="toggleSubtaskStatus('${sub.id}')" class="w-4 h-4 appearance-none rounded border-2 border-[var(--md-sys-color-outline)] checked:border-[var(--md-sys-color-primary)] checked:bg-[var(--md-sys-color-primary)] transition-colors peer" onclick="event.stopPropagation()"/>
-                                <span class="material-symbols-outlined text-[14px] text-white absolute opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity font-bold">check</span>
+                        <label class="flex items-center gap-3 cursor-pointer flex-1 overflow-hidden min-w-0 py-1.5 interactive pl-1 -ml-1">
+                            <div class="relative flex items-center justify-center flex-shrink-0 p-2 -m-2 cursor-pointer" onclick="event.stopPropagation()">
+                                <input type="checkbox" ${sub.done ? 'checked' : ''} onchange="toggleSubtaskStatus('${sub.id}')" class="w-5 h-5 appearance-none rounded border-2 border-[var(--md-sys-color-outline)] checked:border-[var(--md-sys-color-primary)] checked:bg-[var(--md-sys-color-primary)] transition-colors peer cursor-pointer" />
+                                <span class="material-symbols-outlined text-[16px] text-white absolute opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity font-bold">check</span>
                             </div>
-                            <span class="font-medium truncate text-[var(--md-sys-color-on-surface)] transition-all ${sub.done ? 'line-through opacity-50 saturate-50' : ''}">${sub.text}</span>
+                            <span class="font-medium truncate text-[var(--md-sys-color-on-surface)] text-sm transition-all ${sub.done ? 'line-through opacity-50 saturate-50' : ''}">${sub.text}</span>
                         </label>
                         <div class="flex items-center gap-1.5 flex-shrink-0 ml-2">
                             <button type="button" onclick="toggleSubtaskStar('${sub.id}', event, this)" class="text-[18px] flex items-center justify-center transition-all p-0.5 rounded-full hover:bg-amber-500/10">
@@ -1990,14 +2353,13 @@
             });
         }
 
-
         function getWeekNumberInMonth(dateStr) {
             const d = new Date(dateStr);
             const firstDay = new Date(d.getFullYear(), d.getMonth(), 1);
             const pastDays = d.getDate() + (firstDay.getDay() === 0 ? 7 : firstDay.getDay()) - 1;
             return Math.ceil(pastDays / 7);
         }
-        
+
         function switchCalendarMode(mode) {
             appState.calendarMode = mode;
             const activeClass = 'px-3 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] transition-all';
@@ -2013,7 +2375,7 @@
             monthWrapper.classList.add("hidden"); weekWrapper.classList.add("hidden"); tlPane.classList.add("hidden");
 
             if (mode === 'week') {
-                weekWrapper.classList.remove("hidden");
+                if(!isTimelineExpanded) weekWrapper.classList.remove("hidden");
                 tlPane.classList.remove("hidden");
                 focusDayTimeline(appState.focusedDate);
                 scrollToDate(appState.focusedDate, 'week');
@@ -2022,6 +2384,19 @@
                 scrollToDate(appState.focusedDate, 'month');
             }
             updateCalendarTaskRendering();
+        }
+        
+        function toggleTimelineExpand() {
+            isTimelineExpanded = !isTimelineExpanded;
+            const weekWrapper = document.getElementById("calendar-week-view-wrapper");
+            const icon = document.getElementById("timeline-expand-icon");
+            if (isTimelineExpanded) {
+                weekWrapper.classList.add("hidden");
+                icon.innerText = "close_fullscreen";
+            } else {
+                weekWrapper.classList.remove("hidden");
+                icon.innerText = "open_in_full";
+            }
         }
 
         function focusDayTimeline(centerDateStr) {
@@ -2100,10 +2475,14 @@
 
                 block.addEventListener("mousedown", (e) => { if (!e.target.closest('.resize-handle')) startTimelineCardDrag(e, subtask.id); });
                 block.addEventListener("touchstart", (e) => { if (!e.target.closest('.resize-handle')) startTimelineCardDrag(e, subtask.id); }, { passive: false });
-                let timer;
-                block.addEventListener("touchstart", (e) => { timer = setTimeout(() => handleContextMenu(e, 'task_calendar', batch.id, subtask.id), 500); });
-                block.addEventListener("touchend", () => clearTimeout(timer)); block.addEventListener("touchmove", () => clearTimeout(timer));
                 block.addEventListener("contextmenu", (e) => handleContextMenu(e, 'task_calendar', batch.id, subtask.id));
+                block.addEventListener("click", (e) => {
+                    if (e.target.closest('.resize-handle')) return;
+                    if(isTouch) {
+                        handleContextMenu(e, 'task_calendar', batch.id, subtask.id);
+                    }
+                });
+                
                 block.addEventListener("mousemove", (e) => showGlobalTooltip(e, subtask.id)); block.addEventListener("mouseleave", hideGlobalTooltip);
                 cardPool.appendChild(block);
             });
@@ -2219,7 +2598,7 @@
             if (bId) {
                 const existing = appState.batches.find(b => b.id === bId);
                 if (existing) { existing.title = title; existing.content = content; existing.subject = appState.selectedFormSubject; existing.tags = [...appState.selectedFormTags]; existing.subtasks = subtasks; }
-            } else { appState.batches.unshift({ id: `batch-${Date.now()}`, title, content, subject: appState.selectedFormSubject, tags: [...appState.selectedFormTags], subtasks }); }
+            } else { appState.batches.unshift({ id: `batch-${Date.now()}`, title, content, subject: appState.selectedFormSubject, tags: [...appState.selectedFormTags], subtasks, pinned: false, collapsed: false }); }
             saveStateToStorage(); closeAddTaskModal(); renderAllComponents();
         }
 
@@ -2247,23 +2626,27 @@
                         let baseClass = "group/today p-2 rounded-lg bg-[var(--md-sys-color-surface-container-lowest)] text-xs font-medium shadow-sm cursor-pointer hover:bg-black/5 flex items-center justify-between gap-2 transition-colors";
                         if (s.done) baseClass += " line-through opacity-50 saturate-50";
                         item.className = `${baseClass} ${isOverdue ? "border-l-4 border-rose-500" : isToday ? "border-l-4 border-[var(--md-sys-color-primary)]" : ""}`;
-                        const checkboxClass = isOverdue ? "w-4 h-4 appearance-none rounded border-2 border-[var(--md-sys-color-outline)] checked:border-rose-500 checked:bg-rose-500 transition-colors peer cursor-pointer" : "w-4 h-4 appearance-none rounded border-2 border-[var(--md-sys-color-outline)] checked:border-[var(--md-sys-color-primary)] checked:bg-[var(--md-sys-color-primary)] transition-colors peer cursor-pointer";
+                        const checkboxClass = isOverdue ? "w-5 h-5 appearance-none rounded border-2 border-[var(--md-sys-color-outline)] checked:border-rose-500 checked:bg-rose-500 transition-colors peer cursor-pointer" : "w-5 h-5 appearance-none rounded border-2 border-[var(--md-sys-color-outline)] checked:border-[var(--md-sys-color-primary)] checked:bg-[var(--md-sys-color-primary)] transition-colors peer cursor-pointer";
 
                         item.addEventListener("contextmenu", (e) => handleContextMenu(e, 'task_today', b.id, s.id));
                         item.addEventListener("click", (e) => {
-                            if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'button' || e.target.closest('button')) return;
-                            expandToDrawerTask(s.id);
+                            if (e.target.closest('input') || e.target.closest('button') || e.target.closest('.interactive-check')) return;
+                            if(isTouch) {
+                                handleContextMenu(e, 'task_today', b.id, s.id);
+                            } else {
+                                expandToDrawerTask(s.id);
+                            }
                         });
 
                         const starIconClass = s.starred ? 'star-filled opacity-100' : 'star-outline opacity-0 group-hover/today:opacity-100 hover:text-amber-500';
                         item.innerHTML = `
-                            <div class="flex items-center gap-2 flex-1 min-w-0">
-                                <div class="relative flex items-center justify-center flex-shrink-0" onclick="event.stopPropagation()">
+                            <div class="flex items-center gap-3 flex-1 min-w-0">
+                                <div class="relative flex items-center justify-center flex-shrink-0 p-2 -m-2 cursor-pointer interactive-check" onclick="event.stopPropagation()">
                                     <input type="checkbox" ${s.done ? 'checked' : ''} onchange="toggleSubtaskStatus('${s.id}')" class="${checkboxClass}" />
-                                    <span class="material-symbols-outlined text-[14px] text-white absolute opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity font-bold">check</span>
+                                    <span class="material-symbols-outlined text-[16px] text-white absolute opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity font-bold">check</span>
                                 </div>
                                 <div class="flex-1 min-w-0 flex flex-col gap-0.5">
-                                    <span class="truncate block ${isOverdue ? 'text-rose-700 dark:text-rose-400' : 'text-[var(--md-sys-color-primary)]'}">${s.text}</span>
+                                    <span class="truncate block text-sm ${isOverdue ? 'text-rose-700 dark:text-rose-400' : 'text-[var(--md-sys-color-primary)]'}">${s.text}</span>
                                     ${isOverdue ? `<span class="text-[9px] text-rose-500 font-mono bg-rose-500/10 px-1 py-0.5 rounded w-max">截止日期: ${s.endDate}</span>` : ''}
                                 </div>
                             </div>
@@ -2286,10 +2669,16 @@
         function handleSearchDebounced(val) { clearTimeout(searchDebounceTimer); searchDebounceTimer = setTimeout(() => { appState.searchQuery = val.trim(); renderHomeChecklist(); }, 200); }
 
         function switchView(viewName) {
+            appState.currentView = viewName;
+            hideGlobalTooltip();
             document.querySelectorAll('.md-nav-item').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.view-pane').forEach(pane => pane.classList.remove('active'));
-            document.getElementById(`nav-${viewName}`)?.classList.add('active'); document.getElementById(`view-${viewName}`)?.classList.add('active');
-            if (viewName === 'calendar') switchCalendarMode('month');
+            document.getElementById(`nav-${viewName}`)?.classList.add('active'); 
+            document.getElementById(`view-${viewName}`)?.classList.add('active');
+            if (viewName === 'calendar') {
+                switchCalendarMode('month');
+                updateCalendarTaskRendering();
+            }
             if (viewName === 'today') { document.getElementById("today-date-display").innerText = TODAY_STR; renderSpecialTaskLists(); }
         }
 
