@@ -115,76 +115,73 @@
             animation: starPopAnim 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        @keyframes pinPop {
-            0% {
-                transform: scale(0.9) rotate(0deg);
-            }
-
-            45% {
-                transform: scale(1.25) rotate(-35deg);
-            }
-
-            100% {
-                transform: scale(1) rotate(-25deg);
-            }
-        }
-
-        .pin-animated {
-            animation: pinPop 0.35s var(--md-motion-easing-emphasized);
-        }
-
-        .md-nav-item .md-icon-wrapper {
-            transition: background-color var(--md-motion-duration-short4) var(--md-motion-easing-emphasized), transform 0.2s ease;
-        }
-
-        .md-nav-item.active .md-icon-wrapper {
-            background-color: var(--md-sys-color-secondary-container);
-            color: var(--md-sys-color-on-secondary-container);
-            border-radius: 16px;
-        }
-
         .md-ripple {
             position: relative;
             overflow: hidden;
         }
 
-        .md-ripple::after {
-            content: "";
+        .md-ripple-ink {
             position: absolute;
-            inset: 0;
+            border-radius: 50%;
             background-color: currentColor;
-            opacity: 0;
-            transition: opacity var(--md-motion-duration-short4) linear;
-        }
-
-        .md-ripple:hover::after {
-            opacity: 0.08;
-        }
-
-        .md-ripple:active::after {
-            opacity: 0.16;
-        }
-
-        #task-drawer {
-            transition: transform var(--md-motion-duration-long1) var(--md-motion-easing-emphasized),
-                width var(--md-motion-duration-long1) var(--md-motion-easing-emphasized),
-                opacity var(--md-motion-duration-medium1);
-        }
-
-        #task-drawer.collapsed {
-            width: 0px;
-            opacity: 0;
+            opacity: 0.2;
+            transform: scale(0);
+            animation: mdRippleEffect 0.55s cubic-bezier(0.2, 0, 0, 1) forwards;
             pointer-events: none;
-            transform: translateX(-100%);
         }
 
-        @media (min-width: 768px) {
-            #task-drawer.collapsed {
-                transform: none;
+        @keyframes mdRippleEffect {
+            to {
+                transform: scale(2.8);
+                opacity: 0;
             }
         }
 
-        /* 彻底消除非激活视窗的点击穿透 Bug */
+        .md-nav-item .md-icon-wrapper {
+            transition: background-color var(--md-motion-duration-short4) var(--md-motion-easing-emphasized), transform 0.2s ease, color 0.2s ease;
+        }
+
+        .md-nav-item:hover .md-icon-wrapper {
+            background-color: rgba(103, 80, 164, 0.08);
+        }
+
+        html.dark .md-nav-item:hover .md-icon-wrapper {
+            background-color: rgba(208, 188, 255, 0.12);
+        }
+
+        .md-nav-item.active .md-icon-wrapper {
+            background-color: var(--md-sys-color-secondary-container) !important;
+            color: var(--md-sys-color-on-secondary-container) !important;
+            border-radius: 16px;
+        }
+
+        #task-drawer {
+            transition: width var(--md-motion-duration-long1) var(--md-motion-easing-emphasized),
+                opacity var(--md-motion-duration-medium1) var(--md-motion-easing-emphasized),
+                transform var(--md-motion-duration-long1) var(--md-motion-easing-emphasized);
+            overflow: hidden !important;
+        }
+
+        #task-drawer.collapsed {
+            width: 0px !important;
+            min-width: 0px !important;
+            opacity: 0;
+            pointer-events: none;
+            border-right-width: 0px !important;
+        }
+
+        @media (max-width: 767px) {
+            #task-drawer.collapsed {
+                transform: translateX(-100%);
+            }
+        }
+
+        #task-drawer-inner {
+            width: 20rem;
+            min-width: 20rem;
+            height: 100%;
+        }
+
         .view-pane {
             opacity: 0;
             transform: translateY(10px);
@@ -345,7 +342,6 @@
             border: 1px solid var(--md-sys-color-outline-variant);
         }
 
-        /* 文件夹折叠展开过渡 */
         .folder-content {
             transition: grid-template-rows var(--md-motion-duration-long1) var(--md-motion-easing-emphasized);
             display: grid;
@@ -363,13 +359,12 @@
             border: none !important;
         }
 
-        /* 首页卡片折叠展开动画 */
         .batch-card {
             transition: transform 0.3s var(--md-motion-easing-emphasized), box-shadow 0.3s var(--md-motion-easing-emphasized), border-color 0.3s ease;
         }
 
         .home-batch-content {
-            transition: grid-template-rows 0.35s var(--md-motion-easing-emphasized), opacity 0.3s var(--md-motion-easing-emphasized);
+            transition: grid-template-rows 0.45s var(--md-motion-easing-emphasized), opacity 0.35s var(--md-motion-easing-emphasized);
             display: grid;
             grid-template-rows: 1fr;
             opacity: 1;
@@ -378,6 +373,17 @@
         .home-batch-content.collapsed {
             grid-template-rows: 0fr;
             opacity: 0;
+        }
+
+        .home-batch-content .subtask-item-animated {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.35s var(--md-motion-easing-emphasized), transform 0.35s var(--md-motion-easing-emphasized);
+        }
+
+        .home-batch-content.collapsed .subtask-item-animated {
+            opacity: 0;
+            transform: translateY(-8px);
         }
 
         .folder-icon {
@@ -390,23 +396,13 @@
         }
 
         .batch-expand-icon {
-            transition: transform 0.35s var(--md-motion-easing-emphasized);
+            transition: transform 0.4s var(--md-motion-easing-emphasized);
         }
 
         .batch-expand-icon.collapsed {
             transform: rotate(-90deg);
         }
 
-        /* 置顶图标动效 */
-        .pin-btn {
-            transition: transform 0.3s var(--md-motion-easing-emphasized), color 0.2s ease, background-color 0.2s ease;
-        }
-
-        .pin-btn.is-pinned {
-            transform: rotate(-25deg);
-        }
-
-        /* 丝滑进度条缓动 */
         .md3-progress-smooth {
             transition: width 0.6s var(--md-motion-easing-emphasized);
         }
@@ -452,7 +448,6 @@
             box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
         }
 
-        /* MD3 上下文菜单 & 下拉菜单样式 */
         .md3-menu-popup {
             box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.15), 0 4px 12px -2px rgba(0, 0, 0, 0.08);
             border-radius: 16px;
@@ -460,6 +455,14 @@
             border: 1px solid var(--md-sys-color-outline-variant);
             animation: md3MenuOpen 0.2s var(--md-motion-easing-emphasized) forwards;
             transform-origin: top left;
+            box-sizing: border-box;
+            line-height: normal;
+        }
+
+        .md3-menu-popup button {
+            line-height: 1.25rem !important;
+            flex-shrink: 0 !important;
+            white-space: nowrap;
         }
 
         @keyframes md3MenuOpen {
@@ -491,41 +494,44 @@
             class="w-full text-left px-3 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface)] flex items-center gap-2.5 font-medium transition-colors md-ripple">
             <span class="material-symbols-outlined text-[18px] text-[var(--md-sys-color-primary)]">today</span>今日完成
         </button>
-        <button onclick="executeDateAction('custom')"
+        <button id="date-quick-menu-custom-btn" onclick="executeDateAction('custom')"
             class="w-full text-left px-3 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface)] flex items-center gap-2.5 font-medium transition-colors md-ripple">
             <span
-                class="material-symbols-outlined text-[18px] text-[var(--md-sys-color-secondary)]">edit_calendar</span>更改日期
+                class="material-symbols-outlined text-[18px] text-[var(--md-sys-color-secondary)]">edit_calendar</span><span
+                id="date-quick-menu-custom-label">设置日期</span>
         </button>
     </div>
 
     <!-- MD3 日历筛选器下拉弹窗 -->
     <div id="calendar-filter-menu"
-        class="fixed hidden z-[260] p-1.5 text-xs min-w-[140px] max-h-60 overflow-y-auto md-scrollbar flex-col gap-0.5 md3-menu-popup">
+        class="fixed hidden z-[260] p-1.5 text-xs min-w-[140px] max-h-60 overflow-y-auto md-scrollbar flex-col gap-1 md3-menu-popup">
     </div>
 
-    <!-- Month Day Detail Modal (具有严格的作用域与防误触拦截) -->
+    <!-- Month Day Detail Modal -->
     <div id="day-detail-modal"
         class="fixed hidden z-[140] w-[280px] sm:w-[320px] rounded-[28px] shadow-2xl flex-col bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)] transition-all duration-200 opacity-0 scale-95">
         <div id="day-detail-header"
             class="flex justify-between items-center px-4 py-3.5 border-b border-[var(--md-sys-color-outline-variant)] cursor-move rounded-t-[28px] bg-[var(--md-sys-color-surface-container-low)]">
             <div class="flex items-center gap-1.5">
                 <button type="button" onclick="navigateDayDetailModal(-1)"
-                    class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10 text-[var(--md-sys-color-on-surface)] transition-colors"
+                    class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10 text-[var(--md-sys-color-on-surface)] transition-colors md-ripple"
                     onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
                     <span class="material-symbols-outlined text-base">chevron_left</span>
                 </button>
-                <h3 class="text-xs sm:text-sm font-bold text-[var(--md-sys-color-primary)] flex items-center gap-1.5">
+                <h3 id="day-detail-date-btn" onclick="openDayDetailDatePicker(event)"
+                    class="text-xs sm:text-sm font-bold text-[var(--md-sys-color-primary)] flex items-center gap-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 px-2 py-1 rounded-xl transition-colors md-ripple"
+                    onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" title="点击更改日期">
                     <span class="material-symbols-outlined text-base">calendar_today</span>
                     <span id="day-detail-date-title"></span>
                 </h3>
                 <button type="button" onclick="navigateDayDetailModal(1)"
-                    class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10 text-[var(--md-sys-color-on-surface)] transition-colors"
+                    class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10 text-[var(--md-sys-color-on-surface)] transition-colors md-ripple"
                     onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
                     <span class="material-symbols-outlined text-base">chevron_right</span>
                 </button>
             </div>
             <button type="button" onclick="closeDayDetailModal()"
-                class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10 text-[var(--md-sys-color-on-surface)] transition-colors"
+                class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10 text-[var(--md-sys-color-on-surface)] transition-colors md-ripple"
                 onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
                 <span class="material-symbols-outlined text-base">close</span>
             </button>
@@ -536,23 +542,22 @@
 
     <!-- MD3 日期选择器模态框 -->
     <div id="md3-datepicker-modal"
-        class="fixed hidden z-[250] w-[280px] sm:w-[300px] rounded-[28px] p-4 shadow-2xl flex-col gap-3 bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)] transition-all duration-200 transform scale-95 opacity-0">
+        class="fixed hidden z-[350] w-[280px] sm:w-[300px] rounded-[28px] p-4 shadow-2xl flex-col gap-3 bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)] transition-all duration-200 transform scale-95 opacity-0">
         <div class="flex flex-col gap-0.5 px-1">
             <span
                 class="text-[10px] font-bold tracking-wider uppercase text-[var(--md-sys-color-primary)]">选择排程日期</span>
-            <h3 class="text-base font-black text-[var(--md-sys-color-on-surface)]" id="md3-picker-header-date">
-                2026年8月17日</h3>
+            <h3 class="text-base font-black text-[var(--md-sys-color-on-surface)]" id="md3-picker-header-date"></h3>
         </div>
         <div class="flex justify-between items-center px-1">
             <span class="text-xs font-bold text-[var(--md-sys-color-on-surface-variant)]"
-                id="md3-picker-month-year">2026年 8月</span>
+                id="md3-picker-month-year"></span>
             <div class="flex items-center gap-1">
                 <button type="button" onclick="navigateMD3PickerMonth(-1)"
-                    class="p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-[var(--md-sys-color-on-surface)] flex items-center justify-center">
+                    class="p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-[var(--md-sys-color-on-surface)] flex items-center justify-center md-ripple">
                     <span class="material-symbols-outlined text-base">chevron_left</span>
                 </button>
                 <button type="button" onclick="navigateMD3PickerMonth(1)"
-                    class="p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-[var(--md-sys-color-on-surface)] flex items-center justify-center">
+                    class="p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-[var(--md-sys-color-on-surface)] flex items-center justify-center md-ripple">
                     <span class="material-symbols-outlined text-base">chevron_right</span>
                 </button>
             </div>
@@ -570,7 +575,7 @@
         <div class="flex justify-end gap-2 pt-2 border-t border-[var(--md-sys-color-outline-variant)]">
             <button type="button" onclick="closeMD3DatePicker()"
                 class="px-3.5 py-1.5 rounded-full text-xs font-bold hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-primary)] transition-colors md-ripple">取消</button>
-            <button type="button" onclick="confirmMD3DatePicker()"
+            <button type="button" onclick="confirmMD3DatePicker(event)"
                 class="px-4 py-1.5 rounded-full text-xs font-bold text-[var(--md-sys-color-on-primary)] shadow-sm bg-[var(--md-sys-color-primary)] hover:brightness-110 active:scale-95 transition-all md-ripple">确定</button>
         </div>
     </div>
@@ -586,19 +591,19 @@
             <nav class="flex flex-row md:flex-col gap-2 md:gap-4 flex-1 md:w-full md:px-2">
                 <button onclick="switchView('home')" id="nav-home"
                     class="md-nav-item active flex flex-col items-center gap-1 group md:w-full text-center outline-none px-3 md:px-0">
-                    <div class="md-icon-wrapper w-14 h-8 flex items-center justify-center rounded-full"><span
+                    <div class="md-icon-wrapper md-ripple w-14 h-8 flex items-center justify-center rounded-full"><span
                             class="material-symbols-outlined">home</span></div>
                     <span class="text-[10px] md:text-xs font-medium tracking-wider">首页</span>
                 </button>
                 <button onclick="switchView('today')" id="nav-today"
                     class="md-nav-item flex flex-col items-center gap-1 group md:w-full text-center outline-none px-3 md:px-0">
-                    <div class="md-icon-wrapper w-14 h-8 flex items-center justify-center rounded-full"><span
+                    <div class="md-icon-wrapper md-ripple w-14 h-8 flex items-center justify-center rounded-full"><span
                             class="material-symbols-outlined">today</span></div>
                     <span class="text-[10px] md:text-xs font-medium tracking-wider">今日</span>
                 </button>
                 <button onclick="switchView('calendar')" id="nav-calendar"
                     class="md-nav-item flex flex-col items-center gap-1 group md:w-full text-center outline-none px-3 md:px-0">
-                    <div class="md-icon-wrapper w-14 h-8 flex items-center justify-center rounded-full"><span
+                    <div class="md-icon-wrapper md-ripple w-14 h-8 flex items-center justify-center rounded-full"><span
                             class="material-symbols-outlined">calendar_month</span></div>
                     <span class="text-[10px] md:text-xs font-medium tracking-wider">日程</span>
                 </button>
@@ -606,17 +611,17 @@
             <hr class="hidden md:block w-8 border-[var(--md-sys-color-outline-variant)]">
             <div class="flex flex-row md:flex-col gap-1 md:gap-3">
                 <button onclick="toggleDarkMode(true)"
-                    class="w-10 h-10 rounded-full flex items-center justify-center md-ripple text-[var(--md-sys-color-on-surface-variant)]"
+                    class="w-10 h-10 rounded-full flex items-center justify-center md-ripple hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors"
                     title="切换深色模式">
                     <span class="material-symbols-outlined" id="dark-mode-icon">dark_mode</span>
                 </button>
                 <button onclick="triggerDataExport()"
-                    class="hidden md:flex w-10 h-10 rounded-full items-center justify-center md-ripple text-[var(--md-sys-color-on-surface-variant)]"
+                    class="hidden md:flex w-10 h-10 rounded-full items-center justify-center md-ripple hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors"
                     title="导出配置">
                     <span class="material-symbols-outlined">download</span>
                 </button>
                 <button onclick="document.getElementById('import-file-input').click()"
-                    class="hidden md:flex w-10 h-10 rounded-full items-center justify-center md-ripple text-[var(--md-sys-color-on-surface-variant)]"
+                    class="hidden md:flex w-10 h-10 rounded-full items-center justify-center md-ripple hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors"
                     title="导入配置">
                     <span class="material-symbols-outlined">upload</span>
                 </button>
@@ -633,65 +638,68 @@
 
     <!-- 侧边任务索引抽屉 -->
     <section id="task-drawer"
-        class="absolute md:relative z-40 h-[calc(100%-4rem)] md:h-full w-80 max-w-[85vw] flex flex-col border-r flex-shrink-0 transition-all duration-300 shadow-2xl md:shadow-none bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)]"
+        class="absolute md:relative z-40 h-[calc(100%-4rem)] md:h-full w-80 flex flex-col border-r flex-shrink-0 shadow-2xl md:shadow-none bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)]"
         ondragover="allowDrop(event)" ondragleave="handleDragLeave(event)">
 
-        <div
-            class="p-4 flex flex-col gap-3 border-b flex-shrink-0 max-w-full relative border-[var(--md-sys-color-outline-variant)]">
-            <div class="flex items-center justify-between">
-                <h2 class="text-sm font-semibold tracking-wide text-[var(--md-sys-color-on-surface-variant)]">
-                    索引库</h2>
-                <button onclick="toggleDrawer()"
-                    class="w-8 h-8 rounded-full flex items-center justify-center md-ripple hover:bg-black/5 dark:hover:bg-white/5">
-                    <span class="material-symbols-outlined text-xl">menu_open</span>
-                </button>
-            </div>
-
-            <div class="relative w-full">
-                <div
-                    class="flex items-center bg-[var(--md-sys-color-surface-container-high)] rounded-full px-3 py-1.5 border border-[var(--md-sys-color-outline-variant)] focus-within:border-[var(--md-sys-color-primary)] transition-colors">
-                    <span
-                        class="material-symbols-outlined text-[16px] text-[var(--md-sys-color-on-surface-variant)]">search</span>
-                    <input type="text" id="drawer-search-input" oninput="handleDrawerSearch(this.value)"
-                        placeholder="搜索关键词（如：物理 滑块）"
-                        class="bg-transparent flex-1 outline-none text-xs ml-2 text-[var(--md-sys-color-on-surface)]" />
-                    <span id="drawer-search-count"
-                        class="text-[10px] text-[var(--md-sys-color-primary)] font-bold ml-2"></span>
+        <div id="task-drawer-inner" class="flex flex-col h-full overflow-hidden">
+            <div
+                class="p-4 flex flex-col gap-3 border-b flex-shrink-0 w-full relative border-[var(--md-sys-color-outline-variant)]">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-sm font-semibold tracking-wide text-[var(--md-sys-color-on-surface-variant)]">
+                        索引</h2>
+                    <button onclick="toggleDrawer()"
+                        class="w-8 h-8 rounded-full flex items-center justify-center md-ripple hover:bg-black/5 dark:hover:bg-white/5">
+                        <span class="material-symbols-outlined text-xl">menu_open</span>
+                    </button>
                 </div>
-                <div id="drawer-search-results"
-                    class="absolute left-0 right-0 top-full mt-2 bg-[var(--md-sys-color-surface-container-highest)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl shadow-2xl z-[80] hidden flex-col max-h-48 overflow-y-auto md-scrollbar">
+
+                <div class="relative w-full">
+                    <div
+                        class="flex items-center bg-[var(--md-sys-color-surface-container-high)] rounded-full px-3 py-1.5 border border-[var(--md-sys-color-outline-variant)] focus-within:border-[var(--md-sys-color-primary)] transition-colors">
+                        <span
+                            class="material-symbols-outlined text-[16px] text-[var(--md-sys-color-on-surface-variant)]">search</span>
+                        <input type="text" id="drawer-search-input" oninput="handleDrawerSearch(this.value)"
+                            placeholder="搜索关键词"
+                            class="bg-transparent flex-1 outline-none text-xs ml-2 text-[var(--md-sys-color-on-surface)]" />
+                        <span id="drawer-search-count"
+                            class="text-[10px] text-[var(--md-sys-color-primary)] font-bold ml-2"></span>
+                    </div>
+                    <div id="drawer-search-results"
+                        class="absolute left-0 right-0 top-full mt-2 bg-[var(--md-sys-color-surface-container-highest)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl shadow-2xl z-[80] hidden flex-col max-h-48 overflow-y-auto md-scrollbar w-full overflow-x-hidden">
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 pr-1 w-full flex-nowrap"
+                    id="drawer-filter-chips">
+                    <button onclick="changeDrawerArrange('starred')" id="chip-starred"
+                        class="chip-active text-[11px] py-1.5 px-3.5 rounded-full text-center font-semibold md-ripple hover:bg-black/5 dark:hover:bg-white/5 border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0 transition-colors">重要</button>
+                    <button onclick="changeDrawerArrange('subject')" id="chip-subject"
+                        class="text-[11px] py-1.5 px-3.5 rounded-full text-center font-semibold md-ripple hover:bg-black/5 dark:hover:bg-white/5 border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0 transition-colors">按类型</button>
+                    <button onclick="changeDrawerArrange('tag')" id="chip-tag"
+                        class="text-[11px] py-1.5 px-3.5 rounded-full text-center font-semibold md-ripple hover:bg-black/5 dark:hover:bg-white/5 border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0 transition-colors">按标签</button>
+                    <button onclick="changeDrawerArrange('time')" id="chip-time"
+                        class="text-[11px] py-1.5 px-3.5 rounded-full text-center font-semibold md-ripple hover:bg-black/5 dark:hover:bg-white/5 border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0 transition-colors">按时间</button>
+                </div>
+
+                <div id="drawer-quick-add-container" class="gap-1.5 mt-1 flex items-center" style="display: none;">
+                    <input type="color" id="drawer-quick-color" value="#6750A4"
+                        class="w-6 h-6 p-0 border-0 rounded cursor-pointer hidden flex-shrink-0 bg-transparent" />
+                    <input type="text" id="drawer-quick-input" placeholder="创建新项..."
+                        class="flex-1 text-xs px-2.5 py-1.5 rounded-lg border outline-none bg-[var(--md-sys-color-surface-container-low)] border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface)] min-w-0" />
+                    <button onclick="executeQuickMetaAdd()"
+                        class="px-3 py-1.5 rounded-lg text-xs font-bold bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] md-ripple transition-transform active:scale-95 flex-shrink-0">+</button>
                 </div>
             </div>
-
-            <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 pr-1 w-full flex-nowrap"
-                id="drawer-filter-chips">
-                <button onclick="changeDrawerArrange('starred')" id="chip-starred"
-                    class="chip-active text-[11px] py-1.5 px-3.5 rounded-full text-center font-semibold md-ripple border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0">重要</button>
-                <button onclick="changeDrawerArrange('subject')" id="chip-subject"
-                    class="text-[11px] py-1.5 px-3.5 rounded-full text-center font-semibold md-ripple border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0">按类型</button>
-                <button onclick="changeDrawerArrange('tag')" id="chip-tag"
-                    class="text-[11px] py-1.5 px-3.5 rounded-full text-center font-semibold md-ripple border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0">按标签</button>
-                <button onclick="changeDrawerArrange('time')" id="chip-time"
-                    class="text-[11px] py-1.5 px-3.5 rounded-full text-center font-semibold md-ripple border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0">按时间</button>
-            </div>
-
-            <div id="drawer-quick-add-container" class="gap-1.5 mt-1 flex items-center" style="display: none;">
-                <input type="color" id="drawer-quick-color" value="#6750A4"
-                    class="w-6 h-6 p-0 border-0 rounded cursor-pointer hidden flex-shrink-0 bg-transparent" />
-                <input type="text" id="drawer-quick-input" placeholder="创建新项..."
-                    class="flex-1 text-xs px-2.5 py-1.5 rounded-lg border outline-none bg-[var(--md-sys-color-surface-container-low)] border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface)] min-w-0" />
-                <button onclick="executeQuickMetaAdd()"
-                    class="px-3 py-1.5 rounded-lg text-xs font-bold bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] md-ripple transition-transform active:scale-95 flex-shrink-0">+</button>
-            </div>
-        </div>
-        <div class="flex-1 overflow-hidden relative flex flex-col">
-            <div id="drawer-task-container" class="flex-1 overflow-y-auto p-2 flex flex-col gap-1 md-scrollbar"></div>
-            <div id="drawer-today-locator-container"
-                class="p-2 border-t border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-lowest)] hidden flex-shrink-0 justify-center">
-                <button onclick="locateDrawerToday()"
-                    class="w-full py-2.5 rounded-full text-xs font-bold bg-[var(--md-sys-color-primary)] text-white shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 md-ripple">
-                    <span class="material-symbols-outlined text-sm">today</span>定位到今天
-                </button>
+            <div class="flex-1 overflow-hidden relative flex flex-col">
+                <div id="drawer-task-container" class="flex-1 overflow-y-auto p-2 flex flex-col gap-1 md-scrollbar">
+                </div>
+                <div id="drawer-today-locator-container"
+                    class="p-2 border-t border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-lowest)] hidden flex-shrink-0 justify-center">
+                    <button onclick="locateDrawerToday()"
+                        class="w-full py-2.5 rounded-full text-xs font-bold bg-[var(--md-sys-color-primary)] text-white shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 md-ripple">
+                        <span class="material-symbols-outlined text-sm">today</span>定位到今天
+                    </button>
+                </div>
             </div>
         </div>
     </section>
@@ -711,29 +719,46 @@
                 <input type="text" id="global-search" oninput="handleSearchDebounced(this.value)" placeholder="搜索关键词..."
                     class="bg-transparent flex-1 outline-none text-sm text-[var(--md-sys-color-on-surface)]" />
                 <button onclick="undo()"
-                    class="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors"><span
+                    class="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors md-ripple"><span
                         class="material-symbols-outlined text-lg">undo</span></button>
                 <button onclick="redo()"
-                    class="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors"><span
+                    class="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors md-ripple"><span
                         class="material-symbols-outlined text-lg">redo</span></button>
             </header>
 
-            <div
-                class="p-4 md:p-5 rounded-2xl flex flex-col gap-3 shadow-sm border border-[var(--md-sys-color-outline-variant)] flex-shrink-0 bg-[var(--md-sys-color-surface-container-low)]">
+            <!-- 总学习进度栏 -->
+            <div id="global-progress-card" onclick="handleProgressCardClick(event)"
+                class="group/prog p-4 md:p-5 rounded-2xl flex flex-col gap-3 shadow-sm border border-[var(--md-sys-color-outline-variant)] flex-shrink-0 bg-[var(--md-sys-color-surface-container-low)] cursor-pointer md:cursor-default transition-all">
                 <div class="flex justify-between items-center">
                     <div>
-                        <h3 class="text-sm md:text-base font-bold tracking-tight">总学习进度</h3>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-sm md:text-base font-bold tracking-tight">总进度</h3>
+                            <button onclick="event.stopPropagation(); toggleGlobalProgressVisibility()"
+                                class="hidden md:flex opacity-0 group-hover/prog:opacity-100 w-6 h-6 rounded-full items-center justify-center text-[var(--md-sys-color-outline)] hover:bg-black/5 dark:hover:bg-white/5 transition-all md-ripple"
+                                title="隐藏进度条">
+                                <span class="material-symbols-outlined text-[16px]">visibility</span>
+                            </button>
+                        </div>
                         <p class="text-[10px] md:text-xs text-[var(--md-sys-color-on-surface-variant)]"
                             id="stats-summary-text">计算中...</p>
                     </div>
                     <span class="text-xl md:text-2xl font-black text-[var(--md-sys-color-primary)]"
                         id="global-progress-percent">0%</span>
                 </div>
-                <div class="w-full h-2 md:h-3 rounded-full overflow-hidden bg-[var(--md-sys-color-surface-variant)]">
+                <div id="global-progress-bar-wrapper"
+                    class="w-full h-2 md:h-3 rounded-full overflow-hidden bg-[var(--md-sys-color-surface-variant)]">
                     <div id="global-progress-bar"
                         class="h-full rounded-full md3-progress-smooth bg-[var(--md-sys-color-primary)]"
                         style="width: 0%;"></div>
                 </div>
+            </div>
+
+            <!-- 当进度栏隐藏时显示的唤出按钮 -->
+            <div id="global-progress-show-btn" class="hidden flex-shrink-0">
+                <button onclick="toggleGlobalProgressVisibility()"
+                    class="text-[11px] font-bold text-[var(--md-sys-color-primary)] flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--md-sys-color-surface-container-high)] hover:bg-black/5 dark:hover:bg-white/5 border border-[var(--md-sys-color-outline-variant)] transition-colors md-ripple">
+                    <span class="material-symbols-outlined text-[14px]">visibility_off</span> 显示总进度
+                </button>
             </div>
 
             <div class="flex-1 w-full flex flex-col gap-4 md:gap-6 overflow-hidden min-h-0">
@@ -797,17 +822,17 @@
 
                 <div class="flex items-center gap-1">
                     <button onclick="undo()"
-                        class="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors"><span
+                        class="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors md-ripple"><span
                             class="material-symbols-outlined text-lg">undo</span></button>
                     <button onclick="redo()"
-                        class="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors"><span
+                        class="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors md-ripple"><span
                             class="material-symbols-outlined text-lg">redo</span></button>
                     <div
                         class="flex items-center gap-1 bg-[var(--md-sys-color-surface-container-high)] p-1 rounded-full shadow-sm border border-[var(--md-sys-color-outline-variant)] ml-2">
                         <button id="view-mode-month" onclick="switchCalendarMode('month')"
-                            class="px-3.5 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] transition-all">月历</button>
+                            class="px-3.5 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] transition-all md-ripple">月历</button>
                         <button id="view-mode-week" onclick="switchCalendarMode('week')"
-                            class="px-3.5 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold text-[var(--md-sys-color-on-surface-variant)] transition-all">周历</button>
+                            class="px-3.5 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold text-[var(--md-sys-color-on-surface-variant)] transition-all md-ripple">周历</button>
                     </div>
                 </div>
             </div>
@@ -819,7 +844,6 @@
                     style="height: 100%;">
                     <div id="calendar-month-scroll" class="flex-1 overflow-y-auto hide-scrollbar relative cal-scroll-v"
                         onscroll="handleCalendarScroll(event, true)">
-                        <!-- 高性能吸顶标题 -->
                         <div
                             class="sticky top-0 z-20 grid grid-cols-7 text-center font-bold py-2 border-b border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-surface-container-high)]">
                             <div>一</div>
@@ -852,7 +876,7 @@
                             class="text-xs md:text-sm font-black flex items-center gap-2 text-[var(--md-sys-color-primary)]"><span
                                 class="material-symbols-outlined text-sm">schedule</span> 轴流舱</span>
                         <button onclick="toggleTimelineExpand()"
-                            class="w-7 h-7 rounded-full hover:bg-black/5 dark:hover:bg-white/5 flex items-center justify-center text-[var(--md-sys-color-on-surface)] transition-colors"><span
+                            class="w-7 h-7 rounded-full hover:bg-black/5 dark:hover:bg-white/5 flex items-center justify-center text-[var(--md-sys-color-on-surface)] transition-colors md-ripple"><span
                                 id="timeline-expand-icon"
                                 class="material-symbols-outlined text-sm">open_in_full</span></button>
                     </div>
@@ -879,7 +903,7 @@
             <div class="flex justify-between items-center flex-shrink-0">
                 <h3 class="text-base md:text-lg font-semibold" id="modal-form-title">创建新任务</h3>
                 <button type="button" onclick="closeAddTaskModal()"
-                    class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/5 transition-colors"><span
+                    class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/5 transition-colors md-ripple"><span
                         class="material-symbols-outlined">close</span></button>
             </div>
             <form id="task-form" onsubmit="handleFormSubmit(event)"
@@ -938,11 +962,11 @@
 
         const defaultInitialState = {
             batches: [{
-                id: "batch-demo-01", title: "高一物理必修第一册错题回溯", content: "对期末考卷中动力学多体滑块模型与牛顿第二定律综合题重新推导。", subject: "物理", tags: ["高难度", "急需突破"], pinned: false, collapsed: false,
+                id: "batch-demo-01", title: "高一物理必修第一册错题回溯", content: "对期末考卷中动力学多体滑块模型与牛顿第二定律综合题重新推导。参考教程：https://bilibili.com", subject: "物理", tags: ["高难度", "急需突破"], pinned: false, collapsed: false,
                 subtasks: [{id: "sub-101", text: "滑块模型核心三题拆解", weight: 1, done: true, starred: true, completedAt: TODAY_STR, endDate: TODAY_STR, startMinute: 480, durationMinutes: 90},
                 {id: "sub-102", text: "建立隔离法受力方程组", weight: 1, done: false, starred: false, endDate: TODAY_STR, startMinute: 540, durationMinutes: 120}]
             }, {
-                id: "batch-demo-02", title: "英语3500词高效循环背诵", content: "复习并默写核心变形词及短语。", subject: "英语", tags: ["高频高燃"], pinned: false, collapsed: false,
+                id: "batch-demo-02", title: "英语3500词高效循环背诵", content: "复习并默写核心变形词及短语。在线词库：https://dictionary.cambridge.org", subject: "英语", tags: ["高频高燃"], pinned: false, collapsed: false,
                 subtasks: [{id: "sub-201", text: "Unit 1 核心词默写", weight: 1, done: true, starred: false, completedAt: TODAY_STR, endDate: TODAY_STR, startMinute: 780, durationMinutes: 180},
                 {id: "sub-202", text: "Unit 2 完形填空精讲", weight: 1, done: false, starred: true, endDate: null, startMinute: null, durationMinutes: 120}]
             }],
@@ -950,7 +974,8 @@
             subjects: ["语文", "数学", "英语", "物理", "化学", "地理"],
             currentDrawerArrange: "starred", searchQuery: "", selectedFormSubject: "数学", selectedFormTags: [],
             calendarYear: parseInt(TODAY_STR.split('-')[0]), calendarMonth: parseInt(TODAY_STR.split('-')[1]), calendarMode: "month", focusedDate: TODAY_STR,
-            calendarFilterType: "ALL", calendarFilterStatus: "ALL"
+            calendarFilterType: "ALL", calendarFilterStatus: "ALL",
+            isProgressHidden: false
         };
 
         let appState = {};
@@ -960,7 +985,9 @@
         let contextMenuCtx = {type: null, arg1: null, arg2: null, arg3: null};
         let isGlobalDragging = false; let globalDraggedSubtaskId = null;
         let dragHoverNavTimer = null; let isTouch = false;
-        let currentDateActionSubtaskId = null; let drawerFolderStates = {};
+        let currentDateActionSubtaskId = null;
+        let datePickerTargetType = 'task'; // 'task' or 'dayModal'
+        let drawerFolderStates = {};
         let lastClickX = 0; let lastClickY = 0; let activeDateTriggerEl = null;
 
         let md3PickerYear = parseInt(TODAY_STR.split('-')[0]);
@@ -996,19 +1023,80 @@
         const FILE_NAME = 'data.json';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        function createRipple(e, targetEl) {
+            const button = targetEl || e.currentTarget;
+            if (!button || typeof button.getBoundingClientRect !== 'function') return;
+
+            const rect = button.getBoundingClientRect();
+            const circle = document.createElement("span");
+            const diameter = Math.max(rect.width, rect.height);
+            const radius = diameter / 2;
+
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX) || (rect.left + radius);
+            const clientY = e.clientY || (e.touches && e.touches[0].clientY) || (rect.top + radius);
+
+            circle.style.width = circle.style.height = `${diameter}px`;
+            circle.style.left = `${clientX - rect.left - radius}px`;
+            circle.style.top = `${clientY - rect.top - radius}px`;
+            circle.classList.add("md-ripple-ink");
+
+            const existing = button.getElementsByClassName("md-ripple-ink")[0];
+            if (existing) existing.remove();
+
+            button.appendChild(circle);
+            setTimeout(() => circle.remove(), 600);
+        }
+
+        function setupGlobalRippleListener() {
+            document.addEventListener('pointerdown', (e) => {
+                const target = e.target.closest('.md-ripple');
+                if (target) createRipple(e, target);
+            });
+        }
+
+        function setupGlobalRippleListener() {
+            document.addEventListener('pointerdown', (e) => {
+                const target = e.target.closest('.md-ripple');
+                if (target) createRipple(e);
+            });
+        }
+
+        function formatTextWithLinks(text) {
+            if (!text) return '';
+            const urlPattern = /(https?:\/\/[^\s]+)/g;
+            const escaped = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            const withLinks = escaped.replace(urlPattern, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-[var(--md-sys-color-primary)] font-semibold underline underline-offset-2 hover:opacity-80 break-all" onclick="event.stopPropagation()">$1</a>');
+            return withLinks.replace(/\n/g, '<br>');
+        }
+
         async function loadStateFromSupabase() {
+            let parsed = null;
             try {
                 const {data, error} = await supabaseClient.storage.from(BUCKET_NAME).download(FILE_NAME);
                 if (error) throw error;
                 const text = await data.text();
-                const parsed = JSON.parse(text);
+                parsed = JSON.parse(text);
                 localStorage.setItem("MD3_ATOMIC_SYSTEM_DATA", JSON.stringify(parsed));
-                return parsed;
             } catch (err) {
                 const cached = localStorage.getItem("MD3_ATOMIC_SYSTEM_DATA");
-                if (cached) {try {return JSON.parse(cached);} catch (e) { } }
-                return JSON.parse(JSON.stringify(defaultInitialState));
+                if (cached) {
+                    try {parsed = JSON.parse(cached);} catch (e) { }
+                }
             }
+
+            if (!parsed || !Array.isArray(parsed.batches)) {
+                parsed = JSON.parse(JSON.stringify(defaultInitialState));
+            }
+
+            // 确保每个 batch 的 subtasks 和 tags 都是合法的数组
+            parsed.batches.forEach(b => {
+                if (!Array.isArray(b.subtasks)) b.subtasks = [];
+                if (!Array.isArray(b.tags)) b.tags = [];
+            });
+            if (!Array.isArray(parsed.subjects)) parsed.subjects = defaultInitialState.subjects;
+            if (!Array.isArray(parsed.tags)) parsed.tags = defaultInitialState.tags;
+
+            return parsed;
         }
 
         function commitState() {
@@ -1035,21 +1123,40 @@
             }
         }
 
+        let supabaseSaveTimer = null;
+
         function saveStateToStorage(pushHistory = true) {
             if (pushHistory) commitState();
             localStorage.setItem("MD3_ATOMIC_SYSTEM_DATA", JSON.stringify(appState));
-            supabaseClient.storage.from(BUCKET_NAME).upload(FILE_NAME, JSON.stringify(appState), {upsert: true, contentType: 'application/json'}).catch(() => { });
+
+            // 防抖同步到云端，避免高频请求触发 HTTP2 协议错误
+            clearTimeout(supabaseSaveTimer);
+            supabaseSaveTimer = setTimeout(async () => {
+                try {
+                    const jsonStr = JSON.stringify(appState);
+                    const blob = new Blob([jsonStr], {type: 'application/json'});
+                    await supabaseClient.storage.from(BUCKET_NAME).upload(FILE_NAME, blob, {
+                        upsert: true,
+                        contentType: 'application/json;charset=UTF-8'
+                    });
+                } catch (err) {
+                    console.warn("Supabase 同步跳过/失败:", err);
+                }
+            }, 400);
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
             appState = await loadStateFromSupabase();
             appState.searchQuery = "";
             appState.currentView = "home";
+            appState.currentDrawerArrange = "starred";
             if (!appState.calendarFilterType) appState.calendarFilterType = "ALL";
             if (!appState.calendarFilterStatus) appState.calendarFilterStatus = "ALL";
+            if (appState.isProgressHidden === undefined) appState.isProgressHidden = false;
 
             commitState();
             initializeTheme();
+            setupGlobalRippleListener();
             setupDragHoverNavigation();
 
             ioMonth = new IntersectionObserver(entries => {
@@ -1103,7 +1210,6 @@
                 lastClickY = e.touches[0].clientY || 0;
             }, {passive: true});
 
-            // 全局点击拦截，严格判定弹窗与下拉的开启/关闭状态
             document.addEventListener("click", (e) => {
                 const ctxMenu = document.getElementById("custom-context-menu");
                 if (ctxMenu && !e.target.closest('#custom-context-menu') && !e.target.closest('[data-context-btn]')) {
@@ -1120,11 +1226,15 @@
                     calMenu.style.display = "none";
                 }
 
-                if (!e.target.closest('#md3-datepicker-modal') && !e.target.closest('#date-quick-menu') && !e.target.closest('#custom-context-menu') && !e.target.closest('[data-date-chip]')) {
+                // 如果点击的是日期选择器内部、快速菜单、右键菜单、日期胶囊、日期标题按钮，则不关闭日期选择器
+                const isInsideDatePicker = e.target.closest('#md3-datepicker-modal') || e.target.closest('#date-quick-menu') || e.target.closest('#custom-context-menu') || e.target.closest('[data-date-chip]') || e.target.closest('#day-detail-date-btn');
+                if (!isInsideDatePicker) {
                     closeMD3DatePicker();
                 }
 
-                if (!e.target.closest('#day-detail-modal') && !e.target.closest('.cell-target') && !e.target.closest('.cal-task-item')) {
+                // 如果正在操作日期选择器，绝对不关闭 day-detail-modal
+                const isInsideDayModal = e.target.closest('#day-detail-modal') || e.target.closest('.cell-target') || e.target.closest('.cal-task-item') || e.target.closest('#md3-datepicker-modal');
+                if (!isInsideDayModal) {
                     closeDayDetailModal();
                 }
 
@@ -1145,7 +1255,42 @@
                     if (e.key === 'y') {e.preventDefault(); redo();}
                 }
             });
+
+            window.addEventListener('resize', () => {
+                const modal = document.getElementById('day-detail-modal');
+                if (modal && modal.style.display === 'flex' && !modal.classList.contains('opacity-0')) {
+                    const rect = modal.getBoundingClientRect();
+                    const clamped = clampModalPosition(modal, rect.left, rect.top);
+                    modal.style.left = `${clamped.x}px`;
+                    modal.style.top = `${clamped.y}px`;
+                }
+            });
         });
+
+        function handleProgressCardClick(e) {
+            if (window.innerWidth < 768 || isTouch) {
+                if (e.target.closest('button') || e.target.closest('a')) return;
+                toggleGlobalProgressVisibility();
+            }
+        }
+
+        function toggleGlobalProgressVisibility() {
+            appState.isProgressHidden = !appState.isProgressHidden;
+            saveStateToStorage(false);
+            applyProgressVisibility();
+        }
+
+        function applyProgressVisibility() {
+            const card = document.getElementById("global-progress-card");
+            const btn = document.getElementById("global-progress-show-btn");
+            if (appState.isProgressHidden) {
+                card.classList.add("hidden");
+                btn.classList.remove("hidden");
+            } else {
+                card.classList.remove("hidden");
+                btn.classList.add("hidden");
+            }
+        }
 
         function setupDragHoverNavigation() {
             const sidebarNavIds = ['nav-home', 'nav-today', 'nav-calendar'];
@@ -1196,6 +1341,18 @@
             });
         }
 
+        function clampModalPosition(modal, x, y) {
+            const pad = 12;
+            const width = modal.offsetWidth || 300;
+            const height = modal.offsetHeight || 260;
+            const maxLeft = Math.max(pad, window.innerWidth - width - pad);
+            const maxTop = Math.max(pad, window.innerHeight - height - pad);
+            return {
+                x: Math.min(Math.max(pad, x), maxLeft),
+                y: Math.min(Math.max(pad, y), maxTop)
+            };
+        }
+
         function setupModalDrag() {
             const modal = document.getElementById("day-detail-modal");
             const header = document.getElementById("day-detail-header");
@@ -1203,7 +1360,7 @@
             let dragRafId = null;
 
             const startDrag = (e) => {
-                if (e.target.closest('button')) return;
+                if (e.target.closest('button') || e.target.closest('#day-detail-date-btn')) return;
                 isDraggingModal = true;
                 modal.style.transition = 'none';
                 startX = e.clientX || (e.touches && e.touches[0].clientX);
@@ -1230,8 +1387,11 @@
 
                 if (!dragRafId) {
                     dragRafId = requestAnimationFrame(() => {
-                        modal.style.left = (initialLeft + (currentX - startX)) + "px";
-                        modal.style.top = (initialTop + (currentY - startY)) + "px";
+                        const targetLeft = initialLeft + (currentX - startX);
+                        const targetTop = initialTop + (currentY - startY);
+                        const clamped = clampModalPosition(modal, targetLeft, targetTop);
+                        modal.style.left = clamped.x + "px";
+                        modal.style.top = clamped.y + "px";
                         dragRafId = null;
                     });
                 }
@@ -1332,7 +1492,6 @@
             return true;
         }
 
-        // 打开 MD3 风格日历类型下拉菜单
         function openCalendarTypeMenu(event) {
             event.stopPropagation();
             const btn = document.getElementById("btn-calendar-filter-type");
@@ -1340,11 +1499,11 @@
             const rect = btn.getBoundingClientRect();
 
             let html = `
-                <button onclick="setCalendarTypeFilter('ALL')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 ${appState.calendarFilterType === 'ALL' ? 'text-[var(--md-sys-color-primary)] font-bold bg-[var(--md-sys-color-secondary-container)]' : 'text-[var(--md-sys-color-on-surface)]'} transition-colors">全部类型</button>
+                <button onclick="setCalendarTypeFilter('ALL')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 ${appState.calendarFilterType === 'ALL' ? 'text-[var(--md-sys-color-primary)] font-bold bg-[var(--md-sys-color-secondary-container)]' : 'text-[var(--md-sys-color-on-surface)]'} transition-colors md-ripple">全部类型</button>
             `;
             appState.subjects.forEach(sub => {
                 const isSel = appState.calendarFilterType === sub;
-                html += `<button onclick="setCalendarTypeFilter('${sub}')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 ${isSel ? 'text-[var(--md-sys-color-primary)] font-bold bg-[var(--md-sys-color-secondary-container)]' : 'text-[var(--md-sys-color-on-surface)]'} transition-colors">${sub}</button>`;
+                html += `<button onclick="setCalendarTypeFilter('${sub}')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 ${isSel ? 'text-[var(--md-sys-color-primary)] font-bold bg-[var(--md-sys-color-secondary-container)]' : 'text-[var(--md-sys-color-on-surface)]'} transition-colors md-ripple">${sub}</button>`;
             });
 
             menu.innerHTML = html;
@@ -1362,7 +1521,6 @@
             if (appState.calendarMode === 'week') focusDayTimeline(appState.focusedDate);
         }
 
-        // 打开 MD3 风格日历状态下拉菜单
         function openCalendarStatusMenu(event) {
             event.stopPropagation();
             const btn = document.getElementById("btn-calendar-filter-status");
@@ -1374,7 +1532,7 @@
             let html = '';
             ['ALL', 'TODO', 'DONE'].forEach(st => {
                 const isSel = current === st;
-                html += `<button onclick="setCalendarStatusFilter('${st}')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 ${isSel ? 'text-[var(--md-sys-color-primary)] font-bold bg-[var(--md-sys-color-secondary-container)]' : 'text-[var(--md-sys-color-on-surface)]'} transition-colors">${statusMap[st]}</button>`;
+                html += `<button onclick="setCalendarStatusFilter('${st}')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 ${isSel ? 'text-[var(--md-sys-color-primary)] font-bold bg-[var(--md-sys-color-secondary-container)]' : 'text-[var(--md-sys-color-on-surface)]'} transition-colors md-ripple">${statusMap[st]}</button>`;
             });
 
             menu.innerHTML = html;
@@ -1440,7 +1598,6 @@
                         const bgColor = subjectColors[batch.subject]?.text || "#6750A4";
                         const doneClass = subtask.done ? 'opacity-50 line-through saturate-50' : '';
 
-                        // 移动端展示横向 more_horiz
                         dailyTasksHtmlCache[subtask.endDate] += `<div id="cal-sub-${subtask.id}" class="cal-task-item text-[8px] md:text-[9px] px-1.5 py-0.5 md:py-1 rounded truncate font-bold text-white shadow-sm cursor-grab hover:brightness-110 active:scale-95 transition-all flex items-center justify-between gap-0.5 ${starredHighlight} ${doneClass}" style="background-color: ${bgColor}; min-height: 20px; flex-shrink: 0;" draggable="true" data-subtask-id="${subtask.id}" data-batch-id="${batch.id}">
                             <div class="flex items-center gap-0.5 truncate flex-1 min-w-0 pointer-events-none">
                                 ${starIcon}<span class="truncate">${subtask.text}</span>
@@ -1463,7 +1620,7 @@
             }
 
             const modal = document.getElementById("day-detail-modal");
-            if (modal && !modal.classList.contains("opacity-0")) {
+            if (modal && modal.style.display === "flex" && !modal.classList.contains("opacity-0")) {
                 const activeDate = document.getElementById("day-detail-date-title").innerText;
                 if (activeDate) {
                     renderDayDetailModalContent(activeDate);
@@ -1511,7 +1668,6 @@
                     }
                 });
 
-                // 只有当前真正处于日程（calendar）视图下才允许触发弹窗，彻底杜绝穿透
                 container.addEventListener("click", (e) => {
                     if (appState.currentView !== 'calendar') return;
                     const taskEl = e.target.closest('.cal-task-item');
@@ -1592,7 +1748,7 @@
                             <span class="truncate">${subtask.text}</span>
                         </div>
                         <div class="flex items-center gap-1 flex-shrink-0">
-                            ${!isToday ? `<button type="button" onclick="setSubtaskToday('${subtask.id}', event)" class="px-2 py-0.5 rounded-full bg-white/20 hover:bg-white/30 text-[10px] font-bold text-white transition-colors" title="设为今日任务">设为今日</button>` : '<span class="text-[9px] bg-white/20 px-2 py-0.5 rounded-full text-white font-mono">今日</span>'}
+                            ${!isToday ? `<button type="button" onclick="setSubtaskToday('${subtask.id}', event)" class="px-2 py-0.5 rounded-full bg-white/20 hover:bg-white/30 text-[10px] font-bold text-white transition-colors md-ripple" title="设为今日任务">设为今日</button>` : '<span class="text-[9px] bg-white/20 px-2 py-0.5 rounded-full text-white font-mono">今日</span>'}
                             <button type="button" data-context-btn="true" onclick="handleContextMenu(event, 'task_calendar', '${batch.id}', '${subtask.id}')" class="flex md:hidden p-1 rounded hover:bg-white/20 text-white transition-colors">
                                 <span class="material-symbols-outlined text-[15px]">more_horiz</span>
                             </button>
@@ -1600,6 +1756,43 @@
                     </div>`;
                 }).join('');
             }
+        }
+
+        function openDayDetailDatePicker(event) {
+            if (event) {
+                event.stopPropagation();
+                lastClickX = event.clientX || (event.touches && event.touches[0].clientX) || lastClickX;
+                lastClickY = event.clientY || (event.touches && event.touches[0].clientY) || lastClickY;
+            }
+            const currentTitle = document.getElementById('day-detail-date-title').innerText || TODAY_STR;
+            datePickerTargetType = 'dayModal';
+            activeDateTriggerEl = document.getElementById('day-detail-date-btn');
+            md3PickerSelectedDate = currentTitle;
+            const parts = currentTitle.split('-');
+            md3PickerYear = parseInt(parts[0]) || parseInt(TODAY_STR.split('-')[0]);
+            md3PickerMonth = parseInt(parts[1]) || parseInt(TODAY_STR.split('-')[1]);
+
+            renderMD3DatePicker();
+            const pickerEl = document.getElementById('md3-datepicker-modal');
+            let anchorX = lastClickX, anchorY = lastClickY;
+            if (activeDateTriggerEl) {
+                const rect = activeDateTriggerEl.getBoundingClientRect();
+                anchorX = rect.left;
+                anchorY = rect.bottom + 6;
+            }
+            pickerEl.style.display = 'flex';
+            pickerEl.style.position = 'fixed';
+            const width = 300, height = 340;
+            if (anchorX + width > window.innerWidth - 12) anchorX = window.innerWidth - width - 12;
+            if (anchorX < 12) anchorX = 12;
+            if (anchorY + height > window.innerHeight - 12) anchorY = Math.max(12, anchorY - height - 40);
+            if (anchorY < 12) anchorY = 12;
+            pickerEl.style.left = `${anchorX}px`;
+            pickerEl.style.top = `${anchorY}px`;
+            requestAnimationFrame(() => {
+                pickerEl.classList.remove('opacity-0', 'scale-95');
+                pickerEl.classList.add('opacity-100', 'scale-100');
+            });
         }
 
         function openDayDetailModal(dateStr, e) {
@@ -1612,17 +1805,18 @@
             modal.style.display = "flex";
 
             if (!modal.dataset.moved) {
-                let x = e ? (e.clientX || (e.touches && e.touches[0].clientX) || window.innerWidth / 2) : window.innerWidth / 2;
-                let y = e ? (e.clientY || (e.touches && e.touches[0].clientY) || window.innerHeight / 2) : window.innerHeight / 2;
+                let x = e ? (e.clientX || (e.touches && e.touches[0].clientX) || window.innerWidth / 2 - 150) : window.innerWidth / 2 - 150;
+                let y = e ? (e.clientY || (e.touches && e.touches[0].clientY) || window.innerHeight / 2 - 130) : window.innerHeight / 2 - 130;
 
-                const width = 320, height = 250;
-                if (x + width > window.innerWidth) x = window.innerWidth - width - 12;
-                if (y + height > window.innerHeight) y = window.innerHeight - height - 12;
-                if (x < 12) x = 12; if (y < 12) y = 12;
-
-                modal.style.left = `${x}px`;
-                modal.style.top = `${y}px`;
+                const clamped = clampModalPosition(modal, x, y);
+                modal.style.left = `${clamped.x}px`;
+                modal.style.top = `${clamped.y}px`;
                 modal.style.transform = "none";
+            } else {
+                const rect = modal.getBoundingClientRect();
+                const clamped = clampModalPosition(modal, rect.left, rect.top);
+                modal.style.left = `${clamped.x}px`;
+                modal.style.top = `${clamped.y}px`;
             }
 
             requestAnimationFrame(() => {
@@ -1755,49 +1949,91 @@
         }
 
         function openDateQuickMenu(subtaskId, event) {
-            if (event) event.stopPropagation();
+            if (event) {
+                event.stopPropagation();
+                lastClickX = event.clientX || (event.touches && event.touches[0].clientX) || lastClickX;
+                lastClickY = event.clientY || (event.touches && event.touches[0].clientY) || lastClickY;
+            }
             currentDateActionSubtaskId = subtaskId;
+            datePickerTargetType = 'task';
             activeDateTriggerEl = event ? event.currentTarget : null;
+            const target = findSubtask(subtaskId);
+            const hasDate = target && !!target.subtask.endDate;
+
+            const customLabel = document.getElementById('date-quick-menu-custom-label');
+            if (customLabel) {
+                customLabel.innerText = hasDate ? '更改日期' : '设置日期';
+            }
+
             const menu = document.getElementById('date-quick-menu');
-            let x = event ? event.clientX : lastClickX, y = event ? event.clientY : lastClickY;
-            if (activeDateTriggerEl) {const rect = activeDateTriggerEl.getBoundingClientRect(); x = rect.left; y = rect.bottom + 6;}
+            let x = lastClickX, y = lastClickY;
+            if (activeDateTriggerEl) {
+                const rect = activeDateTriggerEl.getBoundingClientRect();
+                x = rect.left;
+                y = rect.bottom + 6;
+            }
             menu.style.display = "flex";
             const width = 150, height = 90;
             if (x + width > window.innerWidth - 12) x = window.innerWidth - width - 12;
-            if (y + height > window.innerHeight - 12) y = y - height - 30;
+            if (y + height > window.innerHeight - 12) y = Math.max(12, y - height - 30);
             menu.style.left = `${x}px`; menu.style.top = `${y}px`;
         }
 
         function executeDateAction(type) {
+            const subId = currentDateActionSubtaskId;
             document.getElementById('date-quick-menu').style.display = "none";
-            if (!currentDateActionSubtaskId) return;
+            if (!subId) return;
             if (type === 'today') {
-                const target = findSubtask(currentDateActionSubtaskId);
+                const target = findSubtask(subId);
                 if (target) {target.subtask.endDate = TODAY_STR; saveStateToStorage(); renderAllComponents();}
-            } else if (type === 'custom') {openMD3DatePicker(currentDateActionSubtaskId);}
+            } else if (type === 'custom') {
+                setTimeout(() => openMD3DatePicker(subId), 10);
+            }
         }
 
-        function openMD3DatePicker(subtaskId) {
+        function openMD3DatePicker(subtaskId, event) {
+            if (event) {
+                event.stopPropagation();
+                lastClickX = event.clientX || (event.touches && event.touches[0].clientX) || lastClickX;
+                lastClickY = event.clientY || (event.touches && event.touches[0].clientY) || lastClickY;
+            }
             currentDateActionSubtaskId = subtaskId;
+            datePickerTargetType = 'task'; // 明确为任务设置日期
+
             const target = findSubtask(subtaskId);
             const currentVal = target?.subtask.endDate || TODAY_STR;
             md3PickerSelectedDate = currentVal;
+            
             const parts = currentVal.split('-');
             md3PickerYear = parseInt(parts[0]) || parseInt(TODAY_STR.split('-')[0]);
             md3PickerMonth = parseInt(parts[1]) || parseInt(TODAY_STR.split('-')[1]);
 
             renderMD3DatePicker();
+
             const pickerEl = document.getElementById('md3-datepicker-modal');
             let anchorX = lastClickX, anchorY = lastClickY;
-            if (activeDateTriggerEl) {const rect = activeDateTriggerEl.getBoundingClientRect(); anchorX = rect.left; anchorY = rect.bottom + 6;}
-            pickerEl.style.display = 'flex'; pickerEl.style.position = 'fixed';
-            const width = 300, height = 320;
+            if (activeDateTriggerEl && activeDateTriggerEl.isConnected) {
+                const rect = activeDateTriggerEl.getBoundingClientRect(); 
+                anchorX = rect.left; 
+                anchorY = rect.bottom + 6;
+            }
+            
+            pickerEl.style.display = 'flex';
+            pickerEl.style.position = 'fixed';
+            
+            const width = 300, height = 340;
             if (anchorX + width > window.innerWidth - 12) anchorX = window.innerWidth - width - 12;
             if (anchorX < 12) anchorX = 12;
-            if (anchorY + height > window.innerHeight - 12) anchorY = anchorY - height - 40;
+            if (anchorY + height > window.innerHeight - 12) anchorY = Math.max(12, anchorY - height - 40);
             if (anchorY < 12) anchorY = 12;
-            pickerEl.style.left = `${anchorX}px`; pickerEl.style.top = `${anchorY}px`;
-            requestAnimationFrame(() => {pickerEl.classList.remove('opacity-0', 'scale-95'); pickerEl.classList.add('opacity-100', 'scale-100');});
+            
+            pickerEl.style.left = `${anchorX}px`;
+            pickerEl.style.top = `${anchorY}px`;
+            
+            requestAnimationFrame(() => {
+                pickerEl.classList.remove('opacity-0', 'scale-95');
+                pickerEl.classList.add('opacity-100', 'scale-100');
+            });
         }
 
         function closeMD3DatePicker() {
@@ -1814,12 +2050,33 @@
             renderMD3DatePicker();
         }
 
-        function selectMD3PickerDate(dateStr) {md3PickerSelectedDate = dateStr; renderMD3DatePicker();}
+        function selectMD3PickerDate(dateStr, event) {
+            if (event) event.stopPropagation();
+            md3PickerSelectedDate = dateStr;
+            renderMD3DatePicker();
+        }
 
-        function confirmMD3DatePicker() {
-            if (currentDateActionSubtaskId && md3PickerSelectedDate) {
-                const target = findSubtask(currentDateActionSubtaskId);
-                if (target) {target.subtask.endDate = md3PickerSelectedDate; saveStateToStorage(); renderAllComponents();}
+        function confirmMD3DatePicker(event) {
+            if (event) event.stopPropagation();
+
+            if (datePickerTargetType === 'dayModal') {
+                if (md3PickerSelectedDate) {
+                    const dateTitle = document.getElementById('day-detail-date-title');
+                    if (dateTitle) dateTitle.innerText = md3PickerSelectedDate;
+                    appState.focusedDate = md3PickerSelectedDate;
+                    renderDayDetailModalContent(md3PickerSelectedDate);
+                    updateCalendarTaskRendering();
+                    scrollToDate(md3PickerSelectedDate, appState.calendarMode);
+                }
+            } else {
+                if (currentDateActionSubtaskId && md3PickerSelectedDate) {
+                    const target = findSubtask(currentDateActionSubtaskId);
+                    if (target) {
+                        target.subtask.endDate = md3PickerSelectedDate;
+                        saveStateToStorage();
+                        renderAllComponents();
+                    }
+                }
             }
             closeMD3DatePicker();
         }
@@ -1837,11 +2094,11 @@
                 const dateStr = `${md3PickerYear}-${String(md3PickerMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const isSelected = dateStr === md3PickerSelectedDate;
                 const isToday = dateStr === TODAY_STR;
-                let btnClass = "w-7 h-7 rounded-full mx-auto flex items-center justify-center text-xs font-semibold transition-all ";
+                let btnClass = "w-7 h-7 rounded-full mx-auto flex items-center justify-center text-xs font-semibold transition-all md-ripple ";
                 if (isSelected) btnClass += "bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md font-bold";
                 else if (isToday) btnClass += "border-2 border-[var(--md-sys-color-primary)] text-[var(--md-sys-color-primary)] font-bold";
                 else btnClass += "hover:bg-black/10 dark:hover:bg-white/10 text-[var(--md-sys-color-on-surface)]";
-                grid.insertAdjacentHTML('beforeend', `<button type="button" onclick="selectMD3PickerDate('${dateStr}')" class="${btnClass}">${day}</button>`);
+                grid.insertAdjacentHTML('beforeend', `<button type="button" onclick="selectMD3PickerDate('${dateStr}', event)" class="${btnClass}">${day}</button>`);
             }
         }
 
@@ -2010,6 +2267,10 @@
 
         function handleContextMenu(e, type, arg1, arg2, arg3) {
             e.preventDefault(); e.stopPropagation(); hideGlobalTooltip(); contextMenuCtx = {type, arg1, arg2, arg3};
+            lastClickX = e.clientX || (e.touches && e.touches[0].clientX) || lastClickX;
+            lastClickY = e.clientY || (e.touches && e.touches[0].clientY) || lastClickY;
+            activeDateTriggerEl = e.currentTarget;
+
             const menu = document.getElementById("custom-context-menu");
             let html = '';
             if (type === 'task_home' || type === 'task_drawer' || type === 'task_calendar' || type === 'task_today') {
@@ -2017,28 +2278,28 @@
                 const hasDate = target && !!target.subtask.endDate;
                 const isStarred = target && !!target.subtask.starred;
                 if (target) {
-                    html += `<button onclick="executeContextMenuAction('toggle_star')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-amber-500 font-medium flex items-center gap-2.5 transition-colors"><span class="material-symbols-outlined text-sm ${isStarred ? 'star-filled' : 'star-outline'}">grade</span>${isStarred ? '取消星标' : '设为星标'}</button>`;
-                    html += `<button onclick="executeContextMenuAction('toggle_status')" class="w-full text-left px-3 py-2 rounded-xl ${target.subtask.done ? 'hover:bg-black/5 dark:hover:bg-white/5 text-amber-600' : 'hover:bg-black/5 dark:hover:bg-white/5 text-emerald-600'} flex items-center gap-2.5 font-medium transition-colors"><span class="material-symbols-outlined text-sm">${target.subtask.done ? 'undo' : 'check_circle'}</span>${target.subtask.done ? '取消完成' : '完成此任务'}</button>`;
+                    html += `<button onclick="executeContextMenuAction('toggle_star')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-amber-500 font-medium flex items-center gap-2.5 transition-colors md-ripple"><span class="material-symbols-outlined text-sm ${isStarred ? 'star-filled' : 'star-outline'}">grade</span>${isStarred ? '取消星标' : '设为星标'}</button>`;
+                    html += `<button onclick="executeContextMenuAction('toggle_status')" class="w-full text-left px-3 py-2 rounded-xl ${target.subtask.done ? 'hover:bg-black/5 dark:hover:bg-white/5 text-amber-600' : 'hover:bg-black/5 dark:hover:bg-white/5 text-emerald-600'} flex items-center gap-2.5 font-medium transition-colors md-ripple"><span class="material-symbols-outlined text-sm">${target.subtask.done ? 'undo' : 'check_circle'}</span>${target.subtask.done ? '取消完成' : '完成此任务'}</button>`;
                 }
-                html += `<button onclick="executeContextMenuAction('set_date')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2.5 text-[var(--md-sys-color-on-surface)] transition-colors"><span class="material-symbols-outlined text-sm">calendar_today</span>${hasDate ? '更改日期' : '设置日期'}</button>`;
-                if (type !== 'task_calendar') html += `<button onclick="executeContextMenuAction('locate_calendar')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2.5 text-[var(--md-sys-color-on-surface)] transition-colors ${!hasDate ? 'opacity-50 cursor-not-allowed' : ''}" ${!hasDate ? 'disabled' : ''}><span class="material-symbols-outlined text-sm">explore</span>定位到日历</button>`;
-                html += `<button onclick="executeContextMenuAction('edit')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2.5 text-[var(--md-sys-color-on-surface)] transition-colors"><span class="material-symbols-outlined text-sm">edit</span>编辑主任务</button>`;
+                html += `<button onclick="executeContextMenuAction('set_date')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2.5 text-[var(--md-sys-color-on-surface)] transition-colors md-ripple"><span class="material-symbols-outlined text-sm">calendar_today</span>${hasDate ? '更改日期' : '设置日期'}</button>`;
+                if (type !== 'task_calendar') html += `<button onclick="executeContextMenuAction('locate_calendar')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2.5 text-[var(--md-sys-color-on-surface)] transition-colors md-ripple ${!hasDate ? 'opacity-50 cursor-not-allowed' : ''}" ${!hasDate ? 'disabled' : ''}><span class="material-symbols-outlined text-sm">explore</span>定位到日历</button>`;
+                html += `<button onclick="executeContextMenuAction('edit')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2.5 text-[var(--md-sys-color-on-surface)] transition-colors md-ripple"><span class="material-symbols-outlined text-sm">edit</span>编辑主任务</button>`;
                 if (type === 'task_calendar') {
-                    html += `<button onclick="executeContextMenuAction('unassign')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-orange-500/10 text-orange-500 flex items-center gap-2.5 transition-colors"><span class="material-symbols-outlined text-sm">event_busy</span>取消分配</button>`;
-                    html += `<button onclick="executeContextMenuAction('unassign_time')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-orange-500/10 text-orange-500 flex items-center gap-2.5 transition-colors"><span class="material-symbols-outlined text-sm">timer_off</span>取消具体时间</button>`;
+                    html += `<button onclick="executeContextMenuAction('unassign')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-orange-500/10 text-orange-500 flex items-center gap-2.5 transition-colors md-ripple"><span class="material-symbols-outlined text-sm">event_busy</span>取消分配</button>`;
+                    html += `<button onclick="executeContextMenuAction('unassign_time')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-orange-500/10 text-orange-500 flex items-center gap-2.5 transition-colors md-ripple"><span class="material-symbols-outlined text-sm">timer_off</span>取消具体时间</button>`;
                 }
                 html += `<hr class="my-1 border-[var(--md-sys-color-outline-variant)]">`;
-                html += `<button onclick="executeContextMenuAction('delete_task')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-red-500/10 dark:hover:bg-red-500/20 text-red-500 flex items-center gap-2.5 transition-colors"><span class="material-symbols-outlined text-sm">delete</span>删除此子任务</button>`;
+                html += `<button onclick="executeContextMenuAction('delete_task')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-red-500/10 dark:hover:bg-red-500/20 text-red-500 flex items-center gap-2.5 transition-colors md-ripple"><span class="material-symbols-outlined text-sm">delete</span>删除此子任务</button>`;
             } else if (type === 'folder_main') {
-                html += `<button onclick="executeContextMenuAction('add_subtask')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2.5 text-[var(--md-sys-color-on-surface)] transition-colors"><span class="material-symbols-outlined text-sm">add</span>添加子任务</button>`;
-                html += `<button onclick="executeContextMenuAction('delete_main')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-red-500/10 dark:hover:bg-red-500/20 text-red-500 flex items-center gap-2.5 transition-colors"><span class="material-symbols-outlined text-sm">delete</span>删除主任务</button>`;
+                html += `<button onclick="executeContextMenuAction('add_subtask')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2.5 text-[var(--md-sys-color-on-surface)] transition-colors md-ripple"><span class="material-symbols-outlined text-sm">add</span>添加子任务</button>`;
+                html += `<button onclick="executeContextMenuAction('delete_main')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-red-500/10 dark:hover:bg-red-500/20 text-red-500 flex items-center gap-2.5 transition-colors md-ripple"><span class="material-symbols-outlined text-sm">delete</span>删除主任务</button>`;
             } else if (type === 'folder_subject') {
-                html += `<button onclick="executeContextMenuAction('add_subject_task')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2.5 text-[var(--md-sys-color-on-surface)] transition-colors"><span class="material-symbols-outlined text-sm">add</span>添加 [${arg1}] 任务</button>`;
-                html += `<button onclick="executeContextMenuAction('delete_subject')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-red-500/10 dark:hover:bg-red-500/20 text-red-500 flex items-center gap-2.5 transition-colors"><span class="material-symbols-outlined text-sm">delete</span>删除此类型</button>`;
+                html += `<button onclick="executeContextMenuAction('add_subject_task')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2.5 text-[var(--md-sys-color-on-surface)] transition-colors md-ripple"><span class="material-symbols-outlined text-sm">add</span>添加 [${arg1}] 任务</button>`;
+                html += `<button onclick="executeContextMenuAction('delete_subject')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-red-500/10 dark:hover:bg-red-500/20 text-red-500 flex items-center gap-2.5 transition-colors md-ripple"><span class="material-symbols-outlined text-sm">delete</span>删除此类型</button>`;
             } else if (type === 'folder_batch_tag') {
-                html += `<button onclick="executeContextMenuAction('remove_tag_from_batch')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-orange-500/10 text-orange-500 flex items-center gap-2.5 transition-colors"><span class="material-symbols-outlined text-sm">label_off</span>移除「${arg3}」标签</button>`;
+                html += `<button onclick="executeContextMenuAction('remove_tag_from_batch')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-orange-500/10 text-orange-500 flex items-center gap-2.5 transition-colors md-ripple"><span class="material-symbols-outlined text-sm">label_off</span>移除「${arg3}」标签</button>`;
             } else if (type === 'folder_tag') {
-                html += `<button onclick="executeContextMenuAction('delete_tag')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-red-500/10 dark:hover:bg-red-500/20 text-red-500 flex items-center gap-2.5 transition-colors"><span class="material-symbols-outlined text-sm">delete</span>删除此标签</button>`;
+                html += `<button onclick="executeContextMenuAction('delete_tag')" class="w-full text-left px-3 py-2 rounded-xl hover:bg-red-500/10 dark:hover:bg-red-500/20 text-red-500 flex items-center gap-2.5 transition-colors md-ripple"><span class="material-symbols-outlined text-sm">delete</span>删除此标签</button>`;
             }
             menu.innerHTML = html; menu.style.display = "flex";
             let x = e.clientX || (e.touches && e.touches[0].clientX); let y = e.clientY || (e.touches && e.touches[0].clientY);
@@ -2059,7 +2320,12 @@
                 }, 300);
             }
             else if (action === 'toggle_status') {toggleSubtaskStatus(arg2);}
-            else if (action === 'set_date') {openMD3DatePicker(arg2);}
+            else if (action === 'set_date') {
+                const subId = arg2;
+                document.getElementById("custom-context-menu").style.display = "none";
+                setTimeout(() => openMD3DatePicker(subId), 10);
+                return;
+            }
             else if (action === 'edit') {openEditTaskModal(arg1);}
             else if (action === 'unassign') {const target = findSubtask(arg2); if (target) {target.subtask.endDate = null; saveStateToStorage(); renderAllComponents();} }
             else if (action === 'unassign_time') {const target = findSubtask(arg2); if (target) {target.subtask.startMinute = null; saveStateToStorage(); renderAllComponents(); if (appState.calendarMode === 'week') focusDayTimeline(appState.focusedDate);} }
@@ -2095,11 +2361,11 @@
                 countContainer.innerText = results.length;
                 if (results.length > 0) {
                     resultsContainer.innerHTML = results.map(r => `
-                        <div class="p-2.5 border-b border-[var(--md-sys-color-outline-variant)] last:border-0 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors" onclick="locateDrawerSearchResult('${r.subtask.id}', '${r.matchedKeyword}')">
-                            <div class="text-[10px] font-bold text-[var(--md-sys-color-primary)] flex items-center justify-between">
-                                <span>${r.batch.title}</span><span class="opacity-70 font-mono text-[9px]">${r.subtask.endDate || '未分配'}</span>
+                        <div class="p-2.5 border-b border-[var(--md-sys-color-outline-variant)] last:border-0 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors md-ripple flex-shrink-0 w-full" onclick="locateDrawerSearchResult('${r.subtask.id}', '${r.matchedKeyword}')">
+                            <div class="text-[10px] font-bold text-[var(--md-sys-color-primary)] flex items-center justify-between gap-1">
+                                <span class="truncate">${r.batch.title}</span><span class="opacity-70 font-mono text-[9px] flex-shrink-0">${r.subtask.endDate || '未分配'}</span>
                             </div>
-                            <div class="text-xs text-[var(--md-sys-color-on-surface)] truncate mt-0.5">${r.subtask.text}</div>
+                            <div class="text-xs text-[var(--md-sys-color-on-surface)] truncate mt-1">${r.subtask.text}</div>
                         </div>`).join('');
                     resultsContainer.classList.remove('hidden'); resultsContainer.classList.add('flex');
                 } else {resultsContainer.classList.add('hidden'); resultsContainer.classList.remove('flex');}
@@ -2110,10 +2376,21 @@
             document.getElementById('drawer-search-input').value = '';
             document.getElementById('drawer-search-results').classList.add('hidden');
             document.getElementById('drawer-search-count').innerText = '';
-            changeDrawerArrange('starred');
+
+            changeDrawerArrange('subject');
+
             const drawer = document.getElementById('task-drawer');
             drawer.classList.remove('collapsed');
             document.getElementById('drawer-restore-btn').classList.add('hidden');
+
+            const target = findSubtask(subtaskId);
+            if (target) {
+                const catFolderId = `subject_${target.batch.subject.replace(/<[^>]*>?/gm, '')}`;
+                drawerFolderStates[catFolderId] = true;
+                const subFolderId = `subject_${target.batch.subject}_${target.batch.id}`;
+                drawerFolderStates[subFolderId] = true;
+                renderLeftDrawerPool();
+            }
 
             setTimeout(() => {
                 const el = document.querySelector(`#drawer-task-container [data-subtask-id="${subtaskId}"]`);
@@ -2136,7 +2413,7 @@
                     el.classList.add('locate-highlight');
                     setTimeout(() => el.classList.remove('locate-highlight'), 2000);
                 }
-            }, 100);
+            }, 150);
         }
 
         function executeQuickMetaAdd() {
@@ -2271,7 +2548,7 @@
 
                 const isOpen = drawerFolderStates[folderId];
                 wrapper.innerHTML = `
-                    <div class="folder-header flex items-center justify-between p-2 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 rounded-xl group select-none transition-colors" onclick="toggleFolder(this)" ${contextMenuAttr} data-folder-id="${folderId}">
+                    <div class="folder-header flex items-center justify-between p-2 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 rounded-xl group select-none transition-colors md-ripple" onclick="toggleFolder(this)" ${contextMenuAttr} data-folder-id="${folderId}">
                         <div class="flex items-center gap-2 min-w-0" style="color: ${iconColor}">
                             <span class="material-symbols-outlined text-[18px] folder-icon flex-shrink-0 transition-transform ${isOpen ? 'open' : ''}">chevron_right</span>
                             <span class="text-[11px] md:text-xs font-bold truncate">${title}</span>
@@ -2291,7 +2568,7 @@
                 if (drawerFolderStates[folderId] === undefined) drawerFolderStates[folderId] = true;
                 const folder = createFolderDom(`重要任务 <span class="text-[10px] font-normal text-[var(--md-sys-color-outline)] ml-1">(${starredItems.length})</span>`, null, '', '', 'var(--md-sys-color-gold)', folderId);
                 const inner = folder.querySelector('.target-inner');
-                if (starredItems.length === 0) inner.innerHTML = `<div class="text-[10px] text-[var(--md-sys-color-outline)] p-3 text-center border border-dashed rounded-xl border-[var(--md-sys-color-outline-variant)]">暂无星标重要任务<br/>点击 ☆ 即可设为重要</div>`;
+                if (starredItems.length === 0) inner.innerHTML = `<div class="text-[10px] text-[var(--md-sys-color-outline)] p-3 text-center border border-dashed rounded-xl border-[var(--md-sys-color-outline-variant)]">暂无 ☆ 任务</div>`;
                 else starredItems.forEach(item => {renderDrawerTask(item, '重要', inner);});
                 container.appendChild(folder); return;
             }
@@ -2361,15 +2638,15 @@
                     dropVal = 'group_disabled'; const batch = appState.batches.find(b => b.title === catName);
                     if (batch) {
                         folderContextAttr = `oncontextmenu="handleContextMenu(event, 'folder_main', '${batch.id}')"`;
-                        hoverAddHtml = `<button onclick="event.stopPropagation(); executeContextMenuActionObj('folder_main', '${batch.id}', null, 'add_subtask')" class="opacity-0 group-hover:opacity-100 text-[var(--md-sys-color-outline)] hover:text-[var(--md-sys-color-primary)] transition-opacity p-0.5"><span class="material-symbols-outlined text-sm">add</span></button>`;
+                        hoverAddHtml = `<button onclick="event.stopPropagation(); executeContextMenuActionObj('folder_main', '${batch.id}', null, 'add_subtask')" class="opacity-0 group-hover:opacity-100 text-[var(--md-sys-color-outline)] hover:text-[var(--md-sys-color-primary)] transition-opacity p-0.5 md-ripple rounded-full"><span class="material-symbols-outlined text-sm">add</span></button>`;
                     }
                 } else if (currentMode === 'subject') {
                     dropVal = 'subject_disabled'; folderContextAttr = `oncontextmenu="handleContextMenu(event, 'folder_subject', '${catName}')"`;
-                    hoverAddHtml = `<button onclick="event.stopPropagation(); executeContextMenuActionObj('folder_subject', '${catName}', null, 'add_subject_task')" class="opacity-0 group-hover:opacity-100 text-[var(--md-sys-color-outline)] hover:text-[var(--md-sys-color-primary)] transition-opacity p-0.5"><span class="material-symbols-outlined text-sm">add</span></button>`;
-                    delHtml = `<button onclick="event.stopPropagation(); deleteMetaAsset('${currentMode}', '${catName}')" class="opacity-0 group-hover:opacity-100 text-[var(--md-sys-color-outline)] hover:text-red-500 transition-opacity p-0.5"><span class="material-symbols-outlined text-sm">delete</span></button>`;
+                    hoverAddHtml = `<button onclick="event.stopPropagation(); executeContextMenuActionObj('folder_subject', '${catName}', null, 'add_subject_task')" class="opacity-0 group-hover:opacity-100 text-[var(--md-sys-color-outline)] hover:text-[var(--md-sys-color-primary)] transition-opacity p-0.5 md-ripple rounded-full"><span class="material-symbols-outlined text-sm">add</span></button>`;
+                    delHtml = `<button onclick="event.stopPropagation(); deleteMetaAsset('${currentMode}', '${catName}')" class="opacity-0 group-hover:opacity-100 text-[var(--md-sys-color-outline)] hover:text-red-500 transition-opacity p-0.5 md-ripple rounded-full"><span class="material-symbols-outlined text-sm">delete</span></button>`;
                 } else if (currentMode === 'tag') {
                     folderContextAttr = `oncontextmenu="handleContextMenu(event, 'folder_tag', '${catName}')"`;
-                    delHtml = `<button onclick="event.stopPropagation(); deleteMetaAsset('${currentMode}', '${catName}')" class="opacity-0 group-hover:opacity-100 text-[var(--md-sys-color-outline)] hover:text-red-500 transition-opacity p-0.5"><span class="material-symbols-outlined text-sm">delete</span></button>`;
+                    delHtml = `<button onclick="event.stopPropagation(); deleteMetaAsset('${currentMode}', '${catName}')" class="opacity-0 group-hover:opacity-100 text-[var(--md-sys-color-outline)] hover:text-red-500 transition-opacity p-0.5 md-ripple rounded-full"><span class="material-symbols-outlined text-sm">delete</span></button>`;
                 }
 
                 let folderIconColor = standardFolderColor;
@@ -2404,7 +2681,7 @@
         function renderDrawerTask(item, catName, container) {
             const {batch, subtask} = item;
             const taskEl = document.createElement("div");
-            taskEl.className = `group/item p-2.5 rounded-xl border flex flex-col gap-1 bg-[var(--md-sys-color-surface-container-highest)] border-[var(--md-sys-color-outline-variant)] cursor-grab active:cursor-grabbing hover:shadow-sm transition-all ${subtask.done ? 'opacity-50 saturate-50 line-through' : ''}`;
+            taskEl.className = `group/item px-2.5 py-1.5 rounded-xl border flex items-center justify-between gap-1.5 bg-[var(--md-sys-color-surface-container-highest)] border-[var(--md-sys-color-outline-variant)] cursor-grab active:cursor-grabbing hover:bg-black/5 dark:hover:bg-white/5 transition-all md-ripple ${subtask.done ? 'opacity-50 saturate-50 line-through' : ''}`;
             taskEl.setAttribute("draggable", "true"); taskEl.setAttribute("data-subtask-id", subtask.id);
             taskEl.addEventListener("dragstart", (e) => handleSubtaskDragStart(e, subtask.id));
 
@@ -2428,18 +2705,18 @@
 
             const starIconClass = subtask.starred ? 'star-filled opacity-100' : 'star-outline opacity-0 group-hover/item:opacity-100 hover:text-amber-500';
             taskEl.innerHTML = `
-                <div class="flex justify-between items-center text-[9px]">
-                    <span class="font-bold px-2 py-0.5 rounded-full shadow-sm" style="background-color:${subjectColors[batch.subject]?.bg || '#E0E0E0'}; color:${subjectColors[batch.subject]?.text || '#333'};">${batch.subject}</span>
-                    <span class="text-[var(--md-sys-color-outline)] font-mono">${subtask.endDate ? subtask.endDate.substring(5) : '待排程'}</span>
+                <div class="flex items-center gap-1.5 flex-1 min-w-0 pointer-events-none">
+                    <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background-color: ${subjectColors[batch.subject]?.text || 'var(--md-sys-color-primary)'};"></span>
+                    <span class="text-xs font-medium truncate text-[var(--md-sys-color-on-surface)]" title="${subtask.text}">${subtask.text}</span>
                 </div>
-                <div class="flex items-end justify-between gap-1 mt-0.5">
-                    <div class="text-xs font-bold truncate text-[var(--md-sys-color-on-surface)] flex-1 min-w-0" title="${subtask.text}">${subtask.text}</div>
-                    <div class="flex items-center gap-0.5 flex-shrink-0 self-end">
-                        <button type="button" onclick="toggleSubtaskStar('${subtask.id}', event, this)" class="text-[16px] flex items-center justify-center transition-all p-0.5 rounded-full hover:bg-amber-500/10"><span class="material-symbols-outlined text-[16px] ${starIconClass}">grade</span></button>
-                        <button type="button" data-context-btn="true" onclick="handleContextMenu(event, 'task_drawer', '${batch.id}', '${subtask.id}', '${catName}')" class="flex md:hidden p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-[var(--md-sys-color-outline)] transition-colors">
-                            <span class="material-symbols-outlined text-[18px]">more_horiz</span>
-                        </button>
-                    </div>
+                <div class="flex items-center gap-1 flex-shrink-0">
+                    <span class="text-[9px] text-[var(--md-sys-color-outline)] font-mono">${subtask.endDate ? subtask.endDate.substring(5) : ''}</span>
+                    <button type="button" onclick="toggleSubtaskStar('${subtask.id}', event, this)" class="text-[16px] flex items-center justify-center transition-all p-0.5 rounded-full hover:bg-amber-500/10 md-ripple">
+                        <span class="material-symbols-outlined text-[16px] ${starIconClass}">grade</span>
+                    </button>
+                    <button type="button" data-context-btn="true" onclick="handleContextMenu(event, 'task_drawer', '${batch.id}', '${subtask.id}', '${catName}')" class="flex md:hidden p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-[var(--md-sys-color-outline)] transition-colors md-ripple">
+                        <span class="material-symbols-outlined text-[16px]">more_horiz</span>
+                    </button>
                 </div>
             `;
             container.appendChild(taskEl);
@@ -2460,8 +2737,8 @@
                 drawerFolderStates = {};
             }
             appState.currentDrawerArrange = dimension;
-            document.querySelectorAll("#drawer-filter-chips button").forEach(btn => btn.className = 'text-[11px] py-1.5 px-3.5 rounded-full text-center font-semibold md-ripple border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0');
-            document.getElementById(`chip-${dimension}`).className = 'chip-active text-[11px] py-1.5 px-3.5 rounded-full text-center font-semibold md-ripple border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0';
+            document.querySelectorAll("#drawer-filter-chips button").forEach(btn => btn.className = 'text-[11px] py-1.5 px-3.5 rounded-full text-center font-semibold md-ripple hover:bg-black/5 dark:hover:bg-white/5 border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0 transition-colors');
+            document.getElementById(`chip-${dimension}`).className = 'chip-active text-[11px] py-1.5 px-3.5 rounded-full text-center font-semibold md-ripple hover:bg-black/5 dark:hover:bg-white/5 border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0 transition-colors';
             const quickAdd = document.getElementById('drawer-quick-add-container');
             const colorInput = document.getElementById('drawer-quick-color');
             if (dimension === 'subject' || dimension === 'tag') {
@@ -2509,7 +2786,7 @@
                 return keywords.every(k => combinedText.includes(k));
             });
             if (!filteredBatches.length) {
-                container.innerHTML = `<div class="text-xs text-[var(--md-sys-color-outline)] p-10 text-center bg-[var(--md-sys-color-surface-container-low)] rounded-2xl border border-dashed border-[var(--md-sys-color-outline-variant)]">暂无匹配任务，去创建新的学习计划吧！</div>`;
+                container.innerHTML = `<div class="text-xs text-[var(--md-sys-color-outline)] p-10 text-center bg-[var(--md-sys-color-surface-container-low)] rounded-2xl border border-dashed border-[var(--md-sys-color-outline-variant)]">无匹配任务，点击左下角 + 新建任务</div>`;
                 return;
             }
 
@@ -2519,7 +2796,14 @@
                 const taskPct = totalW === 0 ? 0 : Math.round((doneW / totalW) * 100);
 
                 const box = document.createElement("div");
-                box.className = `batch-card p-4 md:p-5 rounded-2xl flex flex-col gap-3 border shadow-sm bg-[var(--md-sys-color-surface-container-lowest)] ${batch.pinned ? 'border-[var(--md-sys-color-primary)] ring-1 ring-[var(--md-sys-color-primary)]/30' : 'border-[var(--md-sys-color-outline-variant)]'} hover:shadow-md`;
+                box.className = `batch-card p-4 md:p-5 rounded-2xl flex flex-col gap-3 border shadow-sm bg-[var(--md-sys-color-surface-container-lowest)] ${batch.pinned ? 'border-[var(--md-sys-color-primary)] ring-1 ring-[var(--md-sys-color-primary)]/30' : 'border-[var(--md-sys-color-outline-variant)]'} hover:shadow-md ${batch.collapsed ? 'cursor-pointer' : ''}`;
+
+                box.addEventListener('click', (e) => {
+                    if (batch.collapsed) {
+                        if (e.target.closest('button') || e.target.closest('a') || e.target.closest('input')) return;
+                        toggleBatchCollapse(batch.id);
+                    }
+                });
 
                 let tagsHtml = batch.tags.map(tagName => {
                     const tObj = appState.tags.find(t => t.name === tagName);
@@ -2534,15 +2818,15 @@
                             ${tagsHtml}
                         </div>
                         <div class="flex items-center gap-1 flex-shrink-0">
-                            <button onclick="toggleBatchPin('${batch.id}')" class="pin-btn w-8 h-8 rounded-full flex items-center justify-center ${batch.pinned ? 'text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary)]/10 is-pinned pin-animated' : 'text-[var(--md-sys-color-outline)] hover:text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary)]/10'}"><span class="material-symbols-outlined text-[20px] ${batch.pinned ? 'filled' : ''}">push_pin</span></button>
-                            <button onclick="openEditTaskModal('${batch.id}')" class="w-8 h-8 rounded-full flex items-center justify-center text-[var(--md-sys-color-outline)] hover:text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary)]/10 transition-colors"><span class="material-symbols-outlined text-[20px]">edit</span></button>
-                            <button onclick="deleteEntireBatch('${batch.id}')" class="w-8 h-8 rounded-full flex items-center justify-center text-[var(--md-sys-color-outline)] hover:text-red-500 hover:bg-red-500/10 transition-colors"><span class="material-symbols-outlined text-[20px]">delete_sweep</span></button>
-                            <button onclick="toggleBatchCollapse('${batch.id}')" class="w-8 h-8 rounded-full flex items-center justify-center text-[var(--md-sys-color-outline)] hover:bg-black/5 transition-colors"><span class="material-symbols-outlined text-[24px] batch-expand-icon ${batch.collapsed ? 'collapsed' : ''}">expand_more</span></button>
+                            <button onclick="event.stopPropagation(); toggleBatchPin('${batch.id}')" class="w-8 h-8 rounded-full flex items-center justify-center transition-colors md-ripple ${batch.pinned ? 'text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary)]/10 hover:bg-[var(--md-sys-color-primary)]/20' : 'text-[var(--md-sys-color-outline)] hover:text-[var(--md-sys-color-primary)] hover:bg-black/5 dark:hover:bg-white/5'}" title="${batch.pinned ? '取消置顶' : '置顶卡片'}"><span class="material-symbols-outlined text-[20px] ${batch.pinned ? 'filled' : ''}">push_pin</span></button>
+                            <button onclick="event.stopPropagation(); openEditTaskModal('${batch.id}')" class="w-8 h-8 rounded-full flex items-center justify-center text-[var(--md-sys-color-outline)] hover:text-[var(--md-sys-color-primary)] hover:bg-black/5 dark:hover:bg-white/5 transition-colors md-ripple" title="编辑卡片"><span class="material-symbols-outlined text-[20px]">edit</span></button>
+                            <button onclick="event.stopPropagation(); deleteEntireBatch('${batch.id}')" class="w-8 h-8 rounded-full flex items-center justify-center text-[var(--md-sys-color-outline)] hover:text-red-500 hover:bg-red-500/10 transition-colors md-ripple" title="删除计划"><span class="material-symbols-outlined text-[20px]">delete_sweep</span></button>
+                            <button onclick="event.stopPropagation(); toggleBatchCollapse('${batch.id}')" class="w-8 h-8 rounded-full flex items-center justify-center text-[var(--md-sys-color-outline)] hover:bg-black/5 dark:hover:bg-white/5 transition-colors md-ripple" title="${batch.collapsed ? '展开' : '折叠'}"><span class="material-symbols-outlined text-[24px] batch-expand-icon ${batch.collapsed ? 'collapsed' : ''}">expand_more</span></button>
                         </div>
                     </div>
                     <div class="home-batch-content ${batch.collapsed ? 'collapsed' : ''}">
                         <div class="overflow-hidden min-h-0">
-                            <p class="text-[11px] md:text-xs text-[var(--md-sys-color-on-surface-variant)] border-l-2 border-[var(--md-sys-color-outline-variant)] pl-2 mb-3">${batch.content}</p>
+                            <p class="text-[11px] md:text-xs text-[var(--md-sys-color-on-surface-variant)] border-l-2 border-[var(--md-sys-color-outline-variant)] pl-2 mb-3 select-text whitespace-pre-wrap break-words leading-relaxed">${formatTextWithLinks(batch.content)}</p>
                             <div class="flex flex-col gap-1 my-0.5">
                                 <div class="flex justify-between items-center text-[10px] font-bold text-[var(--md-sys-color-on-surface-variant)]">
                                     <span>任务进度</span><span class="font-mono text-[var(--md-sys-color-primary)]">${doneW}/${totalW} (${taskPct}%)</span>
@@ -2557,10 +2841,11 @@
                 `;
 
                 const subContainer = box.querySelector(".subtask-list-zone");
-                batch.subtasks.forEach(sub => {
+                batch.subtasks.forEach((sub, subIdx) => {
                     const subRow = document.createElement("div");
                     subRow.id = `home-sub-${sub.id}`;
-                    subRow.className = "group/sub flex items-center justify-between px-3 py-1.5 rounded-xl bg-[var(--md-sys-color-surface-container-low)] border border-transparent text-xs cursor-grab active:cursor-grabbing hover:bg-[var(--md-sys-color-surface-container-high)] hover:border-[var(--md-sys-color-outline-variant)] transition-all";
+                    subRow.className = "subtask-item-animated group/sub flex items-center justify-between px-3 py-1.5 rounded-xl bg-[var(--md-sys-color-surface-container-low)] border border-transparent text-xs cursor-grab active:cursor-grabbing hover:bg-[var(--md-sys-color-surface-container-high)] hover:border-[var(--md-sys-color-outline-variant)] transition-all";
+                    subRow.style.transitionDelay = `${subIdx * 35}ms`;
                     subRow.setAttribute("draggable", "true");
                     subRow.addEventListener("dragstart", (e) => handleSubtaskDragStart(e, sub.id));
                     subRow.addEventListener("contextmenu", (e) => handleContextMenu(e, 'task_home', batch.id, sub.id));
@@ -2580,11 +2865,11 @@
                             <span class="font-medium truncate text-[var(--md-sys-color-on-surface)] text-sm md:text-xs transition-all ${sub.done ? 'line-through opacity-50 saturate-50' : ''}">${sub.text}</span>
                         </label>
                         <div class="flex items-center gap-1.5 flex-shrink-0 ml-2">
-                            <button type="button" onclick="toggleSubtaskStar('${sub.id}', event, this)" class="text-[18px] flex items-center justify-center transition-all p-0.5 rounded-full hover:bg-amber-500/10">
+                            <button type="button" onclick="toggleSubtaskStar('${sub.id}', event, this)" class="text-[18px] flex items-center justify-center transition-all p-0.5 rounded-full hover:bg-amber-500/10 md-ripple">
                                 <span class="material-symbols-outlined text-[18px] ${starIconClass}">grade</span>
                             </button>
                             <button type="button" data-date-chip="true" onclick="openDateQuickMenu('${sub.id}', event)" class="text-[10px] text-[var(--md-sys-color-on-secondary-container)] font-mono font-bold bg-[var(--md-sys-color-secondary-container)] hover:brightness-110 px-2.5 py-1 rounded-lg transition-all md-ripple">${sub.endDate ? sub.endDate : '设置日期'}</button>
-                            <button type="button" data-context-btn="true" onclick="handleContextMenu(event, 'task_home', '${batch.id}', '${sub.id}')" class="flex md:hidden p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-[var(--md-sys-color-outline)] transition-colors">
+                            <button type="button" data-context-btn="true" onclick="handleContextMenu(event, 'task_home', '${batch.id}', '${sub.id}')" class="flex md:hidden p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-[var(--md-sys-color-outline)] transition-colors md-ripple">
                                 <span class="material-symbols-outlined text-[18px]">more_horiz</span>
                             </button>
                         </div>
@@ -2604,8 +2889,8 @@
 
         function switchCalendarMode(mode) {
             appState.calendarMode = mode;
-            const activeClass = 'px-3.5 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] transition-all shadow-sm';
-            const inactiveClass = 'px-3.5 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold text-[var(--md-sys-color-on-surface-variant)] hover:bg-black/5 transition-colors';
+            const activeClass = 'px-3.5 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] transition-all shadow-sm md-ripple';
+            const inactiveClass = 'px-3.5 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold text-[var(--md-sys-color-on-surface-variant)] hover:bg-black/5 dark:hover:bg-white/5 transition-colors md-ripple';
 
             document.getElementById("view-mode-month").className = mode === 'month' ? activeClass : inactiveClass;
             document.getElementById("view-mode-week").className = mode === 'week' ? activeClass : inactiveClass;
@@ -2749,9 +3034,9 @@
             const container = document.getElementById("form-subject-container");
             let html = appState.subjects.map(sub => {
                 const isSel = appState.selectedFormSubject === sub;
-                return `<button type="button" onclick="selectFormSubject('${sub}')" id="form-sub-${sub}" class="px-3.5 py-1.5 rounded-full text-[11px] font-bold border border-[var(--md-sys-color-outline-variant)] transition-all hover:bg-black/5 ${isSel ? 'chip-active shadow-sm' : 'text-[var(--md-sys-color-on-surface-variant)]'}">${sub}</button>`;
+                return `<button type="button" onclick="selectFormSubject('${sub}')" id="form-sub-${sub}" class="px-3.5 py-1.5 rounded-full text-[11px] font-bold border border-[var(--md-sys-color-outline-variant)] transition-all hover:bg-black/5 dark:hover:bg-white/5 md-ripple ${isSel ? 'chip-active shadow-sm' : 'text-[var(--md-sys-color-on-surface-variant)]'}">${sub}</button>`;
             }).join('');
-            html += `<button type="button" onclick="showAddSubjectUI()" id="btn-show-add-subject" class="px-3.5 py-1.5 rounded-full text-[11px] font-bold border border-dashed border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-outline)] hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-1 transition-colors"><span class="material-symbols-outlined text-[14px]">add</span>新建类型</button>`;
+            html += `<button type="button" onclick="showAddSubjectUI()" id="btn-show-add-subject" class="px-3.5 py-1.5 rounded-full text-[11px] font-bold border border-dashed border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-outline)] hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-1 transition-colors md-ripple"><span class="material-symbols-outlined text-[14px]">add</span>新建类型</button>`;
             html += `<div id="new-subject-ui" class="hidden items-center gap-1.5 bg-[var(--md-sys-color-surface-container-highest)] px-3 py-1 rounded-full border border-[var(--md-sys-color-outline-variant)] shadow-inner w-full sm:w-auto">
                 <input type="text" id="new-subject-name-input" placeholder="类型名称..." class="w-20 sm:w-28 bg-transparent text-[11px] font-bold outline-none text-[var(--md-sys-color-on-surface)] placeholder-gray-400">
                 <button type="button" onclick="saveNewSubject()" class="text-[var(--md-sys-color-primary)] hover:brightness-110 flex items-center p-0.5"><span class="material-symbols-outlined text-[16px]">check_circle</span></button>
@@ -2789,7 +3074,7 @@
                 div.innerHTML = `
                     <input type="text" value="${sub.text}" required class="flex-1 p-2.5 rounded-xl border text-xs bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)] outline-none focus:border-[var(--md-sys-color-primary)] transition-colors checklist-text-input" onkeydown="if(event.key==='Enter'){event.preventDefault(); addChecklistItemSlot(this);}" />
                     <div class="flex items-center gap-1 w-20"><span class="text-[10px] text-[var(--md-sys-color-outline)]">权重</span><input type="number" min="1" value="${sub.weight || 1}" class="w-full p-1.5 rounded-lg border text-xs bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)] outline-none focus:border-[var(--md-sys-color-primary)] transition-colors checklist-weight-input" /></div>
-                    <button type="button" onclick="this.parentElement.remove()" class="text-[var(--md-sys-color-outline)] hover:text-red-500 transition-colors p-1"><span class="material-symbols-outlined text-lg">do_not_disturb_on</span></button>
+                    <button type="button" onclick="this.parentElement.remove()" class="text-[var(--md-sys-color-outline)] hover:text-red-500 transition-colors p-1 md-ripple rounded-full"><span class="material-symbols-outlined text-lg">do_not_disturb_on</span></button>
                 `;
                 box.appendChild(div);
             });
@@ -2802,9 +3087,9 @@
             const container = document.getElementById("form-tags-list");
             let html = appState.tags.map(t => {
                 const isSel = appState.selectedFormTags.includes(t.name);
-                return `<button type="button" onclick="toggleFormTagSelection('${t.name}')" class="px-3 py-1 rounded-full text-[10px] font-bold shadow-sm border border-transparent transition-transform active:scale-95" style="background-color: ${isSel ? t.color : 'var(--md-sys-color-surface-variant)'}; color: ${isSel ? '#FFF' : 'var(--md-sys-color-on-surface-variant)'};">${t.name}</button>`;
+                return `<button type="button" onclick="toggleFormTagSelection('${t.name}')" class="px-3 py-1 rounded-full text-[10px] font-bold shadow-sm border border-transparent transition-transform active:scale-95 md-ripple" style="background-color: ${isSel ? t.color : 'var(--md-sys-color-surface-variant)'}; color: ${isSel ? '#FFF' : 'var(--md-sys-color-on-surface-variant)'};">${t.name}</button>`;
             }).join('');
-            html += `<button type="button" onclick="showAddTagUI()" id="btn-show-add-tag" class="px-3 py-1 rounded-full text-[10px] font-bold border border-dashed border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-outline)] hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-1 transition-colors"><span class="material-symbols-outlined text-[14px]">add</span>新建</button>`;
+            html += `<button type="button" onclick="showAddTagUI()" id="btn-show-add-tag" class="px-3 py-1 rounded-full text-[10px] font-bold border border-dashed border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-outline)] hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-1 transition-colors md-ripple"><span class="material-symbols-outlined text-[14px]">add</span>新建</button>`;
             html += `<div id="new-tag-ui" class="hidden items-center gap-1.5 bg-[var(--md-sys-color-surface-container-highest)] px-2 py-1 rounded-full border border-[var(--md-sys-color-outline-variant)] shadow-inner w-full sm:w-auto mt-1 sm:mt-0">
                 <input type="color" id="new-tag-color-input" value="#6750A4" class="w-5 h-5 rounded cursor-pointer border-0 bg-transparent p-0 flex-shrink-0">
                 <input type="text" id="new-tag-name-input" placeholder="标签名..." class="w-20 sm:w-24 bg-transparent text-[11px] font-bold outline-none text-[var(--md-sys-color-on-surface)] placeholder-gray-400">
@@ -2837,7 +3122,7 @@
             div.innerHTML = `
                 <input type="text" placeholder="如：数学暑假作业卷一" required class="flex-1 p-2.5 rounded-xl border text-xs bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)] outline-none focus:border-[var(--md-sys-color-primary)] transition-colors checklist-text-input" onkeydown="if(event.key==='Enter'){event.preventDefault(); addChecklistItemSlot(this);}" />
                 <div class="flex items-center gap-1 w-20"><span class="text-[10px] text-[var(--md-sys-color-outline)]">权重</span><input type="number" min="1" value="1" class="w-full p-1.5 rounded-lg border text-xs bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)] outline-none focus:border-[var(--md-sys-color-primary)] transition-colors checklist-weight-input" /></div>
-                <button type="button" onclick="this.parentElement.remove()" class="text-[var(--md-sys-color-outline)] hover:text-red-500 transition-colors p-1"><span class="material-symbols-outlined text-lg">do_not_disturb_on</span></button>
+                <button type="button" onclick="this.parentElement.remove()" class="text-[var(--md-sys-color-outline)] hover:text-red-500 transition-colors p-1 md-ripple rounded-full"><span class="material-symbols-outlined text-lg">do_not_disturb_on</span></button>
             `;
             if (currentInput && currentInput.parentElement) currentInput.parentElement.after(div); else box.appendChild(div);
             setTimeout(() => div.querySelector('.checklist-text-input').focus(), 50);
@@ -2871,10 +3156,23 @@
 
         function calculateAndRenderStatistics() {
             let totalWeight = 0, completedWeight = 0, totalItems = 0;
-            appState.batches.forEach(b => b.subtasks.forEach(s => {const w = s.weight || 1; totalItems++; totalWeight += w; if (s.done) completedWeight += w;}));
+            const batches = appState.batches || [];
+            batches.forEach(b => {
+                const subtasks = b.subtasks || [];
+                subtasks.forEach(s => {
+                    const w = s.weight || 1;
+                    totalItems++;
+                    totalWeight += w;
+                    if (s.done) completedWeight += w;
+                });
+            });
             const percent = totalWeight === 0 ? 0 : Math.round((completedWeight / totalWeight) * 100);
-            document.getElementById("global-progress-percent").innerText = `${percent}%`; document.getElementById("global-progress-bar").style.width = `${percent}%`;
-            document.getElementById("stats-summary-text").innerText = `共 ${appState.batches.length} 种类型， ${totalItems} 项子任务。`;
+            const percentEl = document.getElementById("global-progress-percent");
+            const barEl = document.getElementById("global-progress-bar");
+            const summaryEl = document.getElementById("stats-summary-text");
+            if (percentEl) percentEl.innerText = `${percent}%`;
+            if (barEl) barEl.style.width = `${percent}%`;
+            if (summaryEl) summaryEl.innerText = `共 ${batches.length} 种类型， ${totalItems} 项子任务。`;
         }
 
         function renderSpecialTaskLists() {
@@ -2890,23 +3188,23 @@
 
                         const item = document.createElement("div"); item.id = `today-item-${s.id}`; item.setAttribute("draggable", "true");
                         item.addEventListener("dragstart", (e) => handleSubtaskDragStart(e, s.id));
-                        let baseClass = "group/today p-2.5 rounded-2xl bg-[var(--md-sys-color-surface-container-lowest)] text-xs font-medium shadow-sm cursor-pointer hover:bg-black/5 flex items-center justify-between gap-2 transition-colors";
+                        let baseClass = "group/today p-2.5 rounded-2xl bg-[var(--md-sys-color-surface-container-lowest)] text-xs font-medium shadow-sm cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 flex items-center justify-between gap-2 transition-colors md-ripple";
                         if (s.done) baseClass += " line-through opacity-50 saturate-50";
                         item.className = `${baseClass} ${isOverdue ? "border-l-4 border-rose-500" : isToday ? "border-l-4 border-[var(--md-sys-color-primary)]" : ""}`;
                         const checkboxClass = isOverdue ? "w-5 h-5 md:w-4 md:h-4 appearance-none rounded-md border-2 border-[var(--md-sys-color-outline)] checked:border-rose-500 checked:bg-rose-500 transition-colors peer cursor-pointer" : "w-5 h-5 md:w-4 md:h-4 appearance-none rounded-md border-2 border-[var(--md-sys-color-outline)] checked:border-[var(--md-sys-color-primary)] checked:bg-[var(--md-sys-color-primary)] transition-colors peer cursor-pointer";
 
                         item.addEventListener("contextmenu", (e) => handleContextMenu(e, 'task_today', b.id, s.id));
                         item.addEventListener("click", (e) => {
-                            if (e.target.closest('input') || e.target.closest('button') || e.target.closest('.interactive-check')) return;
-                            expandToDrawerTask(s.id);
+                            if (e.target.closest('button')) return;
+                            toggleSubtaskStatus(s.id);
                         });
 
                         const starIconClass = s.starred ? 'star-filled opacity-100' : 'star-outline opacity-0 group-hover/today:opacity-100 hover:text-amber-500';
                         item.innerHTML = `
-                            <div class="flex items-center gap-3 flex-1 min-w-0">
-                                <div class="relative flex items-center justify-center flex-shrink-0 p-2 -m-2 cursor-pointer interactive-check" onclick="event.stopPropagation()">
-                                    <input type="checkbox" ${s.done ? 'checked' : ''} onchange="toggleSubtaskStatus('${s.id}')" class="${checkboxClass}" />
-                                    <span class="material-symbols-outlined text-[16px] md:text-[14px] text-white absolute opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity font-bold">check</span>
+                            <div class="flex items-center gap-3 flex-1 min-w-0 pointer-events-none">
+                                <div class="relative flex items-center justify-center flex-shrink-0 p-2 -m-2">
+                                    <input type="checkbox" ${s.done ? 'checked' : ''} class="${checkboxClass}" />
+                                    <span class="material-symbols-outlined text-[16px] md:text-[14px] text-white absolute opacity-0 peer-checked:opacity-100 font-bold">check</span>
                                 </div>
                                 <div class="flex-1 min-w-0 flex flex-col gap-0.5">
                                     <span class="truncate block text-sm md:text-xs ${isOverdue ? 'text-rose-700 dark:text-rose-400' : 'text-[var(--md-sys-color-primary)]'}">${s.text}</span>
@@ -2914,8 +3212,8 @@
                                 </div>
                             </div>
                             <div class="flex items-center gap-1 flex-shrink-0">
-                                <button type="button" onclick="toggleSubtaskStar('${s.id}', event, this)" class="text-[18px] flex items-center justify-center transition-all p-0.5 rounded-full hover:bg-amber-500/10"><span class="material-symbols-outlined text-[18px] ${starIconClass}">grade</span></button>
-                                <button type="button" data-context-btn="true" onclick="handleContextMenu(event, 'task_today', '${b.id}', '${s.id}')" class="flex md:hidden p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-[var(--md-sys-color-outline)] transition-colors">
+                                <button type="button" onclick="toggleSubtaskStar('${s.id}', event, this)" class="text-[18px] flex items-center justify-center transition-all p-0.5 rounded-full hover:bg-amber-500/10 md-ripple"><span class="material-symbols-outlined text-[18px] ${starIconClass}">grade</span></button>
+                                <button type="button" data-context-btn="true" onclick="handleContextMenu(event, 'task_today', '${b.id}', '${s.id}')" class="flex md:hidden p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-[var(--md-sys-color-outline)] transition-colors md-ripple">
                                     <span class="material-symbols-outlined text-[18px]">more_horiz</span>
                                 </button>
                             </div>
@@ -2924,7 +3222,7 @@
                     }
                 });
             });
-            if (!overdue.children.length) overdue.innerHTML = `<div class="text-[10px] text-emerald-500 text-center py-2.5 font-bold bg-emerald-500/10 rounded-xl">计划内无滞留！</div>`;
+            if (!overdue.children.length) overdue.innerHTML = `<div class="text-[10px] text-emerald-500 text-center py-2.5 font-bold bg-emerald-500/10 rounded-xl">无滞留任务</div>`;
             if (!today.children.length) today.innerHTML = `<div class="text-[11px] text-[var(--md-sys-color-outline)] text-center py-4 border border-dashed rounded-xl border-[var(--md-sys-color-outline-variant)]">今日无安排</div>`;
         }
 
@@ -2962,7 +3260,11 @@
             }
         }
 
-        function toggleDrawer() {const drawer = document.getElementById('task-drawer'); drawer.classList.toggle('collapsed'); document.getElementById('drawer-restore-btn').classList.toggle('hidden', !drawer.classList.contains('collapsed'));}
+        function toggleDrawer() {
+            const drawer = document.getElementById('task-drawer');
+            drawer.classList.toggle('collapsed');
+            document.getElementById('drawer-restore-btn').classList.toggle('hidden', !drawer.classList.contains('collapsed'));
+        }
 
         function toggleDarkMode(manual = false) {
             const isDark = document.documentElement.classList.toggle("dark");
@@ -2994,6 +3296,7 @@
 
         function renderAllComponents() {
             calculateAndRenderStatistics();
+            applyProgressVisibility();
             renderHomeChecklist();
             renderLeftDrawerPool();
             renderSpecialTaskLists();
