@@ -97,9 +97,45 @@
             font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
 
+        /* MD3 统一小图标按钮基准类 */
+        .md3-icon-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 9999px;
+            color: var(--md-sys-color-on-surface-variant);
+            transition: background-color var(--md-motion-duration-short4) var(--md-motion-easing-standard),
+                        color var(--md-motion-duration-short4) var(--md-motion-easing-standard),
+                        transform 0.15s ease, opacity 0.2s ease;
+            position: relative;
+            flex-shrink: 0;
+            user-select: none;
+        }
+
+        .md3-icon-btn:hover {
+            background-color: rgba(103, 80, 164, 0.08);
+            color: var(--md-sys-color-on-surface);
+        }
+
+        html.dark .md3-icon-btn:hover {
+            background-color: rgba(208, 188, 255, 0.12);
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .md3-icon-btn:active {
+            transform: scale(0.92);
+        }
+
+        .md3-icon-btn .material-symbols-outlined {
+            font-size: 18px;
+        }
+
+        /* MD3 状态响应微交互 */
         @keyframes starPopAnim {
             0% { transform: scale(1); }
-            50% { transform: scale(1.4) rotate(15deg); }
+            50% { transform: scale(1.35) rotate(15deg); }
             100% { transform: scale(1) rotate(0deg); }
         }
 
@@ -931,7 +967,7 @@
                         class="bg-transparent text-sm outline-none w-full resize-none mt-1"></textarea>
                 </div>
 
-                <!-- 单次任务：仅保留子任务容器 -->
+                <!-- 单次任务：子任务容器 -->
                 <div id="form-single-section" class="flex flex-col gap-3">
                     <div class="flex flex-col gap-2 p-3 md:p-4 rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-low)]">
                         <div class="flex justify-between items-center mb-1">
@@ -1101,9 +1137,8 @@
     </div>
 
     <script>
-        // Web Push / 后端 Cloudflare Worker 基础配置 (可填入您的 Worker 域名与公钥)
-        const PUSH_SERVER_URL = 'https://webpush.chenyurong.qzz.io' || ''; 
-        const VAPID_PUBLIC_KEY = 'BAw4UZswhaZOftayviVlwmOjsy1g_q0Q8KL27Go1dq5OhZGX5HBJEyWuaHyLn7pxr3R87Y1GkZuz07Kng_j-16M' || ''; 
+        const PUSH_SERVER_URL = window.PUSH_SERVER_URL || ''; 
+        const VAPID_PUBLIC_KEY = window.VAPID_PUBLIC_KEY || ''; 
 
         const getRealTodayStr = () => {
             const d = new Date();
@@ -1145,10 +1180,13 @@
                         isInfinite: false,
                         totalCount: 30,
                         completedCount: 1,
+                        startDate: TODAY_STR,
                         startTime: "08:30",
                         durationMinutes: 60,
+                        hasTime: true,
                         hasRemind: true,
                         remindOffset: 5,
+                        weight: 1,
                         titleTemplate: "第{n}次背诵打卡"
                     },
                     subtasks: [
@@ -1217,7 +1255,6 @@
         const FILE_NAME = 'data.json';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        /* --- 辅助函数：将 Base64 VAPID Key 转换为 Uint8Array --- */
         function urlBase64ToUint8Array(base64String) {
             const padding = '='.repeat((4 - base64String.length % 4) % 4);
             const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
@@ -1229,11 +1266,9 @@
             return outputArray;
         }
 
-        /* --- 系统通知与 Service Worker 核心模块 --- */
         async function initServiceWorkerAndNotification() {
             if ('serviceWorker' in navigator) {
                 try {
-                    // 正确从独立同源 sw.js 注册，解决 blob 报错
                     serviceWorkerReg = await navigator.serviceWorker.register('./sw.js');
                     navigator.serviceWorker.addEventListener('message', (event) => {
                         if (event.data && event.data.action === 'LOCATE_SUBTASK') {
@@ -1241,7 +1276,6 @@
                         }
                     });
 
-                    // 检查若已授权则自动维持推送订阅
                     if (Notification.permission === 'granted') {
                         await subscribeUserToPush();
                     }
@@ -1256,9 +1290,7 @@
 
         async function subscribeUserToPush() {
             if (!serviceWorkerReg || !('pushManager' in serviceWorkerReg)) return null;
-            if (!VAPID_PUBLIC_KEY) {
-                return null;
-            }
+            if (!VAPID_PUBLIC_KEY) return null;
             try {
                 let subscription = await serviceWorkerReg.pushManager.getSubscription();
                 if (!subscription) {
@@ -1269,7 +1301,6 @@
                     });
                 }
 
-                // 上报订阅信息至 Cloudflare Worker 后端
                 if (PUSH_SERVER_URL) {
                     await fetch(`${PUSH_SERVER_URL}/api/subscribe`, {
                         method: 'POST',
@@ -1303,6 +1334,19 @@
             }
         }
 
+        function toggleSubtaskRemind(subtaskId, event) {
+            if (event) event.stopPropagation();
+            const target = findSubtask(subtaskId);
+            if (target) {
+                target.subtask.hasRemind = !target.subtask.hasRemind;
+                if (!target.subtask.hasRemind) {
+                    target.subtask.reminded = false;
+                }
+                saveStateToStorage();
+                renderAllComponents();
+            }
+        }
+
         async function requestNotificationPermission() {
             if (!('Notification' in window)) {
                 alert('当前浏览器环境不支持系统通知。');
@@ -1330,7 +1374,6 @@
                 renotify: true
             }, options);
 
-            // 1. 本地 Service Worker 显示通知
             if (serviceWorkerReg && serviceWorkerReg.showNotification) {
                 try {
                     await serviceWorkerReg.showNotification(title, finalOptions);
@@ -1351,7 +1394,6 @@
                 }
             }
 
-            // 2. 如果配置了云端 Worker，则触发远端全设备推送
             if (PUSH_SERVER_URL) {
                 try {
                     fetch(`${PUSH_SERVER_URL}/api/send-notification`, {
@@ -1402,10 +1444,13 @@
                         hasChanged = true;
 
                         const timeLabel = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-                        triggerSystemNotification(`⏰ 任务提醒：${s.text}`, {
-                            body: `所属分类：${b.subject} | 预计开始：${s.endDate} ${timeLabel}\n${b.title}`,
+                        const notificationTitle = `任务提醒：${s.text}`;
+                        const notificationBody = `任务名称：${b.title}\n${b.subject} | ${s.endDate} ${timeLabel}`;
+
+                        triggerSystemNotification(notificationTitle, {
+                            body: notificationBody,
                             tag: `remind-${s.id}`,
-                            data: {subtaskId: s.id}
+                            data: { subtaskId: s.id }
                         });
                     }
                 });
@@ -1663,7 +1708,6 @@
             });
         });
 
-        /* --- 周期任务表单相关配置 --- */
         function initRecurringFormGrids() {
             const wGrid = document.getElementById('rec-weekdays-grid');
             const wNames = ["一", "二", "三", "四", "五", "六", "日"];
@@ -1774,7 +1818,6 @@
             }
         }
 
-        // 计算周期任务的下一个排程日期
         function calculateNextRecurringDate(fromDateStr, recConfig) {
             let cursor = new Date(fromDateStr);
             cursor.setDate(cursor.getDate() + 1);
@@ -2710,7 +2753,6 @@
                 if (!batch.isRecurring || !batch.recurringConfig) return;
                 const rc = batch.recurringConfig;
 
-                // 如果还没有任何子任务，初始化第 1 次
                 if (!batch.subtasks || batch.subtasks.length === 0) {
                     const startD = rc.startDate || TODAY_STR;
                     if (startD <= TODAY_STR) {
@@ -2736,14 +2778,12 @@
                     return;
                 }
 
-                // 获取最新的一期任务
                 const lastTask = batch.subtasks[batch.subtasks.length - 1];
                 if (lastTask && lastTask.done) {
                     const nextIteration = (lastTask.iteration || 1) + 1;
                     const canSpawn = rc.isInfinite || (nextIteration <= rc.totalCount);
                     if (canSpawn) {
                         const nextDate = calculateNextRecurringDate(lastTask.endDate || TODAY_STR, rc);
-                        // 只有当规划的下一期日期 <= 今天时，才正式生成该任务
                         if (nextDate <= TODAY_STR) {
                             const title = (rc.titleTemplate || "第{n}次任务").replace('{n}', nextIteration);
                             const timeParts = (rc.startTime || "08:00").split(':');
@@ -2854,15 +2894,56 @@
             }
         }
 
+        // 辅助方法：时间格式转分钟数
+        function timeStrToMinutes(str) {
+            if (!str || !str.includes(':')) return 480; // 默认 08:00
+            const [h, m] = str.split(':').map(Number);
+            return (h * 60) + (m || 0);
+        }
+
+        // 辅助方法：分钟数转 HH:mm 格式
+        function minutesToTimeStr(mins) {
+            const clamped = Math.max(0, Math.min(1439, mins)); // 限制在 00:00 ~ 23:59
+            const h = String(Math.floor(clamped / 60)).padStart(2, '0');
+            const m = String(clamped % 60).padStart(2, '0');
+            return `${h}:${m}`;
+        }
+
+        // 辅助方法：获取接近当前时间的下一个 5 分钟整数点 (HH:mm)
+        function getNearestNext5MinutesTimeStr() {
+            const now = new Date();
+            let minutes = now.getMinutes();
+            let hours = now.getHours();
+
+            let remainder = minutes % 5;
+            let addMins = remainder === 0 ? 5 : (5 - remainder);
+            minutes += addMins;
+
+            if (minutes >= 60) {
+                hours = (hours + 1) % 24;
+                minutes = minutes % 60;
+            }
+
+            const hStr = String(hours).padStart(2, '0');
+            const mStr = String(minutes).padStart(2, '0');
+            return `${hStr}:${mStr}`;
+        }
+
         function handleDurationInput(mode) {
             const p = mode === 'single' ? 'single' : 'rec';
             const startStr = document.getElementById(`label-${p}-start-time`).innerText;
-            const dur = parseInt(document.getElementById(`form-${p}-duration`).value) || 0;
-            const [h, m] = startStr.split(':').map(Number);
-            const totalMins = (h * 60 + m + dur + 1440) % 1440;
-            const endH = String(Math.floor(totalMins / 60)).padStart(2, '0');
-            const endM = String(totalMins % 60).padStart(2, '0');
-            document.getElementById(`label-${p}-end-time`).innerText = `${endH}:${endM}`;
+            let dur = parseInt(document.getElementById(`form-${p}-duration`).value);
+            
+            if (isNaN(dur) || dur < 5) dur = 5;
+
+            const startMins = timeStrToMinutes(startStr);
+            if (startMins + dur > 1439) {
+                dur = 1439 - startMins;
+                document.getElementById(`form-${p}-duration`).value = dur;
+            }
+
+            const endStr = minutesToTimeStr(startMins + dur);
+            document.getElementById(`label-${p}-end-time`).innerText = endStr;
         }
 
         function openTimePickerDropdown(event, mode, field) {
@@ -2875,7 +2956,7 @@
 
             let html = '';
             for (let h = 0; h < 24; h++) {
-                for (let m of [0, 15, 30, 45]) {
+                for (let m = 0; m < 60; m += 5) {
                     const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
                     const isSel = timeStr === currentVal;
                     html += `
@@ -2894,37 +2975,47 @@
 
             setTimeout(() => {
                 const activeBtn = menu.querySelector('.bg-\\[var\\(--md-sys-color-secondary-container\\)\\]');
-                if (activeBtn) activeBtn.scrollIntoView({block: 'center'});
+                if (activeBtn) activeBtn.scrollIntoView({ block: 'center' });
             }, 10);
         }
 
         function selectTimeValue(mode, field, val) {
             const p = mode === 'single' ? 'single' : 'rec';
-            document.getElementById(`label-${p}-${field}-time`).innerText = val;
-            document.getElementById('md3-dropdown-menu').style.display = 'none';
+            const menu = document.getElementById('md3-dropdown-menu');
+            if (menu) menu.style.display = 'none';
 
-            const startStr = document.getElementById(`label-${p}-start-time`).innerText;
-            const endStr = document.getElementById(`label-${p}-end-time`).innerText;
             const durInput = document.getElementById(`form-${p}-duration`);
-
-            const parseMins = (str) => {
-                const [h, m] = str.split(':').map(Number);
-                return h * 60 + m;
-            };
-
-            const startM = parseMins(startStr);
-            const endM = parseMins(endStr);
+            let currentDur = parseInt(durInput.value) || 60;
 
             if (field === 'start') {
-                const dur = parseInt(durInput.value) || 0;
-                const totalEnd = (startM + dur + 1440) % 1440;
-                const eh = String(Math.floor(totalEnd / 60)).padStart(2, '0');
-                const em = String(totalEnd % 60).padStart(2, '0');
-                document.getElementById(`label-${p}-end-time`).innerText = `${eh}:${endM}`;
+                document.getElementById(`label-${p}-start-time`).innerText = val;
+                const newStartMins = timeStrToMinutes(val);
+                
+                if (newStartMins + currentDur > 1439) {
+                    currentDur = Math.max(5, 1439 - newStartMins);
+                    durInput.value = currentDur;
+                }
+                const newEndStr = minutesToTimeStr(newStartMins + currentDur);
+                document.getElementById(`label-${p}-end-time`).innerText = newEndStr;
+
             } else if (field === 'end') {
-                let diff = endM - startM;
-                if (diff < 0) diff += 1440;
-                durInput.value = diff;
+                const startStr = document.getElementById(`label-${p}-start-time`).innerText;
+                const startMins = timeStrToMinutes(startStr);
+                let endMins = timeStrToMinutes(val);
+
+                if (endMins <= startMins) {
+                    if (endMins >= 30) {
+                        const adjustedStartMins = endMins - 30;
+                        document.getElementById(`label-${p}-start-time`).innerText = minutesToTimeStr(adjustedStartMins);
+                        durInput.value = 30;
+                    } else {
+                        document.getElementById(`label-${p}-start-time`).innerText = "00:00";
+                        durInput.value = endMins || 5;
+                    }
+                } else {
+                    durInput.value = endMins - startMins;
+                }
+                document.getElementById(`label-${p}-end-time`).innerText = val;
             }
         }
 
@@ -2957,6 +3048,26 @@
             document.getElementById(`label-${p}-remind-menu`).innerText = label;
             document.getElementById(`label-${p}-remind-menu`).dataset.val = val;
             document.getElementById('md3-dropdown-menu').style.display = 'none';
+        }
+
+        function toggleBatchRemind(batchId, event) {
+            if (event) event.stopPropagation();
+            const batch = appState.batches.find(b => b.id === batchId);
+            if (!batch) return;
+
+            if (batch.recurringConfig) {
+                batch.recurringConfig.hasRemind = false;
+            }
+
+            if (Array.isArray(batch.subtasks)) {
+                batch.subtasks.forEach(s => {
+                    s.hasRemind = false;
+                    s.reminded = false;
+                });
+            }
+
+            saveStateToStorage();
+            renderAllComponents();
         }
 
         function confirmMD3DatePicker(event) {
@@ -3531,15 +3642,15 @@
                     dropVal = 'group_disabled'; const batch = appState.batches.find(b => b.title === catName);
                     if (batch) {
                         folderContextAttr = `oncontextmenu="handleContextMenu(event, 'folder_main', '${batch.id}')"`;
-                        hoverAddHtml = `<button onclick="event.stopPropagation(); executeContextMenuActionObj('folder_main', '${batch.id}', null, 'add_subtask')" class="opacity-0 group-hover:opacity-100 text-[var(--md-sys-color-outline)] hover:text-[var(--md-sys-color-primary)] transition-opacity p-0.5 md-ripple rounded-full"><span class="material-symbols-outlined text-sm">add</span></button>`;
+                        hoverAddHtml = `<button onclick="event.stopPropagation(); executeContextMenuActionObj('folder_main', '${batch.id}', null, 'add_subtask')" class="md3-icon-btn opacity-100 md:opacity-0 md:group-hover:opacity-100 md-ripple" title="添加子任务"><span class="material-symbols-outlined">add</span></button>`;
                     }
                 } else if (currentMode === 'subject') {
                     dropVal = 'subject_disabled'; folderContextAttr = `oncontextmenu="handleContextMenu(event, 'folder_subject', '${catName}')"`;
-                    hoverAddHtml = `<button onclick="event.stopPropagation(); executeContextMenuActionObj('folder_subject', '${catName}', null, 'add_subject_task')" class="opacity-0 group-hover:opacity-100 text-[var(--md-sys-color-outline)] hover:text-[var(--md-sys-color-primary)] transition-opacity p-0.5 md-ripple rounded-full"><span class="material-symbols-outlined text-sm">add</span></button>`;
-                    delHtml = `<button onclick="event.stopPropagation(); deleteMetaAsset('${currentMode}', '${catName}')" class="opacity-0 group-hover:opacity-100 text-[var(--md-sys-color-outline)] hover:text-red-500 transition-opacity p-0.5 md-ripple rounded-full"><span class="material-symbols-outlined text-sm">delete</span></button>`;
+                    hoverAddHtml = `<button onclick="event.stopPropagation(); executeContextMenuActionObj('folder_subject', '${catName}', null, 'add_subject_task')" class="md3-icon-btn opacity-100 md:opacity-0 md:group-hover:opacity-100 md-ripple" title="添加类型任务"><span class="material-symbols-outlined">add</span></button>`;
+                    delHtml = `<button onclick="event.stopPropagation(); deleteMetaAsset('${currentMode}', '${catName}')" class="md3-icon-btn opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:text-red-500 md-ripple" title="删除类型"><span class="material-symbols-outlined">delete</span></button>`;
                 } else if (currentMode === 'tag') {
                     folderContextAttr = `oncontextmenu="handleContextMenu(event, 'folder_tag', '${catName}')"`;
-                    delHtml = `<button onclick="event.stopPropagation(); deleteMetaAsset('${currentMode}', '${catName}')" class="opacity-0 group-hover:opacity-100 text-[var(--md-sys-color-outline)] hover:text-red-500 transition-opacity p-0.5 md-ripple rounded-full"><span class="material-symbols-outlined text-sm">delete</span></button>`;
+                    delHtml = `<button onclick="event.stopPropagation(); deleteMetaAsset('${currentMode}', '${catName}')" class="md3-icon-btn opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:text-red-500 md-ripple" title="删除标签"><span class="material-symbols-outlined">delete</span></button>`;
                 }
 
                 let folderIconColor = standardFolderColor;
@@ -3596,23 +3707,36 @@
                 } else if (subtask.endDate) {jumpToCalendar(subtask.endDate);}
             });
 
-            const starIconClass = subtask.starred ? 'star-filled opacity-100' : 'star-outline opacity-0 group-hover/item:opacity-100 hover:text-amber-500';
-            const recIconHtml = batch.isRecurring ? '<span class="material-symbols-outlined text-[13px] text-[var(--md-sys-color-secondary)] flex-shrink-0" title="周期任务">repeat</span>' : '';
-            const remindIconHtml = subtask.hasRemind ? '<span class="material-symbols-outlined text-[13px] text-[var(--md-sys-color-secondary)] flex-shrink-0" title="已设置提醒">notifications</span>' : '';
+            // 统一 MD3 小图标：手机端常态显示 (opacity-100)，电脑端悬浮显示 (md:opacity-0 md:group-hover/item:opacity-100)
+            const starIconClass = subtask.starred ? 'star-filled' : 'star-outline text-[var(--md-sys-color-outline)] hover:text-amber-500';
+            const starBtnVisibility = subtask.starred ? 'opacity-100' : 'opacity-100 md:opacity-0 md:group-hover/item:opacity-100';
+
+            const recIconHtml = batch.isRecurring 
+                ? `<div class="md3-icon-btn opacity-100 md:opacity-0 md:group-hover/item:opacity-100 pointer-events-none text-[var(--md-sys-color-secondary)]" title="周期任务">
+                    <span class="material-symbols-outlined">repeat</span>
+                   </div>` 
+                : '';
+
+            const remindIconHtml = subtask.hasRemind 
+                ? `<button type="button" onclick="toggleSubtaskRemind('${subtask.id}', event)" class="md3-icon-btn opacity-100 md:opacity-0 md:group-hover/item:opacity-100 text-[var(--md-sys-color-secondary)] hover:text-red-500 md-ripple" title="已开启提醒，点击取消">
+                    <span class="material-symbols-outlined">notifications</span>
+                   </button>` 
+                : '';
+
             taskEl.innerHTML = `
                 <div class="flex items-center gap-1.5 flex-1 min-w-0 pointer-events-none">
                     <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background-color: ${subjectColors[batch.subject]?.text || 'var(--md-sys-color-primary)'};"></span>
-                    ${recIconHtml}
-                    ${remindIconHtml}
                     <span class="text-xs font-medium truncate text-[var(--md-sys-color-on-surface)]" title="${subtask.text}">${subtask.text}</span>
                 </div>
-                <div class="flex items-center gap-1 flex-shrink-0">
-                    <button type="button" onclick="toggleSubtaskStar('${subtask.id}', event, this)" class="text-[16px] flex items-center justify-center transition-all p-0.5 rounded-full hover:bg-amber-500/10 md-ripple">
-                        <span class="material-symbols-outlined text-[16px] ${starIconClass}">grade</span>
+                <div class="flex items-center gap-0.5 flex-shrink-0">
+                    ${recIconHtml}
+                    ${remindIconHtml}
+                    <button type="button" onclick="toggleSubtaskStar('${subtask.id}', event, this)" class="md3-icon-btn ${starBtnVisibility} hover:text-amber-500 md-ripple" title="${subtask.starred ? '取消星标' : '设为星标'}">
+                        <span class="material-symbols-outlined ${starIconClass}">grade</span>
                     </button>
-                    <span class="text-[9px] text-[var(--md-sys-color-outline)] font-mono">${subtask.endDate ? subtask.endDate.substring(5) : ''}</span>
-                    <button type="button" data-context-btn="true" onclick="handleContextMenu(event, 'task_drawer', '${batch.id}', '${subtask.id}', '${catName}')" class="flex md:hidden p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-[var(--md-sys-color-outline)] transition-colors md-ripple">
-                        <span class="material-symbols-outlined text-[16px]">more_horiz</span>
+                    <span class="text-[9px] text-[var(--md-sys-color-outline)] font-mono ml-0.5">${subtask.endDate ? subtask.endDate.substring(5) : ''}</span>
+                    <button type="button" data-context-btn="true" onclick="handleContextMenu(event, 'task_drawer', '${batch.id}', '${subtask.id}', '${catName}')" class="md3-icon-btn flex md:hidden md-ripple" title="更多操作">
+                        <span class="material-symbols-outlined">more_horiz</span>
                     </button>
                 </div>
             `;
@@ -3707,14 +3831,26 @@
                 let recurringBadgeHtml = '';
                 if (batch.isRecurring && batch.recurringConfig) {
                     const rc = batch.recurringConfig;
-                    const remainingStr = rc.isInfinite ? '无限循环' : `剩余 ${Math.max(0, rc.totalCount - (rc.completedCount || 0))} 次`;
+                    const remainingStr = rc.isInfinite ? '长期' : `剩余 ${Math.max(0, rc.totalCount - (rc.completedCount || 0))} 次`;
                     recurringBadgeHtml = `
                         <span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-primary-container)] flex items-center gap-1 shadow-sm">
-                            <span class="material-symbols-outlined text-[13px]">repeat</span>
+                            <span>周期任务</span>
+                        </span>
+                        <span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-primary-container)] flex items-center gap-1 shadow-sm">
                             <span>${remainingStr}</span>
                         </span>
                     `;
                 }
+
+                // 判断当前卡片是否开启了提醒
+                const isBatchRemindActive = (batch.isRecurring && batch.recurringConfig?.hasRemind) || 
+                                            batch.subtasks.some(s => s.hasRemind);
+
+                const batchRemindBtnHtml = isBatchRemindActive 
+                    ? `<button onclick="event.stopPropagation(); toggleBatchRemind('${batch.id}', event)" class="md3-icon-btn text-[var(--md-sys-color-secondary)] hover:text-red-500 md-ripple" title="已开启提醒，点击取消提醒">
+                        <span class="material-symbols-outlined">notifications</span>
+                       </button>` 
+                    : '';
 
                 box.innerHTML = `
                     <div class="flex justify-between items-start gap-2">
@@ -3724,11 +3860,12 @@
                             ${recurringBadgeHtml}
                             ${tagsHtml}
                         </div>
-                        <div class="flex items-center gap-1 flex-shrink-0">
-                            <button onclick="event.stopPropagation(); toggleBatchPin('${batch.id}')" class="w-8 h-8 rounded-full flex items-center justify-center transition-colors md-ripple ${batch.pinned ? 'text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary)]/10 hover:bg-[var(--md-sys-color-primary)]/20' : 'text-[var(--md-sys-color-outline)] hover:text-[var(--md-sys-color-primary)] hover:bg-black/5 dark:hover:bg-white/5'}" title="${batch.pinned ? '取消置顶' : '置顶卡片'}"><span class="material-symbols-outlined text-[20px] ${batch.pinned ? 'filled' : ''}">push_pin</span></button>
-                            <button onclick="event.stopPropagation(); openEditTaskModal('${batch.id}')" class="w-8 h-8 rounded-full flex items-center justify-center text-[var(--md-sys-color-outline)] hover:text-[var(--md-sys-color-primary)] hover:bg-black/5 dark:hover:bg-white/5 transition-colors md-ripple" title="编辑卡片"><span class="material-symbols-outlined text-[20px]">edit</span></button>
-                            <button onclick="event.stopPropagation(); deleteEntireBatch('${batch.id}')" class="w-8 h-8 rounded-full flex items-center justify-center text-[var(--md-sys-color-outline)] hover:text-red-500 hover:bg-red-500/10 transition-colors md-ripple" title="删除计划"><span class="material-symbols-outlined text-[20px]">delete_sweep</span></button>
-                            <button onclick="event.stopPropagation(); toggleBatchCollapse('${batch.id}')" class="w-8 h-8 rounded-full flex items-center justify-center text-[var(--md-sys-color-outline)] hover:bg-black/5 dark:hover:bg-white/5 transition-colors md-ripple" title="${batch.collapsed ? '展开' : '折叠'}"><span class="material-symbols-outlined text-[24px] batch-expand-icon ${batch.collapsed ? 'collapsed' : ''}">expand_more</span></button>
+                        <div class="flex items-center gap-0.5 flex-shrink-0">
+                            ${batchRemindBtnHtml}
+                            <button onclick="event.stopPropagation(); toggleBatchPin('${batch.id}')" class="md3-icon-btn md-ripple ${batch.pinned ? 'text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary)]/10' : 'text-[var(--md-sys-color-outline)] hover:text-[var(--md-sys-color-primary)]'}" title="${batch.pinned ? '取消置顶' : '置顶卡片'}"><span class="material-symbols-outlined ${batch.pinned ? 'filled' : ''}">push_pin</span></button>
+                            <button onclick="event.stopPropagation(); openEditTaskModal('${batch.id}')" class="md3-icon-btn md-ripple text-[var(--md-sys-color-outline)] hover:text-[var(--md-sys-color-primary)]" title="编辑卡片"><span class="material-symbols-outlined">edit</span></button>
+                            <button onclick="event.stopPropagation(); deleteEntireBatch('${batch.id}')" class="md3-icon-btn md-ripple text-[var(--md-sys-color-outline)] hover:text-red-500" title="删除计划"><span class="material-symbols-outlined">delete_sweep</span></button>
+                            <button onclick="event.stopPropagation(); toggleBatchCollapse('${batch.id}')" class="md3-icon-btn md-ripple text-[var(--md-sys-color-outline)]" title="${batch.collapsed ? '展开' : '折叠'}"><span class="material-symbols-outlined batch-expand-icon ${batch.collapsed ? 'collapsed' : ''}">expand_more</span></button>
                         </div>
                     </div>
                     <div class="home-batch-content ${batch.collapsed ? 'collapsed' : ''}">
@@ -3766,8 +3903,22 @@
                         expandToDrawerTask(sub.id, document.getElementById('global-search').value.trim());
                     });
 
-                    const starIconClass = sub.starred ? 'star-filled opacity-100' : 'star-outline opacity-0 group-hover/sub:opacity-100 hover:text-amber-500';
-                    const remindIconHtml = sub.hasRemind ? '<span class="material-symbols-outlined text-[15px] text-[var(--md-sys-color-secondary)] flex-shrink-0" title="已设置提醒">notifications</span>' : '';
+                    // 统一 MD3 小图标：手机端常态显示 (opacity-100)，电脑端悬浮显示 (md:opacity-0 md:group-hover/sub:opacity-100)
+                    const starIconClass = sub.starred ? 'star-filled' : 'star-outline text-[var(--md-sys-color-outline)] hover:text-amber-500';
+                    const starBtnVisibility = sub.starred ? 'opacity-100' : 'opacity-100 md:opacity-0 md:group-hover/sub:opacity-100';
+
+                    const recIconHtml = batch.isRecurring 
+                        ? `<div class="md3-icon-btn opacity-100 md:opacity-0 md:group-hover/sub:opacity-100 pointer-events-none text-[var(--md-sys-color-secondary)]" title="周期任务">
+                            <span class="material-symbols-outlined">repeat</span>
+                           </div>` 
+                        : '';
+
+                    const remindIconHtml = sub.hasRemind 
+                        ? `<button type="button" onclick="toggleSubtaskRemind('${sub.id}', event)" class="md3-icon-btn opacity-100 md:opacity-0 md:group-hover/sub:opacity-100 text-[var(--md-sys-color-secondary)] hover:text-red-500 md-ripple" title="已开启提醒，点击取消">
+                            <span class="material-symbols-outlined">notifications</span>
+                           </button>` 
+                        : '';
+
                     subRow.innerHTML = `
                         <label class="flex items-center gap-3 cursor-pointer flex-1 overflow-hidden min-w-0 py-1 interactive pl-1 -ml-1">
                             <div class="relative flex items-center justify-center flex-shrink-0 p-2 -m-2 cursor-pointer" onclick="event.stopPropagation()">
@@ -3776,14 +3927,15 @@
                             </div>
                             <span class="font-medium truncate text-[var(--md-sys-color-on-surface)] text-sm md:text-xs transition-all ${sub.done ? 'line-through opacity-50 saturate-50' : ''}">${sub.text}</span>
                         </label>
-                        <div class="flex items-center gap-1.5 flex-shrink-0 ml-2">
+                        <div class="flex items-center gap-0.5 flex-shrink-0 ml-2">
+                            ${recIconHtml}
                             ${remindIconHtml}
-                            <button type="button" onclick="toggleSubtaskStar('${sub.id}', event, this)" class="text-[18px] flex items-center justify-center transition-all p-0.5 rounded-full hover:bg-amber-500/10 md-ripple">
-                                <span class="material-symbols-outlined text-[18px] ${starIconClass}">grade</span>
+                            <button type="button" onclick="toggleSubtaskStar('${sub.id}', event, this)" class="md3-icon-btn ${starBtnVisibility} hover:text-amber-500 md-ripple" title="${sub.starred ? '取消星标' : '设为星标'}">
+                                <span class="material-symbols-outlined ${starIconClass}">grade</span>
                             </button>
-                            <button type="button" data-date-chip="true" onclick="openDateQuickMenu('${sub.id}', event)" class="text-[10px] text-[var(--md-sys-color-on-secondary-container)] font-mono font-bold bg-[var(--md-sys-color-secondary-container)] hover:brightness-110 px-2.5 py-1 rounded-lg transition-all md-ripple">${sub.endDate ? sub.endDate : '设置日期'}</button>
-                            <button type="button" data-context-btn="true" onclick="handleContextMenu(event, 'task_home', '${batch.id}', '${sub.id}')" class="flex md:hidden p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-[var(--md-sys-color-outline)] transition-colors md-ripple">
-                                <span class="material-symbols-outlined text-[18px]">more_horiz</span>
+                            <button type="button" data-date-chip="true" onclick="openDateQuickMenu('${sub.id}', event)" class="text-[10px] text-[var(--md-sys-color-on-secondary-container)] font-mono font-bold bg-[var(--md-sys-color-secondary-container)] hover:brightness-110 px-2.5 py-1 rounded-lg transition-all md-ripple ml-0.5">${sub.endDate ? sub.endDate : '设置日期'}</button>
+                            <button type="button" data-context-btn="true" onclick="handleContextMenu(event, 'task_home', '${batch.id}', '${sub.id}')" class="md3-icon-btn flex md:hidden md-ripple" title="更多操作">
+                                <span class="material-symbols-outlined">more_horiz</span>
                             </button>
                         </div>
                     `;
@@ -3950,25 +4102,28 @@
             const recDateLabel = document.getElementById('label-rec-start-date');
             if (recDateLabel) recDateLabel.innerText = TODAY_STR;
 
-            ['single', 'rec'].forEach(p => {
-                const hasTimeEl = document.getElementById(`form-rec-has-time`);
-                if (hasTimeEl) hasTimeEl.checked = true;
-                const hasRemindEl = document.getElementById(`form-rec-has-remind`);
-                if (hasRemindEl) hasRemindEl.checked = false;
+            const hasTimeEl = document.getElementById(`form-rec-has-time`);
+            if (hasTimeEl) hasTimeEl.checked = true;
+            const hasRemindEl = document.getElementById(`form-rec-has-remind`);
+            if (hasRemindEl) hasRemindEl.checked = false;
 
-                document.getElementById('label-rec-start-time').innerText = "08:00";
-                document.getElementById('label-rec-end-time').innerText = "09:30";
-                document.getElementById('form-rec-duration').value = 90;
+            const defaultStartTime = getNearestNext5MinutesTimeStr();
+            const defaultDuration = 90;
+            const startMins = timeStrToMinutes(defaultStartTime);
+            const defaultEndTime = minutesToTimeStr(startMins + defaultDuration);
 
-                const remindLabel = document.getElementById('label-rec-remind-menu');
-                if (remindLabel) {
-                    remindLabel.innerText = "任务开始时";
-                    remindLabel.dataset.val = "0";
-                }
+            document.getElementById('label-rec-start-time').innerText = defaultStartTime;
+            document.getElementById('label-rec-end-time').innerText = defaultEndTime;
+            document.getElementById('form-rec-duration').value = defaultDuration;
 
-                toggleTimeSettings('recurring');
-                toggleRemindDropdown('recurring');
-            });
+            const remindLabel = document.getElementById('label-rec-remind-menu');
+            if (remindLabel) {
+                remindLabel.innerText = "任务开始时";
+                remindLabel.dataset.val = "0";
+            }
+
+            toggleTimeSettings('recurring');
+            toggleRemindDropdown('recurring');
 
             switchFormTaskMode('single');
             setRecurringFreq('day');
@@ -4011,7 +4166,7 @@
             if (appState.currentDrawerArrange === 'subject') renderLeftDrawerPool();
         }
 
-                function openEditTaskModal(batchId) {
+        function openEditTaskModal(batchId) {
             const batch = appState.batches.find(b => b.id === batchId); if (!batch) return;
             openAddTaskModal();
             document.getElementById("modal-form-title").innerText = "编辑任务"; 
@@ -4029,6 +4184,9 @@
                 selectedRecMonthdays = rc.monthdays ? [...rc.monthdays] : [1];
                 initRecurringFormGrids();
 
+                recurringStartDate = rc.startDate || TODAY_STR;
+                document.getElementById('label-rec-start-date').innerText = recurringStartDate;
+
                 const isInf = rc.isInfinite !== false;
                 const rRadios = document.getElementsByName('rec-count-type');
                 if (rRadios && rRadios.length) {
@@ -4038,11 +4196,15 @@
                 toggleRecCountInput(!isInf);
                 document.getElementById('form-rec-total-count').value = rc.totalCount || 10;
                 
+                const hasTime = rc.hasTime !== false;
+                document.getElementById('form-rec-has-time').checked = hasTime;
+
                 const startTime = rc.startTime || "08:00";
                 const dur = rc.durationMinutes || 90;
                 document.getElementById('label-rec-start-time').innerText = startTime;
                 document.getElementById('form-rec-duration').value = dur;
                 handleDurationInput('recurring');
+                toggleTimeSettings('recurring');
 
                 const hasRemind = !!rc.hasRemind;
                 document.getElementById('form-rec-has-remind').checked = hasRemind;
@@ -4053,6 +4215,8 @@
                 }
                 toggleRemindDropdown('recurring');
 
+                document.getElementById('label-rec-weight-val').innerText = rc.weight !== undefined ? rc.weight : 1;
+                document.getElementById('label-rec-weight-val').dataset.val = rc.weight !== undefined ? rc.weight : 1;
                 document.getElementById('form-rec-title-template').value = rc.titleTemplate || "第{n}次任务";
             } else {
                 switchFormTaskMode('single');
@@ -4155,7 +4319,7 @@
                     </button>
                 </div>
                 <button type="button" onclick="this.parentElement.remove()" 
-                    class="text-[var(--md-sys-color-outline)] hover:text-red-500 transition-colors p-1 md-ripple rounded-full">
+                    class="md3-icon-btn hover:text-red-500 md-ripple" title="移除该项">
                     <span class="material-symbols-outlined text-lg">do_not_disturb_on</span>
                 </button>
             `;
@@ -4175,7 +4339,6 @@
             const originalBatch = bId ? appState.batches.find(b => b.id === bId) : null;
 
             if (isRec) {
-                // ========== 周期任务处理逻辑 ==========
                 const interval = parseInt(document.getElementById('form-rec-interval').value) || 1;
                 const rRadios = document.getElementsByName('rec-count-type');
                 const isInfinite = rRadios[0]?.checked;
@@ -4189,6 +4352,9 @@
                 const hasRemind = document.getElementById('form-rec-has-remind').checked;
                 const remindOffset = parseInt(document.getElementById('label-rec-remind-menu').dataset.val) || 0;
                 const recWeight = parseFloat(document.getElementById('label-rec-weight-val').dataset.val) || 1;
+
+                const timeParts = startTime.split(':');
+                const calculatedStartMinute = hasTime ? (parseInt(timeParts[0]) * 60 + parseInt(timeParts[1])) : null;
 
                 const recurringConfig = {
                     freq: currentRecFreq,
@@ -4215,6 +4381,20 @@
                     originalBatch.tags = [...appState.selectedFormTags];
                     originalBatch.isRecurring = true;
                     originalBatch.recurringConfig = recurringConfig;
+
+                    if (Array.isArray(originalBatch.subtasks)) {
+                        originalBatch.subtasks.forEach(sub => {
+                            if (!sub.done) {
+                                sub.startMinute = calculatedStartMinute;
+                                sub.durationMinutes = durationMinutes;
+                                sub.hasRemind = hasRemind;
+                                sub.remindOffset = remindOffset;
+                                sub.weight = recWeight;
+                                sub.reminded = false;
+                            }
+                        });
+                    }
+
                     populateRecurringSubtasksUpToToday(originalBatch);
                 } else {
                     const targetBatch = {
@@ -4233,7 +4413,6 @@
                     populateRecurringSubtasksUpToToday(targetBatch);
                 }
             } else {
-                // ========== 单次任务处理逻辑 ==========
                 const subtasks = [];
                 const slotElements = document.querySelectorAll("#form-checklist-slots > div");
                 slotElements.forEach((slot, index) => {
@@ -4410,13 +4589,25 @@
                             toggleSubtaskStatus(s.id);
                         });
 
-                        const starIconClass = s.starred ? 'star-filled opacity-100' : 'star-outline opacity-0 group-hover/today:opacity-100 hover:text-amber-500';
-                        const recIconHtml = b.isRecurring ? '<span class="material-symbols-outlined text-[13px] text-[var(--md-sys-color-secondary)] flex-shrink-0" title="周期任务">repeat</span>' : '';
-                        const remindIconHtml = s.hasRemind ? '<span class="material-symbols-outlined text-[14px] text-[var(--md-sys-color-secondary)] flex-shrink-0" title="已开启提醒">notifications</span>' : '';
+                        // 统一 MD3 小图标：手机端常态显示 (opacity-100)，电脑端悬浮显示 (md:opacity-0 md:group-hover/today:opacity-100)
+                        const starIconClass = s.starred ? 'star-filled' : 'star-outline text-[var(--md-sys-color-outline)] hover:text-amber-500';
+                        const starBtnVisibility = s.starred ? 'opacity-100' : 'opacity-100 md:opacity-0 md:group-hover/today:opacity-100';
+
+                        const recIconHtml = b.isRecurring 
+                            ? `<div class="md3-icon-btn opacity-100 md:opacity-0 md:group-hover/today:opacity-100 pointer-events-none text-[var(--md-sys-color-secondary)]" title="周期任务">
+                                <span class="material-symbols-outlined">repeat</span>
+                            </div>` 
+                            : '';
+
+                        const remindIconHtml = s.hasRemind 
+                            ? `<button type="button" onclick="toggleSubtaskRemind('${s.id}', event)" class="md3-icon-btn opacity-100 md:opacity-0 md:group-hover/today:opacity-100 text-[var(--md-sys-color-secondary)] hover:text-red-500 md-ripple" title="已开启提醒，点击取消">
+                                <span class="material-symbols-outlined">notifications</span>
+                            </button>` 
+                            : '';
 
                         const dateChipHtml = isOverdue
-                            ? `<button type="button" data-date-chip="true" onclick="event.stopPropagation(); openDateQuickMenu('${s.id}', event)" class="text-[10px] text-rose-700 dark:text-rose-300 font-mono font-bold bg-rose-100 dark:bg-rose-950/60 hover:brightness-110 px-2.5 py-1 rounded-lg transition-all md-ripple border border-rose-200 dark:border-rose-900">${s.endDate}</button>`
-                            : `<button type="button" data-date-chip="true" onclick="event.stopPropagation(); openDateQuickMenu('${s.id}', event)" class="text-[10px] text-[var(--md-sys-color-on-secondary-container)] font-mono font-bold bg-[var(--md-sys-color-secondary-container)] hover:brightness-110 px-2.5 py-1 rounded-lg transition-all md-ripple">${s.endDate ? s.endDate : '设置日期'}</button>`;
+                            ? `<button type="button" data-date-chip="true" onclick="event.stopPropagation(); openDateQuickMenu('${s.id}', event)" class="text-[10px] text-rose-700 dark:text-rose-300 font-mono font-bold bg-rose-100 dark:bg-rose-950/60 hover:brightness-110 px-2.5 py-1 rounded-lg transition-all md-ripple border border-rose-200 dark:border-rose-900 ml-0.5">${s.endDate}</button>`
+                            : `<button type="button" data-date-chip="true" onclick="event.stopPropagation(); openDateQuickMenu('${s.id}', event)" class="text-[10px] text-[var(--md-sys-color-on-secondary-container)] font-mono font-bold bg-[var(--md-sys-color-secondary-container)] hover:brightness-110 px-2.5 py-1 rounded-lg transition-all md-ripple ml-0.5">${s.endDate ? s.endDate : '设置日期'}</button>`;
 
                         item.innerHTML = `
                             <div class="flex items-center gap-3 flex-1 min-w-0 pointer-events-none">
@@ -4424,15 +4615,17 @@
                                     <input type="checkbox" ${s.done ? 'checked' : ''} onchange="toggleSubtaskStatus('${s.id}')" class="${checkboxClass}" />
                                     <span class="material-symbols-outlined text-[16px] md:text-[14px] text-white absolute opacity-0 peer-checked:opacity-100 pointer-events-none font-bold">check</span>
                                 </div>
-                                ${recIconHtml}
                                 <span class="truncate block text-sm md:text-xs ${isOverdue ? 'text-rose-700 dark:text-rose-400' : 'text-[var(--md-sys-color-primary)]'}">${s.text}</span>
                             </div>
-                            <div class="flex items-center gap-1.5 flex-shrink-0 ml-2">
+                            <div class="flex items-center gap-0.5 flex-shrink-0 ml-2">
+                                ${recIconHtml}
                                 ${remindIconHtml}
-                                <button type="button" onclick="toggleSubtaskStar('${s.id}', event, this)" class="text-[18px] flex items-center justify-center transition-all p-0.5 rounded-full hover:bg-amber-500/10 md-ripple"><span class="material-symbols-outlined text-[18px] ${starIconClass}">grade</span></button>
+                                <button type="button" onclick="toggleSubtaskStar('${s.id}', event, this)" class="md3-icon-btn ${starBtnVisibility} hover:text-amber-500 md-ripple" title="${s.starred ? '取消星标' : '设为星标'}">
+                                    <span class="material-symbols-outlined ${starIconClass}">grade</span>
+                                </button>
                                 ${dateChipHtml}
-                                <button type="button" data-context-btn="true" onclick="handleContextMenu(event, 'task_today', '${b.id}', '${s.id}')" class="flex md:hidden p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-[var(--md-sys-color-outline)] transition-colors md-ripple">
-                                    <span class="material-symbols-outlined text-[18px]">more_horiz</span>
+                                <button type="button" data-context-btn="true" onclick="handleContextMenu(event, 'task_today', '${b.id}', '${s.id}')" class="md3-icon-btn flex md:hidden md-ripple" title="更多操作">
+                                    <span class="material-symbols-outlined">more_horiz</span>
                                 </button>
                             </div>
                         `;
@@ -4539,5 +4732,4 @@
         }
     </script>
 </body>
-
 </html>

@@ -1,6 +1,6 @@
 // sw.js
 self.addEventListener('push', function(event) {
-    let payload = { title: '任务提醒', body: '您有任务到期啦！' };
+    let payload = { title: '任务提醒', body: '您有任务逾期啦！' };
     if (event.data) {
         try { payload = event.data.json(); } catch(e) { payload.body = event.data.text(); }
     }
