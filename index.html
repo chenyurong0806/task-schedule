@@ -491,7 +491,6 @@
         class="fixed hidden z-[400] p-1.5 text-xs min-w-[140px] max-h-56 overflow-y-auto md-scrollbar flex-col gap-0.5 md3-menu-popup bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)] shadow-xl rounded-2xl">
     </div>
 
-
     <!-- Month Day Detail Modal -->
     <div id="day-detail-modal"
         class="fixed hidden z-[140] w-[280px] sm:w-[320px] rounded-[28px] shadow-2xl flex-col bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)] transition-all duration-200 opacity-0 scale-95">
@@ -1102,6 +1101,10 @@
     </div>
 
     <script>
+        // Web Push / 后端 Cloudflare Worker 基础配置 (可填入您的 Worker 域名与公钥)
+        const PUSH_SERVER_URL = 'https://webpush.chenyurong.qzz.io' || ''; 
+        const VAPID_PUBLIC_KEY = 'BAw4UZswhaZOftayviVlwmOjsy1g_q0Q8KL27Go1dq5OhZGX5HBJEyWuaHyLn7pxr3R87Y1GkZuz07Kng_j-16M' || ''; 
+
         const getRealTodayStr = () => {
             const d = new Date();
             d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
@@ -1214,58 +1217,34 @@
         const FILE_NAME = 'data.json';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        /* --- 辅助函数：将 Base64 VAPID Key 转换为 Uint8Array --- */
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+
         /* --- 系统通知与 Service Worker 核心模块 --- */
-        const SW_CODE = `
-            self.addEventListener('install', (e) => {
-                self.skipWaiting();
-            });
-
-            self.addEventListener('activate', (e) => {
-                e.waitUntil(self.clients.claim());
-            });
-
-            // 监听点击系统通知
-            self.addEventListener('notificationclick', (event) => {
-                event.notification.close();
-                const subtaskId = event.notification.data ? event.notification.data.subtaskId : null;
-                event.waitUntil(
-                    self.clients.matchAll({type: 'window', includeUncontrolled: true}).then((clientList) => {
-                        for (const client of clientList) {
-                            if ('focus' in client) {
-                                client.focus();
-                                if (subtaskId) {
-                                    client.postMessage({action: 'LOCATE_SUBTASK', subtaskId: subtaskId});
-                                }
-                                return;
-                            }
-                        }
-                        if (self.clients.openWindow) {
-                            return self.clients.openWindow('./');
-                        }
-                    })
-                );
-            });
-
-            // 后台消息通讯与提醒触发
-            self.addEventListener('message', (event) => {
-                if (event.data && event.data.action === 'SHOW_NOTIFICATION') {
-                    const {title, options} = event.data;
-                    self.registration.showNotification(title, options);
-                }
-            });
-        `;
-
         async function initServiceWorkerAndNotification() {
             if ('serviceWorker' in navigator) {
                 try {
-                    const blob = new Blob([SW_CODE], {type: 'application/javascript'});
-                    const swUrl = URL.createObjectURL(blob);
-                    serviceWorkerReg = await navigator.serviceWorker.register(swUrl);
+                    // 正确从独立同源 sw.js 注册，解决 blob 报错
+                    serviceWorkerReg = await navigator.serviceWorker.register('./sw.js');
                     navigator.serviceWorker.addEventListener('message', (event) => {
                         if (event.data && event.data.action === 'LOCATE_SUBTASK') {
                             expandToDrawerTask(event.data.subtaskId);
                         }
                     });
+
+                    // 检查若已授权则自动维持推送订阅
+                    if (Notification.permission === 'granted') {
+                        await subscribeUserToPush();
+                    }
                 } catch (err) {
                     console.warn('Service Worker 注册失败:', err);
                 }
@@ -1273,6 +1252,36 @@
 
             updateBellIconStatus();
             startNotificationCheckTimer();
+        }
+
+        async function subscribeUserToPush() {
+            if (!serviceWorkerReg || !('pushManager' in serviceWorkerReg)) return null;
+            if (!VAPID_PUBLIC_KEY) {
+                return null;
+            }
+            try {
+                let subscription = await serviceWorkerReg.pushManager.getSubscription();
+                if (!subscription) {
+                    const convertedKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+                    subscription = await serviceWorkerReg.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: convertedKey
+                    });
+                }
+
+                // 上报订阅信息至 Cloudflare Worker 后端
+                if (PUSH_SERVER_URL) {
+                    await fetch(`${PUSH_SERVER_URL}/api/subscribe`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(subscription)
+                    });
+                }
+                return subscription;
+            } catch (err) {
+                console.warn('Web Push 订阅失败:', err);
+                return null;
+            }
         }
 
         function updateBellIconStatus() {
@@ -1302,6 +1311,7 @@
             const perm = await Notification.requestPermission();
             updateBellIconStatus();
             if (perm === 'granted') {
+                await subscribeUserToPush();
                 triggerSystemNotification("系统通知已开启", {
                     body: "当排程任务到达提醒时间时，系统将会准时向您推送提醒通知。",
                     tag: "test-notification"
@@ -1311,7 +1321,7 @@
             }
         }
 
-        function triggerSystemNotification(title, options = {}) {
+        async function triggerSystemNotification(title, options = {}) {
             const finalOptions = Object.assign({
                 icon: 'icon.png',
                 badge: 'icon.png',
@@ -1320,8 +1330,13 @@
                 renotify: true
             }, options);
 
+            // 1. 本地 Service Worker 显示通知
             if (serviceWorkerReg && serviceWorkerReg.showNotification) {
-                serviceWorkerReg.showNotification(title, finalOptions);
+                try {
+                    await serviceWorkerReg.showNotification(title, finalOptions);
+                } catch(e) {
+                    console.warn(e);
+                }
             } else if ('Notification' in window && Notification.permission === 'granted') {
                 try {
                     const n = new Notification(title, finalOptions);
@@ -1335,12 +1350,26 @@
                     console.warn(e);
                 }
             }
+
+            // 2. 如果配置了云端 Worker，则触发远端全设备推送
+            if (PUSH_SERVER_URL) {
+                try {
+                    fetch(`${PUSH_SERVER_URL}/api/send-notification`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            title: title,
+                            body: finalOptions.body || ''
+                        })
+                    }).catch(() => {});
+                } catch(e) {}
+            }
         }
 
         function startNotificationCheckTimer() {
             if (notificationIntervalTimer) clearInterval(notificationIntervalTimer);
             checkAndTriggerDueReminders();
-            checkAndGenerateDueRecurringTasks(); // 检查周期排程
+            checkAndGenerateDueRecurringTasks();
             notificationIntervalTimer = setInterval(() => {
                 checkAndTriggerDueReminders();
                 checkAndGenerateDueRecurringTasks();
@@ -2028,7 +2057,7 @@
 
         function setCalendarTypeFilter(typeVal) {
             appState.calendarFilterType = typeVal;
-            document.getElementById("calendar-filter-").style.display = "none";
+            document.getElementById("calendar-filter-menu").style.display = "none";
             document.getElementById("calendar-type-label").innerText = typeVal === 'ALL' ? '全部类型' : typeVal;
             saveStateToStorage(false);
             updateCalendarTaskRendering();
@@ -2343,9 +2372,6 @@
             });
         }
 
-
-
-
         function closeDayDetailModal() {
             const modal = document.getElementById('day-detail-modal');
             if (!modal || modal.style.display === "none") return;
@@ -2639,8 +2665,6 @@
             document.getElementById('md3-dropdown-menu').style.display = 'none';
         }
 
-
-
         const REC_WEIGHT_OPTIONS = [0.5, 1, 1.5, 2, 2.5, 3, 4, 5, 6];
 
         function openRecWeightMenu(event) {
@@ -2749,8 +2773,6 @@
             }
         }
 
-
-
         let recurringStartDate = TODAY_STR;
 
         const REMIND_OPTIONS = [
@@ -2768,7 +2790,6 @@
             {label: '1周前', val: '10080'}
         ];
 
-        // 唤出周期起始日期选择器
         function openRecurringStartDatePicker(event) {
             if (event) {
                 event.stopPropagation();
@@ -2806,7 +2827,6 @@
             });
         }
 
-        // 切换具体时间配置展示
         function toggleTimeSettings(mode) {
             const isChecked = document.getElementById(`form-${mode === 'single' ? 'single' : 'rec'}-has-time`).checked;
             const fields = document.getElementById(`form-${mode === 'single' ? 'single' : 'rec'}-time-fields`);
@@ -2819,7 +2839,6 @@
             }
         }
 
-        // 切换提醒下拉选单展示
         function toggleRemindDropdown(mode) {
             const isChecked = document.getElementById(`form-${mode === 'single' ? 'single' : 'rec'}-has-remind`).checked;
             const box = document.getElementById(`form-${mode === 'single' ? 'single' : 'rec'}-remind-dropdown-box`);
@@ -2835,7 +2854,6 @@
             }
         }
 
-        // 持续时长手动修改后，自动重新推算结束时间
         function handleDurationInput(mode) {
             const p = mode === 'single' ? 'single' : 'rec';
             const startStr = document.getElementById(`label-${p}-start-time`).innerText;
@@ -2847,7 +2865,6 @@
             document.getElementById(`label-${p}-end-time`).innerText = `${endH}:${endM}`;
         }
 
-        // 呼出开始/结束时间的 MD3 下拉弹窗
         function openTimePickerDropdown(event, mode, field) {
             event.stopPropagation();
             const btn = event.currentTarget;
@@ -2881,7 +2898,6 @@
             }, 10);
         }
 
-        // 选择具体时间并实现双向联动推导
         function selectTimeValue(mode, field, val) {
             const p = mode === 'single' ? 'single' : 'rec';
             document.getElementById(`label-${p}-${field}-time`).innerText = val;
@@ -2912,7 +2928,6 @@
             }
         }
 
-        // 呼出提醒时间的 MD3 下拉弹窗
         function openRemindDropdown(event, mode) {
             event.stopPropagation();
             const btn = event.currentTarget;
@@ -2937,7 +2952,6 @@
             menu.style.top = `${rect.bottom + 6}px`;
         }
 
-        // 确认选中提醒项
         function selectRemindValue(mode, label, val) {
             const p = mode === 'single' ? 'single' : 'rec';
             document.getElementById(`label-${p}-remind-menu`).innerText = label;
@@ -3384,12 +3398,10 @@
             } else {alert("今日无安排");}
         }
 
-        // 统一过滤方法：若是周期任务且日期在未来，不在左侧栏展示
         function isDisplayableInDrawer(subtask) {
             if (subtask.endDate && subtask.endDate > TODAY_STR) return false;
             return true;
         }
-
 
         function renderLeftDrawerPool() {
             const container = document.getElementById("drawer-task-container");
@@ -3736,7 +3748,6 @@
                 `;
 
                 const subContainer = box.querySelector(".subtask-list-zone");
-                // 过滤：周期任务只在排程当天或已逾期时展示当前待打卡项，未来日期的下一次任务不提前显示
                 const displaySubtasks = batch.isRecurring 
                     ? batch.subtasks.filter(s => s.done || !s.endDate || s.endDate <= TODAY_STR)
                     : batch.subtasks;
@@ -4000,7 +4011,7 @@
             if (appState.currentDrawerArrange === 'subject') renderLeftDrawerPool();
         }
 
-        function openEditTaskModal(batchId) {
+                function openEditTaskModal(batchId) {
             const batch = appState.batches.find(b => b.id === batchId); if (!batch) return;
             openAddTaskModal();
             document.getElementById("modal-form-title").innerText = "编辑任务"; 
@@ -4286,7 +4297,6 @@
             batches.forEach(b => {
                 const subtasks = b.subtasks || [];
                 subtasks.forEach(s => {
-                    // 过滤：如果任务设定了未来日期，不计入总进度分母与分子
                     if (s.endDate && s.endDate > TODAY_STR) return;
 
                     const w = parseFloat(s.weight) || 1;
@@ -4315,7 +4325,6 @@
             const startMinute = rc.hasTime ? (parseInt(timeParts[0]) * 60 + parseInt(timeParts[1])) : null;
             const taskWeight = rc.weight !== undefined ? rc.weight : 1;
 
-            // 1. 如果尚无任何子任务，且起始日期 <= 今天，生成第 1 次
             if (batch.subtasks.length === 0) {
                 if (startDate <= TODAY_STR) {
                     const title = (rc.titleTemplate || "第{n}次任务").replace('{n}', 1);
@@ -4339,7 +4348,6 @@
                 }
             }
 
-            // 2. 循环往后推导，直到推导出的下一个任务日期 > TODAY_STR 或达到最大循环次数
             let safetyGuard = 0;
             while (safetyGuard < 500) {
                 safetyGuard++;
@@ -4351,7 +4359,6 @@
                 if (!canSpawn) break;
 
                 const nextDate = calculateNextRecurringDate(lastTask.endDate || startDate, rc);
-                // 如果下一次任务的排程日期在今天及以前，立即补全生成
                 if (nextDate <= TODAY_STR) {
                     const title = (rc.titleTemplate || "第{n}次任务").replace('{n}', nextIter);
                     batch.subtasks.push({
@@ -4375,7 +4382,6 @@
             }
             return changed;
         }
-
 
         function renderSpecialTaskLists() {
             const overdue = document.getElementById("overdue-tasks-container"), today = document.getElementById("today-tasks-container");
@@ -4450,7 +4456,6 @@
                 const rc = target.batch.recurringConfig;
                 if (target.subtask.done) {
                     rc.completedCount = (rc.completedCount || 0) + 1;
-                    // 此处不再预先 push 产生未来的任务，交由 checkAndGenerateDueRecurringTasks 规划当天生成
                 } else {
                     rc.completedCount = Math.max(0, (rc.completedCount || 1) - 1);
                 }
