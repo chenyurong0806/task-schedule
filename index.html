@@ -1408,6 +1408,92 @@
             }
         }
 
+        // 1. 获取当前设备的 Web Push 订阅凭证
+        async function getActivePushSubscription() {
+            if (!serviceWorkerReg || !('pushManager' in serviceWorkerReg)) return null;
+            try {
+                let subscription = await serviceWorkerReg.pushManager.getSubscription();
+                // 如果之前没有订阅，尝试使用公钥进行订阅
+                if (!subscription && VAPID_PUBLIC_KEY) {
+                    const convertedKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+                    subscription = await serviceWorkerReg.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: convertedKey
+                    });
+                }
+                return subscription ? subscription.toJSON() : null;
+            } catch (err) {
+                console.warn("获取推送凭证失败:", err);
+                return null;
+            }
+        }
+
+        // 2. 将所有待触发的提醒同步到 Supabase push_reminders 数据表
+        async function syncRemindersToCloud() {
+            // 只有在授予了通知权限且配置了公钥时才执行
+            if (!('Notification' in window) || Notification.permission !== 'granted' || !VAPID_PUBLIC_KEY) {
+                return;
+            }
+
+            const subscription = await getActivePushSubscription();
+            if (!subscription) return;
+
+            // 收集当前系统里所有开启了提醒、且未完成、有日期的子任务
+            const reminderRows = [];
+            const nowTime = new Date().getTime();
+
+            appState.batches.forEach(b => {
+                b.subtasks.forEach(s => {
+                    if (s.done || !s.hasRemind || !s.endDate) return;
+
+                    // 计算精准的提醒触发时间 (UTC ISO 格式)
+                    const dateParts = s.endDate.split('-').map(Number);
+                    const startMin = (s.startMinute !== null && s.startMinute !== undefined) ? s.startMinute : 480; // 默认 08:00
+                    const h = Math.floor(startMin / 60);
+                    const m = startMin % 60;
+
+                    const taskStartDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2], h, m, 0, 0);
+                    const offsetMs = (s.remindOffset !== undefined ? s.remindOffset : 0) * 60 * 1000;
+                    const triggerTimeMs = taskStartDate.getTime() - offsetMs;
+
+                    // 只同步尚未到期（未来的）提醒
+                    if (triggerTimeMs > nowTime) {
+                        reminderRows.push({
+                            subtask_id: s.id,
+                            task_title: s.text,
+                            batch_title: b.title,
+                            trigger_time: new Date(triggerTimeMs).toISOString(),
+                            subscription: subscription, // 绑定当前设备推送地址
+                            is_sent: false
+                        });
+                    }
+                });
+            });
+
+            try {
+                // 先清理该设备上已存在但可能被修改/取消的旧未发送提醒
+                const endpointUrl = subscription.endpoint;
+                await supabaseClient
+                    .from('push_reminders')
+                    .delete()
+                    .eq('subscription->>endpoint', endpointUrl)
+                    .eq('is_sent', false);
+
+                // 批量插入最新的待提醒任务列表
+                if (reminderRows.length > 0) {
+                    const { error } = await supabaseClient
+                        .from('push_reminders')
+                        .insert(reminderRows);
+
+                    if (error) throw error;
+                    console.log(`已成功同步 ${reminderRows.length} 条提醒任务到云端推送表`);
+                }
+            } catch (err) {
+                console.warn("同步提醒到云端失败:", err);
+            }
+        }
+
+
         function startNotificationCheckTimer() {
             if (notificationIntervalTimer) clearInterval(notificationIntervalTimer);
             checkAndTriggerDueReminders();
@@ -1568,12 +1654,16 @@
             clearTimeout(supabaseSaveTimer);
             supabaseSaveTimer = setTimeout(async () => {
                 try {
+                    // 1. 上传主 JSON 数据文件
                     const jsonStr = JSON.stringify(appState);
                     const blob = new Blob([jsonStr], {type: 'application/json'});
                     await supabaseClient.storage.from(BUCKET_NAME).upload(FILE_NAME, blob, {
                         upsert: true,
                         contentType: 'application/json;charset=UTF-8'
                     });
+
+                    // 2. 同步提醒表到云端（自动让离线推送生效）
+                    await syncRemindersToCloud();
                 } catch (err) {
                     console.warn("Supabase 同步跳过/失败:", err);
                 }
