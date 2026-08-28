@@ -527,6 +527,38 @@
         class="fixed hidden z-[400] p-1.5 text-xs min-w-[140px] max-h-56 overflow-y-auto md-scrollbar flex-col gap-0.5 md3-menu-popup bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)] shadow-xl rounded-2xl">
     </div>
 
+    <!-- MD3 用户信息与账号菜单弹窗 -->
+    <div id="user-profile-menu"
+        class="fixed hidden z-[320] w-[280px] sm:w-[320px] rounded-[28px] p-4 shadow-2xl flex-col gap-3 bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)] md3-menu-popup">
+        
+        <!-- 用户核心信息区 -->
+        <div class="flex items-center gap-3 p-2 bg-[var(--md-sys-color-surface-container-low)] rounded-2xl border border-[var(--md-sys-color-outline-variant)]">
+            <div id="user-menu-avatar"
+                class="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center font-bold text-base text-[var(--md-sys-color-on-primary)] bg-[var(--md-sys-color-primary)] flex-shrink-0 shadow-sm">
+                <span class="material-symbols-outlined">person</span>
+            </div>
+            <div class="flex flex-col min-w-0 flex-1">
+                <span id="user-menu-name" class="text-sm font-black truncate text-[var(--md-sys-color-on-surface)]">未登录</span>
+                <span id="user-menu-email" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] truncate font-mono">--</span>
+            </div>
+        </div>
+
+        <!-- 操作按钮组 -->
+        <div class="flex flex-col gap-1 pt-1">
+            <a id="user-manage-btn" href="https://user.chenyurong.qzz.io" target="_blank"
+                class="w-full text-left px-3 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface)] flex items-center gap-2.5 font-medium text-xs transition-colors md-ripple">
+                <span class="material-symbols-outlined text-[18px] text-[var(--md-sys-color-primary)]">manage_accounts</span>
+                管理账号与中心
+            </a>
+            <button onclick="handleUserLogout()"
+                class="w-full text-left px-3 py-2 rounded-xl hover:bg-red-500/10 dark:hover:bg-red-500/20 text-red-500 flex items-center gap-2.5 font-medium text-xs transition-colors md-ripple">
+                <span class="material-symbols-outlined text-[18px]">logout</span>
+                退出登录
+            </button>
+        </div>
+    </div>
+
+
     <!-- Month Day Detail Modal -->
     <div id="day-detail-modal"
         class="fixed hidden z-[140] w-[280px] sm:w-[320px] rounded-[28px] shadow-2xl flex-col bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)] transition-all duration-200 opacity-0 scale-95">
@@ -604,10 +636,12 @@
     <aside
         class="w-full md:w-20 h-16 md:h-full flex flex-row md:flex-col justify-around md:justify-between items-center py-2 md:py-6 flex-shrink-0 order-last md:order-first border-t md:border-t-0 md:border-r z-50 bg-[var(--md-sys-color-surface-container-low)] border-[var(--md-sys-color-outline-variant)] overflow-x-auto no-scrollbar">
         <div class="flex flex-row md:flex-col items-center gap-2 md:gap-5 px-4 md:px-0 w-full md:w-auto">
-            <div
-                class="hidden md:flex w-12 h-12 rounded-full items-center justify-center text-[var(--md-sys-color-primary)]">
-                <span class="material-symbols-outlined text-[32px] font-bold">spellcheck</span>
-            </div>
+            <!-- 桌面端 MD3 用户头像触发入口 -->
+            <button type="button" id="nav-user-avatar-btn" onclick="openUserProfileMenu(event)"
+                class="w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center font-bold text-xs md:text-sm text-[var(--md-sys-color-on-primary)] bg-[var(--md-sys-color-primary)] shadow-sm hover:ring-2 hover:ring-[var(--md-sys-color-primary)]/50 transition-all flex-shrink-0 md-ripple overflow-hidden"
+                title="用户账号">
+                <span id="nav-avatar-content" class="material-symbols-outlined text-[20px] md:text-[22px]">person</span>
+            </button>
             <nav class="flex flex-row md:flex-col gap-2 md:gap-4 flex-1 md:w-full md:px-2">
                 <button onclick="switchView('home')" id="nav-home"
                     class="md-nav-item active flex flex-col items-center gap-1 group md:w-full text-center outline-none px-3 md:px-0">
@@ -1266,6 +1300,127 @@
             return outputArray;
         }
 
+        // 登录认证系统地址
+        const LOGIN_SYSTEM = "https://login.chenyurong.qzz.io";
+        let currentUserData = null;
+
+        // 1. 获取全局用户信息
+        async function fetchGlobalUserInfo() {
+            const token = localStorage.getItem("auth_token") || "";
+
+            try {
+                const response = await fetch(`${LOGIN_SYSTEM}/api/userinfo`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.loggedIn && result.data) {
+                    currentUserData = result.data;
+                    renderUserInfo(currentUserData);
+                } else {
+                    console.warn("用户未登录或 Token 已失效");
+                    renderGuestInfo();
+                }
+            } catch (error) {
+                console.error("获取用户信息失败:", error);
+                renderGuestInfo();
+            }
+        }
+
+        // 2. 渲染已登录用户信息
+        function renderUserInfo(user) {
+            const displayName = user.nickname || user.username || user.name || "已登录用户";
+            const displayEmail = user.email || user.account || "中央身份认证";
+            const avatarUrl = user.avatar || user.avatar_url;
+
+            // 更新侧边栏/顶栏头像
+            const navAvatarEl = document.getElementById("nav-avatar-content");
+            const navBtnEl = document.getElementById("nav-user-avatar-btn");
+            if (navAvatarEl && navBtnEl) {
+                if (avatarUrl) {
+                    navBtnEl.innerHTML = `<img src="${avatarUrl}" alt="${displayName}" class="w-full h-full object-cover rounded-full" />`;
+                } else {
+                    // 取名称第一个字/字符作为 MD3 首字母头像
+                    const initial = displayName.trim().charAt(0).toUpperCase();
+                    navBtnEl.innerHTML = `<span>${initial}</span>`;
+                }
+            }
+
+            // 更新弹窗内容
+            const menuName = document.getElementById("user-menu-name");
+            const menuEmail = document.getElementById("user-menu-email");
+            const menuAvatar = document.getElementById("user-menu-avatar");
+
+            if (menuName) menuName.innerText = displayName;
+            if (menuEmail) menuEmail.innerText = displayEmail;
+            if (menuAvatar) {
+                if (avatarUrl) {
+                    menuAvatar.innerHTML = `<img src="${avatarUrl}" alt="${displayName}" class="w-full h-full object-cover rounded-full" />`;
+                } else {
+                    const initial = displayName.trim().charAt(0).toUpperCase();
+                    menuAvatar.innerHTML = `<span>${initial}</span>`;
+                }
+            }
+        }
+
+        // 3. 渲染未登录游客占位
+        function renderGuestInfo() {
+            const navBtnEl = document.getElementById("nav-user-avatar-btn");
+            if (navBtnEl) {
+                navBtnEl.innerHTML = `<span class="material-symbols-outlined text-[20px] md:text-[22px]">account_circle</span>`;
+            }
+            const menuName = document.getElementById("user-menu-name");
+            const menuEmail = document.getElementById("user-menu-email");
+            if (menuName) menuName.innerText = "未登录";
+            if (menuEmail) menuEmail.innerText = "点击跳转登录";
+        }
+
+        // 4. 打开/关闭 MD3 用户资料弹窗
+        function openUserProfileMenu(event) {
+            if (event) event.stopPropagation();
+            const btn = document.getElementById("nav-user-avatar-btn");
+            const menu = document.getElementById("user-profile-menu");
+            if (!menu || !btn) return;
+
+            if (menu.style.display === "flex") {
+                menu.style.display = "none";
+                return;
+            }
+
+            const rect = btn.getBoundingClientRect();
+            menu.style.display = "flex";
+
+            // 自适应位置（桌面端贴在导航栏右侧，移动端贴在头像上方/下方）
+            let x = rect.right + 12;
+            let y = rect.top;
+
+            if (window.innerWidth < 768) {
+                x = rect.left;
+                y = Math.max(12, rect.top - 160);
+            } else {
+                if (y + 180 > window.innerHeight) {
+                    y = window.innerHeight - 190;
+                }
+            }
+
+            menu.style.left = `${x}px`;
+            menu.style.top = `${y}px`;
+        }
+
+        // 5. 退出登录处理
+        function handleUserLogout() {
+            localStorage.removeItem("auth_token");
+            window.location.href = `${LOGIN_SYSTEM}/logout?redirect=${encodeURIComponent(window.location.href)}`;
+        }
+
+
+
+
+        
         async function initServiceWorkerAndNotification() {
             if ('serviceWorker' in navigator) {
                 try {
@@ -1742,6 +1897,8 @@
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
+            fetchGlobalUserInfo();
+
             appState = await loadStateFromSupabase();
             appState.searchQuery = "";
             appState.currentView = "home";
@@ -1810,6 +1967,12 @@
             }, {passive: true});
 
             document.addEventListener("click", (e) => {
+                
+                const userMenu = document.getElementById('user-profile-menu');
+                if (userMenu && !e.target.closest('#user-profile-menu') && !e.target.closest('#nav-user-avatar-btn')) {
+                    userMenu.style.display = "none";
+                }
+                
                 const ctxMenu = document.getElementById("custom-context-menu");
                 if (ctxMenu && !e.target.closest('#custom-context-menu') && !e.target.closest('[data-context-btn]')) {
                     ctxMenu.style.display = "none";
