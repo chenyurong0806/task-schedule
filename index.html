@@ -97,6 +97,35 @@
             font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
 
+        /* MD3 用户头像与徽章样式 */
+        .md3-user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 9999px;
+            background-color: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            overflow: hidden;
+            position: relative;
+            border: 1.5px solid var(--md-sys-color-outline-variant);
+            transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s ease;
+        }
+        .md3-user-avatar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+        }
+        .md3-user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+
+
         /* MD3 统一小图标按钮基准类 */
         .md3-icon-btn {
             display: inline-flex;
@@ -604,9 +633,28 @@
     <aside
         class="w-full md:w-20 h-16 md:h-full flex flex-row md:flex-col justify-around md:justify-between items-center py-2 md:py-6 flex-shrink-0 order-last md:order-first border-t md:border-t-0 md:border-r z-50 bg-[var(--md-sys-color-surface-container-low)] border-[var(--md-sys-color-outline-variant)] overflow-x-auto no-scrollbar">
         <div class="flex flex-row md:flex-col items-center gap-2 md:gap-5 px-4 md:px-0 w-full md:w-auto">
-            <div
-                class="hidden md:flex w-12 h-12 rounded-full items-center justify-center text-[var(--md-sys-color-primary)]">
-                <span class="material-symbols-outlined text-[32px] font-bold">spellcheck</span>
+            <!-- MD3 用户信息头像组件 (电脑端侧栏顶部 / 悬浮弹出资料卡) -->
+            <div class="relative group/user my-1 flex justify-center w-full">
+                <button type="button" id="user-profile-btn" onclick="toggleUserDropdown(event)"
+                    class="md3-user-avatar md-ripple cursor-pointer focus:outline-none" title="用户信息">
+                    <span id="user-avatar-text">?</span>
+                </button>
+
+                <!-- MD3 悬浮/点击资料卡 -->
+                <div id="user-profile-card"
+                    class="absolute left-14 md:left-full md:ml-3 top-0 hidden group-hover/user:flex flex-col z-[100] p-3 min-w-[180px] rounded-2xl md3-menu-popup shadow-xl pointer-events-none group-hover/user:pointer-events-auto bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)]">
+                    <div class="flex items-center gap-2.5">
+                        <div id="user-card-avatar" class="w-10 h-10 rounded-full bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] flex items-center justify-center font-bold text-sm overflow-hidden flex-shrink-0">
+                            <span>?</span>
+                        </div>
+                        <div class="flex flex-col min-w-0">
+                            <span id="user-card-name" class="text-xs font-bold truncate text-[var(--md-sys-color-on-surface)]">加载中...</span>
+                            <span id="user-card-status" class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>已登录
+                            </span>
+                        </div>
+                    </div>
+                </div>
             </div>
             <nav class="flex flex-row md:flex-col gap-2 md:gap-4 flex-1 md:w-full md:px-2">
                 <button onclick="switchView('home')" id="nav-home"
@@ -1266,6 +1314,104 @@
             return outputArray;
         }
 
+        // 1. 用户信息状态定义
+        let currentUser = {
+            id: '',
+            name: '加载中...',
+            isLoggedIn: false,
+            avatar: ''
+        };
+
+        // 2. 获取并初始化用户信息
+        async function initUserInfo() {
+            const randomId = Math.random().toString(36).substring(2, 10);
+            const IS_DEV_LOGIN = false; // 开发调试模式开关
+
+            if (IS_DEV_LOGIN) {
+                const mockUsername = "本地调试员";
+                currentUser = { id: randomId, name: mockUsername, isLoggedIn: true, avatar: "" };
+                renderUserProfile();
+                return;
+            }
+
+            try {
+                const res = await fetch("/api/userinfo");
+                if (res.ok) {
+                    const result = await res.json();
+                    if (result.loggedIn && result.data && result.data.username) {
+                        currentUser = {
+                            id: randomId,
+                            name: result.data.username,
+                            isLoggedIn: true,
+                            avatar: result.data.avatar || ""
+                        };
+                    } else {
+                        throw new Error("未登录或数据缺失");
+                    }
+                } else {
+                    throw new Error("网络响应异常");
+                }
+            } catch (e) {
+                // 接口失败时的访客兜底
+                const guestName = `访客_${Math.floor(Math.random() * 1000)}`;
+                currentUser = { id: randomId, name: guestName, isLoggedIn: false, avatar: "" };
+            }
+
+            renderUserProfile();
+        }
+
+        // 3. 渲染 MD3 用户头像与弹窗卡片
+        function renderUserProfile() {
+            const avatarBtn = document.getElementById("user-avatar-text");
+            const cardAvatar = document.getElementById("user-card-avatar");
+            const cardName = document.getElementById("user-card-name");
+            const cardStatus = document.getElementById("user-card-status");
+
+            if (!cardName) return;
+
+            // 设置用户名
+            cardName.innerText = currentUser.name;
+            cardName.title = currentUser.name;
+
+            // 设置登录状态指示器
+            if (currentUser.isLoggedIn) {
+                cardStatus.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>已登录`;
+                cardStatus.className = "text-[10px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1";
+            } else {
+                cardStatus.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-gray-400 inline-block"></span>访客模式`;
+                cardStatus.className = "text-[10px] text-[var(--md-sys-color-outline)] font-medium flex items-center gap-1";
+            }
+
+            // 头像渲染逻辑 (如果有图片则展示图片，否则展示首字符)
+            const avatarContent = currentUser.avatar 
+                ? `<img src="${currentUser.avatar}" alt="${currentUser.name}" class="w-full h-full object-cover rounded-full" />`
+                : `<span>${(currentUser.name || '?').charAt(0).toUpperCase()}</span>`;
+
+            if (avatarBtn) {
+                avatarBtn.parentElement.innerHTML = avatarContent;
+            }
+            if (cardAvatar) {
+                cardAvatar.innerHTML = avatarContent;
+            }
+        }
+
+        // 4. 移动端/点击支持展示用户卡片
+        function toggleUserDropdown(e) {
+            e.stopPropagation();
+            const card = document.getElementById('user-profile-card');
+            if (!card) return;
+            const isHidden = card.classList.contains('hidden');
+            if (isHidden) {
+                card.classList.remove('hidden');
+                card.classList.add('flex');
+            } else {
+                card.classList.add('hidden');
+                card.classList.remove('flex');
+            }
+        }
+
+
+
         async function initServiceWorkerAndNotification() {
             if ('serviceWorker' in navigator) {
                 try {
@@ -1742,6 +1888,9 @@
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
+
+            initUserInfo();
+            
             appState = await loadStateFromSupabase();
             appState.searchQuery = "";
             appState.currentView = "home";
