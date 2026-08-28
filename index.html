@@ -1430,15 +1430,11 @@
 
         // 2. 将所有待触发的提醒同步到 Supabase push_reminders 数据表
         async function syncRemindersToCloud() {
-            // 只有在授予了通知权限且配置了公钥时才执行
-            if (!('Notification' in window) || Notification.permission !== 'granted' || !VAPID_PUBLIC_KEY) {
-                return;
-            }
+            if (!('Notification' in window) || Notification.permission !== 'granted' || !VAPID_PUBLIC_KEY) return;
 
             const subscription = await getActivePushSubscription();
             if (!subscription) return;
 
-            // 收集当前系统里所有开启了提醒、且未完成、有日期的子任务
             const reminderRows = [];
             const nowTime = new Date().getTime();
 
@@ -1446,9 +1442,8 @@
                 b.subtasks.forEach(s => {
                     if (s.done || !s.hasRemind || !s.endDate) return;
 
-                    // 计算精准的提醒触发时间 (UTC ISO 格式)
                     const dateParts = s.endDate.split('-').map(Number);
-                    const startMin = (s.startMinute !== null && s.startMinute !== undefined) ? s.startMinute : 480; // 默认 08:00
+                    const startMin = (s.startMinute !== null && s.startMinute !== undefined) ? s.startMinute : 480;
                     const h = Math.floor(startMin / 60);
                     const m = startMin % 60;
 
@@ -1456,14 +1451,22 @@
                     const offsetMs = (s.remindOffset !== undefined ? s.remindOffset : 0) * 60 * 1000;
                     const triggerTimeMs = taskStartDate.getTime() - offsetMs;
 
-                    // 只同步尚未到期（未来的）提醒
                     if (triggerTimeMs > nowTime) {
+                        const { title, body } = formatReminderNotification(
+                            b.title, 
+                            s.text, 
+                            b.subject, 
+                            s.endDate, 
+                            s.startMinute, 
+                            s.remindOffset
+                        );
+
                         reminderRows.push({
                             subtask_id: s.id,
-                            task_title: s.text,
-                            batch_title: b.title,
+                            task_title: title,       // 存入生成的标题
+                            batch_title: body,       // 存入生成的正文内容
                             trigger_time: new Date(triggerTimeMs).toISOString(),
-                            subscription: subscription, // 绑定当前设备推送地址
+                            subscription: subscription,
                             is_sent: false
                         });
                     }
@@ -1471,7 +1474,6 @@
             });
 
             try {
-                // 先清理该设备上已存在但可能被修改/取消的旧未发送提醒
                 const endpointUrl = subscription.endpoint;
                 await supabaseClient
                     .from('push_reminders')
@@ -1479,19 +1481,16 @@
                     .eq('subscription->>endpoint', endpointUrl)
                     .eq('is_sent', false);
 
-                // 批量插入最新的待提醒任务列表
                 if (reminderRows.length > 0) {
-                    const { error } = await supabaseClient
+                    await supabaseClient
                         .from('push_reminders')
                         .insert(reminderRows);
-
-                    if (error) throw error;
-                    console.log(`已成功同步 ${reminderRows.length} 条提醒任务到云端推送表`);
                 }
             } catch (err) {
                 console.warn("同步提醒到云端失败:", err);
             }
         }
+
 
 
         function startNotificationCheckTimer() {
@@ -1503,6 +1502,34 @@
                 checkAndGenerateDueRecurringTasks();
             }, 10000);
         }
+
+
+        // 格式化提醒通知内容
+        function formatReminderNotification(batchTitle, subtaskText, subject, endDate, startMinute, remindOffset) {
+            const minVal = (startMinute !== null && startMinute !== undefined) ? startMinute : 480;
+            const h = String(Math.floor(minVal / 60)).padStart(2, '0');
+            const m = String(minVal % 60).padStart(2, '0');
+            const startTimeStr = `${h}:${m}`;
+            const offset = parseInt(remindOffset) || 0;
+
+            let title = "";
+            if (offset > 0) {
+                let timeDesc = "";
+                if (offset >= 10080) timeDesc = `${Math.round(offset / 10080)}周`;
+                else if (offset >= 1440) timeDesc = `${Math.round(offset / 1440)}天`;
+                else if (offset >= 60) timeDesc = `${Math.round(offset / 60)}小时`;
+                else timeDesc = `${offset}分钟`;
+
+                title = `提醒：任务还有${timeDesc}开始！`;
+            } else {
+                title = `提醒：任务已开始！`;
+            }
+
+            const body = `${batchTitle} - ${subtaskText}\n${subject} | ${endDate} ${startTimeStr}`;
+
+            return { title, body };
+        }
+
 
         function checkAndTriggerDueReminders() {
             if (!('Notification' in window) || Notification.permission !== 'granted') return;
@@ -1529,12 +1556,18 @@
                         s.reminded = true;
                         hasChanged = true;
 
-                        const timeLabel = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-                        const notificationTitle = `任务提醒：${s.text}`;
-                        const notificationBody = `任务名称：${b.title}\n${b.subject} | ${s.endDate} ${timeLabel}`;
+                        // 按照指定格式生成标题与正文
+                        const { title, body } = formatReminderNotification(
+                            b.title, 
+                            s.text, 
+                            b.subject, 
+                            s.endDate, 
+                            s.startMinute, 
+                            s.remindOffset
+                        );
 
-                        triggerSystemNotification(notificationTitle, {
-                            body: notificationBody,
+                        triggerSystemNotification(title, {
+                            body: body,
                             tag: `remind-${s.id}`,
                             data: { subtaskId: s.id }
                         });
