@@ -1339,9 +1339,8 @@
             const target = findSubtask(subtaskId);
             if (target) {
                 target.subtask.hasRemind = !target.subtask.hasRemind;
-                if (!target.subtask.hasRemind) {
-                    target.subtask.reminded = false;
-                }
+                target.subtask.earlyReminded = false;
+                target.subtask.startReminded = false;
                 saveStateToStorage();
                 renderAllComponents();
             }
@@ -1447,26 +1446,37 @@
                     const h = Math.floor(startMin / 60);
                     const m = startMin % 60;
 
-                    const taskStartDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2], h, m, 0, 0);
+                    const taskStartTime = new Date(dateParts[0], dateParts[1] - 1, dateParts[2], h, m, 0, 0).getTime();
                     const offsetMs = (s.remindOffset !== undefined ? s.remindOffset : 0) * 60 * 1000;
-                    const triggerTimeMs = taskStartDate.getTime() - offsetMs;
+                    const earlyTriggerTime = taskStartTime - offsetMs;
 
-                    if (triggerTimeMs > nowTime) {
-                        const { title, body } = formatReminderNotification(
-                            b.title, 
-                            s.text, 
-                            b.subject, 
-                            s.endDate, 
-                            s.startMinute,
-                            s.durationMinutes, 
-                            s.remindOffset
+                    // 计划 A：提前提醒（当设置了提前时间，且提前时间尚未过去）
+                    if (offsetMs > 0 && earlyTriggerTime > nowTime) {
+                        const earlyNotice = formatReminderNotification(
+                            b.title, s.text, b.subject, s.endDate, s.startMinute, s.durationMinutes, true, s.remindOffset
                         );
 
                         reminderRows.push({
-                            subtask_id: s.id,
-                            task_title: title,
-                            batch_title: body,
-                            trigger_time: new Date(triggerTimeMs).toISOString(),
+                            subtask_id: `${s.id}-early`,
+                            task_title: earlyNotice.title,
+                            batch_title: earlyNotice.body,
+                            trigger_time: new Date(earlyTriggerTime).toISOString(),
+                            subscription: subscription,
+                            is_sent: false
+                        });
+                    }
+
+                    // 计划 B：任务正式开始时的提醒（只要开始时间尚未过去）
+                    if (taskStartTime > nowTime) {
+                        const startNotice = formatReminderNotification(
+                            b.title, s.text, b.subject, s.endDate, s.startMinute, s.durationMinutes, false, s.remindOffset
+                        );
+
+                        reminderRows.push({
+                            subtask_id: `${s.id}-start`,
+                            task_title: startNotice.title,
+                            batch_title: startNotice.body,
+                            trigger_time: new Date(taskStartTime).toISOString(),
                             subscription: subscription,
                             is_sent: false
                         });
@@ -1476,12 +1486,14 @@
 
             try {
                 const endpointUrl = subscription.endpoint;
+                // 清理当前设备未发送的旧提醒
                 await supabaseClient
                     .from('push_reminders')
                     .delete()
                     .eq('subscription->>endpoint', endpointUrl)
                     .eq('is_sent', false);
 
+                // 写入最新的排期列表
                 if (reminderRows.length > 0) {
                     await supabaseClient
                         .from('push_reminders')
@@ -1505,7 +1517,7 @@
         }
 
         // 格式化提醒通知内容（包含开始时间与结束时间）
-        function formatReminderNotification(batchTitle, subtaskText, subject, endDate, startMinute, durationMinutes, remindOffset) {
+        function formatReminderNotification(batchTitle, subtaskText, subject, endDate, startMinute, durationMinutes, isEarly, remindOffset) {
             const minVal = (startMinute !== null && startMinute !== undefined) ? startMinute : 480;
             const durVal = (durationMinutes !== null && durationMinutes !== undefined) ? durationMinutes : 60;
             
@@ -1522,9 +1534,8 @@
 
             const offset = parseInt(remindOffset) || 0;
 
-            // 生成标题
             let title = "";
-            if (offset > 0) {
+            if (isEarly && offset > 0) {
                 let timeDesc = "";
                 if (offset >= 10080) timeDesc = `${Math.round(offset / 10080)}周`;
                 else if (offset >= 1440) timeDesc = `${Math.round(offset / 1440)}天`;
@@ -1536,7 +1547,6 @@
                 title = `提醒：任务已开始！`;
             }
 
-            // 生成正文（最后一行包含：开始时间 ~ 结束时间）
             const body = `${batchTitle} - ${subtaskText}\n${subject} | ${endDate} ${startTimeStr}~${endTimeStr}`;
 
             return { title, body };
@@ -1553,7 +1563,7 @@
 
             appState.batches.forEach(b => {
                 b.subtasks.forEach(s => {
-                    if (s.done || !s.hasRemind || !s.endDate || s.reminded) return;
+                    if (s.done || !s.hasRemind || !s.endDate) return;
 
                     const dateParts = s.endDate.split('-').map(Number);
                     const startMin = (s.startMinute !== null && s.startMinute !== undefined) ? s.startMinute : 480;
@@ -1562,26 +1572,37 @@
 
                     const taskStartTime = new Date(dateParts[0], dateParts[1] - 1, dateParts[2], h, m, 0, 0).getTime();
                     const offsetMs = (s.remindOffset !== undefined ? s.remindOffset : 0) * 60 * 1000;
-                    const triggerTime = taskStartTime - offsetMs;
+                    const earlyTriggerTime = taskStartTime - offsetMs;
 
-                    if (nowTime >= triggerTime && (nowTime - triggerTime) < 24 * 60 * 60 * 1000) {
-                        s.reminded = true;
+                    // 1. 检查提前提醒 (当设置了提前时间 > 0 分钟时)
+                    if (offsetMs > 0 && !s.earlyReminded && nowTime >= earlyTriggerTime && nowTime < taskStartTime) {
+                        s.earlyReminded = true;
                         hasChanged = true;
 
-                        // 传入 s.durationMinutes 计算结束时间
                         const { title, body } = formatReminderNotification(
-                            b.title, 
-                            s.text, 
-                            b.subject, 
-                            s.endDate, 
-                            s.startMinute,
-                            s.durationMinutes, 
-                            s.remindOffset
+                            b.title, s.text, b.subject, s.endDate, s.startMinute, s.durationMinutes, true, s.remindOffset
                         );
 
                         triggerSystemNotification(title, {
                             body: body,
-                            tag: `remind-${s.id}`,
+                            tag: `remind-early-${s.id}`,
+                            data: { subtaskId: s.id }
+                        });
+                    }
+
+                    // 2. 检查任务正式开始时的提醒
+                    if (!s.startReminded && nowTime >= taskStartTime && (nowTime - taskStartTime) < 24 * 60 * 60 * 1000) {
+                        s.startReminded = true;
+                        s.earlyReminded = true; // 既然已经开始了，提前通知也不用补发了
+                        hasChanged = true;
+
+                        const { title, body } = formatReminderNotification(
+                            b.title, s.text, b.subject, s.endDate, s.startMinute, s.durationMinutes, false, s.remindOffset
+                        );
+
+                        triggerSystemNotification(title, {
+                            body: body,
+                            tag: `remind-start-${s.id}`,
                             data: { subtaskId: s.id }
                         });
                     }
@@ -1660,6 +1681,10 @@
                 if (!Array.isArray(b.subtasks)) b.subtasks = [];
                 if (!Array.isArray(b.tags)) b.tags = [];
                 if (b.isRecurring === undefined) b.isRecurring = false;
+                b.subtasks.forEach(s => {
+                    if (s.earlyReminded === undefined) s.earlyReminded = false;
+                    if (s.startReminded === undefined) s.startReminded = false;
+                });
             });
             if (!Array.isArray(parsed.subjects)) parsed.subjects = defaultInitialState.subjects;
             if (!Array.isArray(parsed.tags)) parsed.tags = defaultInitialState.tags;
@@ -2734,7 +2759,7 @@
             if (!subId) return;
             if (type === 'today') {
                 const target = findSubtask(subId);
-                if (target) {target.subtask.endDate = TODAY_STR; target.subtask.reminded = false; saveStateToStorage(); renderAllComponents();}
+                if (target) {target.subtask.endDate = TODAY_STR; target.subtask.earlyReminded = false; target.subtask.startReminded = false; saveStateToStorage(); renderAllComponents();}
             } else if (type === 'custom') {
                 setTimeout(() => openMD3DatePicker(subId), 10);
             }
@@ -2907,7 +2932,8 @@
                             iteration: 1,
                             hasRemind: !!rc.hasRemind,
                             remindOffset: rc.remindOffset || 0,
-                            reminded: false
+                            earlyReminded: false, // 初始化
+                            startReminded: false  // 初始化
                         });
                         stateChanged = true;
                     }
@@ -3198,7 +3224,8 @@
             if (Array.isArray(batch.subtasks)) {
                 batch.subtasks.forEach(s => {
                     s.hasRemind = false;
-                    s.reminded = false;
+                    s.earlyReminded = false;
+                    s.startReminded = false;
                 });
             }
 
@@ -3228,7 +3255,8 @@
                     const target = findSubtask(currentDateActionSubtaskId);
                     if (target) {
                         target.subtask.endDate = md3PickerSelectedDate;
-                        target.subtask.reminded = false;
+                        target.subtask.earlyReminded = false;
+                        target.subtask.startReminded = false;
                         saveStateToStorage();
                         renderAllComponents();
                     }
@@ -3295,7 +3323,8 @@
             const target = findSubtask(subtaskId);
             if (target) {
                 target.subtask.endDate = dateStr;
-                target.subtask.reminded = false;
+                target.subtask.earlyReminded = false;
+                target.subtask.startReminded = false;
                 saveStateToStorage();
                 renderAllComponents();
                 if (appState.calendarMode === 'week') focusDayTimeline(appState.focusedDate);
@@ -3315,7 +3344,8 @@
             targetMinute = Math.max(0, Math.min(1440 - target.subtask.durationMinutes, targetMinute));
             target.subtask.endDate = appState.focusedDate;
             target.subtask.startMinute = targetMinute;
-            target.subtask.reminded = false;
+            target.subtask.earlyReminded = false;
+            target.subtask.startReminded = false;
             saveStateToStorage(); renderAllComponents(); focusDayTimeline(appState.focusedDate);
             isGlobalDragging = false;
             stopAutoScroll();
@@ -3372,7 +3402,8 @@
             } else if (timelineInteractionCtx.type === 'drag') {
                 let newStart = timelineInteractionCtx.initialStartMinute + minuteDelta;
                 target.subtask.startMinute = Math.max(0, Math.min(1440 - target.subtask.durationMinutes, newStart));
-                target.subtask.reminded = false;
+                target.subtask.earlyReminded = false;
+                target.subtask.startReminded = false;
             }
             focusDayTimeline(appState.focusedDate);
         }
@@ -4526,7 +4557,8 @@
                                 sub.hasRemind = hasRemind;
                                 sub.remindOffset = remindOffset;
                                 sub.weight = recWeight;
-                                sub.reminded = false;
+                                sub.earlyReminded = false;
+                                sub.startReminded = false;
                             }
                         });
                     }
@@ -4655,7 +4687,8 @@
                         iteration: 1,
                         hasRemind: !!rc.hasRemind,
                         remindOffset: rc.remindOffset || 0,
-                        reminded: false
+                        earlyReminded: false, // 初始化
+                        startReminded: false  // 初始化
                     });
                     changed = true;
                 } else {
