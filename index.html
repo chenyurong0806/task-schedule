@@ -97,7 +97,6 @@
             font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
 
-        /* MD3 用户头像与徽章样式 */
         .md3-user-avatar {
             width: 36px;
             height: 36px;
@@ -124,9 +123,6 @@
             object-fit: cover;
         }
 
-
-
-        /* MD3 统一小图标按钮基准类 */
         .md3-icon-btn {
             display: inline-flex;
             align-items: center;
@@ -161,7 +157,6 @@
             font-size: 18px;
         }
 
-        /* MD3 状态响应微交互 */
         @keyframes starPopAnim {
             0% { transform: scale(1); }
             50% { transform: scale(1.35) rotate(15deg); }
@@ -1300,7 +1295,6 @@
         const SUPABASE_URL = 'https://mamubvgmcetepllznifl.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_HEeNPSqD75cWlnmZjcVHKA_Pw-OdL_A';
         const BUCKET_NAME = 'schedule-data';
-        const FILE_NAME = 'data.json';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         function urlBase64ToUint8Array(base64String) {
@@ -1322,14 +1316,12 @@
             avatar: ''
         };
 
-        // 2. 获取并初始化用户信息
+        // 2. 获取并初始化用户信息（实现持久化与隔离）
         async function initUserInfo() {
-            const randomId = Math.random().toString(36).substring(2, 10);
             const IS_DEV_LOGIN = false; // 开发调试模式开关
 
             if (IS_DEV_LOGIN) {
-                const mockUsername = "本地调试员";
-                currentUser = { id: randomId, name: mockUsername, isLoggedIn: true, avatar: "" };
+                currentUser = { id: "dev_user_001", name: "本地调试员", isLoggedIn: true, avatar: "" };
                 renderUserProfile();
                 return;
             }
@@ -1340,21 +1332,28 @@
                     const result = await res.json();
                     if (result.loggedIn && result.data && result.data.username) {
                         currentUser = {
-                            id: randomId,
+                            id: result.data.id || `user_${result.data.username}`,
                             name: result.data.username,
                             isLoggedIn: true,
                             avatar: result.data.avatar || ""
                         };
                     } else {
-                        throw new Error("未登录或数据缺失");
+                        throw new Error("未登录");
                     }
                 } else {
                     throw new Error("网络响应异常");
                 }
             } catch (e) {
-                // 接口失败时的访客兜底
-                const guestName = `访客_${Math.floor(Math.random() * 1000)}`;
-                currentUser = { id: randomId, name: guestName, isLoggedIn: false, avatar: "" };
+                // 访客模式：从本地持久化读取固定的访客 ID，保证刷新后数据依然隔离且保持
+                let guestId = localStorage.getItem("MD3_GUEST_UID");
+                let guestName = localStorage.getItem("MD3_GUEST_UNAME");
+                if (!guestId) {
+                    guestId = `guest_${Math.random().toString(36).substring(2, 10)}`;
+                    guestName = `访客_${Math.floor(Math.random() * 1000)}`;
+                    localStorage.setItem("MD3_GUEST_UID", guestId);
+                    localStorage.setItem("MD3_GUEST_UNAME", guestName);
+                }
+                currentUser = { id: guestId, name: guestName, isLoggedIn: false, avatar: "" };
             }
 
             renderUserProfile();
@@ -1369,11 +1368,9 @@
 
             if (!cardName) return;
 
-            // 设置用户名
             cardName.innerText = currentUser.name;
             cardName.title = currentUser.name;
 
-            // 设置登录状态指示器
             if (currentUser.isLoggedIn) {
                 cardStatus.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>已登录`;
                 cardStatus.className = "text-[10px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1";
@@ -1382,7 +1379,6 @@
                 cardStatus.className = "text-[10px] text-[var(--md-sys-color-outline)] font-medium flex items-center gap-1";
             }
 
-            // 头像渲染逻辑 (如果有图片则展示图片，否则展示首字符)
             const avatarContent = currentUser.avatar 
                 ? `<img src="${currentUser.avatar}" alt="${currentUser.name}" class="w-full h-full object-cover rounded-full" />`
                 : `<span>${(currentUser.name || '?').charAt(0).toUpperCase()}</span>`;
@@ -1395,7 +1391,6 @@
             }
         }
 
-        // 4. 移动端/点击支持展示用户卡片
         function toggleUserDropdown(e) {
             e.stopPropagation();
             const card = document.getElementById('user-profile-card');
@@ -1409,8 +1404,6 @@
                 card.classList.remove('flex');
             }
         }
-
-
 
         async function initServiceWorkerAndNotification() {
             if ('serviceWorker' in navigator) {
@@ -1434,6 +1427,7 @@
             startNotificationCheckTimer();
         }
 
+        // 设备订阅凭证绑定到当前用户（支持多设备）
         async function subscribeUserToPush() {
             if (!serviceWorkerReg || !('pushManager' in serviceWorkerReg)) return null;
             if (!VAPID_PUBLIC_KEY) return null;
@@ -1447,12 +1441,26 @@
                     });
                 }
 
+                // 将该设备的推送凭证与当前用户ID绑定写入 user_subscriptions 表
+                if (subscription && currentUser && currentUser.id) {
+                    await supabaseClient
+                        .from('user_subscriptions')
+                        .upsert({
+                            user_id: currentUser.id,
+                            subscription: subscription.toJSON(),
+                            updated_at: new Date().toISOString()
+                        }, { onConflict: 'user_id,endpoint' });
+                }
+
                 if (PUSH_SERVER_URL) {
                     await fetch(`${PUSH_SERVER_URL}/api/subscribe`, {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify(subscription)
-                    });
+                        body: JSON.stringify({
+                            userId: currentUser.id,
+                            subscription: subscription
+                        })
+                    }).catch(() => {});
                 }
                 return subscription;
             } catch (err) {
@@ -1502,7 +1510,7 @@
             if (perm === 'granted') {
                 await subscribeUserToPush();
                 triggerSystemNotification("系统通知已开启", {
-                    body: "当排程任务到达提醒时间时，系统将会准时向您推送提醒通知。",
+                    body: "当排程任务到达提醒时间时，系统将会准时向您的所有设备推送提醒通知。",
                     tag: "test-notification"
                 });
             } else {
@@ -1538,47 +1546,11 @@
                     console.warn(e);
                 }
             }
-
-            if (PUSH_SERVER_URL) {
-                try {
-                    fetch(`${PUSH_SERVER_URL}/api/send-notification`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({
-                            title: title,
-                            body: finalOptions.body || ''
-                        })
-                    }).catch(() => {});
-                } catch(e) {}
-            }
         }
 
-        // 1. 获取当前设备的 Web Push 订阅凭证
-        async function getActivePushSubscription() {
-            if (!serviceWorkerReg || !('pushManager' in serviceWorkerReg)) return null;
-            try {
-                let subscription = await serviceWorkerReg.pushManager.getSubscription();
-                // 如果之前没有订阅，尝试使用公钥进行订阅
-                if (!subscription && VAPID_PUBLIC_KEY) {
-                    const convertedKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
-                    subscription = await serviceWorkerReg.pushManager.subscribe({
-                        userVisibleOnly: true,
-                        applicationServerKey: convertedKey
-                    });
-                }
-                return subscription ? subscription.toJSON() : null;
-            } catch (err) {
-                console.warn("获取推送凭证失败:", err);
-                return null;
-            }
-        }
-
-        // 2. 将所有待触发的提醒同步到 Supabase push_reminders 数据表
+        // 将所有待触发的提醒同步到 Supabase push_reminders（按用户隔离，并支持未来好友协作扩展）
         async function syncRemindersToCloud() {
-            if (!('Notification' in window) || Notification.permission !== 'granted' || !VAPID_PUBLIC_KEY) return;
-
-            const subscription = await getActivePushSubscription();
-            if (!subscription) return;
+            if (!('Notification' in window) || Notification.permission !== 'granted' || !VAPID_PUBLIC_KEY || !currentUser.id) return;
 
             const reminderRows = [];
             const nowTime = new Date().getTime();
@@ -1596,34 +1568,36 @@
                     const offsetMs = (s.remindOffset !== undefined ? s.remindOffset : 0) * 60 * 1000;
                     const earlyTriggerTime = taskStartTime - offsetMs;
 
-                    // 计划 A：提前提醒（当设置了提前时间，且提前时间尚未过去）
+                    // 计划 A：提前提醒
                     if (offsetMs > 0 && earlyTriggerTime > nowTime) {
                         const earlyNotice = formatReminderNotification(
                             b.title, s.text, b.subject, s.endDate, s.startMinute, s.durationMinutes, true, s.remindOffset
                         );
 
                         reminderRows.push({
+                            target_user_id: currentUser.id, // 目标用户（可扩展为好友 ID）
+                            created_by: currentUser.id,
                             subtask_id: `${s.id}-early`,
                             task_title: earlyNotice.title,
                             batch_title: earlyNotice.body,
                             trigger_time: new Date(earlyTriggerTime).toISOString(),
-                            subscription: subscription,
                             is_sent: false
                         });
                     }
 
-                    // 计划 B：任务正式开始时的提醒（只要开始时间尚未过去）
+                    // 计划 B：任务正式开始时的提醒
                     if (taskStartTime > nowTime) {
                         const startNotice = formatReminderNotification(
                             b.title, s.text, b.subject, s.endDate, s.startMinute, s.durationMinutes, false, s.remindOffset
                         );
 
                         reminderRows.push({
+                            target_user_id: currentUser.id, // 目标用户
+                            created_by: currentUser.id,
                             subtask_id: `${s.id}-start`,
                             task_title: startNotice.title,
                             batch_title: startNotice.body,
                             trigger_time: new Date(taskStartTime).toISOString(),
-                            subscription: subscription,
                             is_sent: false
                         });
                     }
@@ -1631,15 +1605,14 @@
             });
 
             try {
-                const endpointUrl = subscription.endpoint;
-                // 清理当前设备未发送的旧提醒
+                // 清理该用户未发送的旧提醒排期
                 await supabaseClient
                     .from('push_reminders')
                     .delete()
-                    .eq('subscription->>endpoint', endpointUrl)
+                    .eq('target_user_id', currentUser.id)
                     .eq('is_sent', false);
 
-                // 写入最新的排期列表
+                // 写入最新的多设备排期任务列表
                 if (reminderRows.length > 0) {
                     await supabaseClient
                         .from('push_reminders')
@@ -1649,8 +1622,6 @@
                 console.warn("同步提醒到云端失败:", err);
             }
         }
-
-
 
         function startNotificationCheckTimer() {
             if (notificationIntervalTimer) clearInterval(notificationIntervalTimer);
@@ -1662,17 +1633,14 @@
             }, 10000);
         }
 
-        // 格式化提醒通知内容（包含开始时间与结束时间）
         function formatReminderNotification(batchTitle, subtaskText, subject, endDate, startMinute, durationMinutes, isEarly, remindOffset) {
             const minVal = (startMinute !== null && startMinute !== undefined) ? startMinute : 480;
             const durVal = (durationMinutes !== null && durationMinutes !== undefined) ? durationMinutes : 60;
             
-            // 计算开始时间 HH:mm
             const startH = String(Math.floor(minVal / 60)).padStart(2, '0');
             const startM = String(minVal % 60).padStart(2, '0');
             const startTimeStr = `${startH}:${startM}`;
 
-            // 计算结束时间 HH:mm（限制在当天 23:59 以内）
             const endTotalMins = Math.min(1439, minVal + durVal);
             const endH = String(Math.floor(endTotalMins / 60)).padStart(2, '0');
             const endM = String(endTotalMins % 60).padStart(2, '0');
@@ -1693,11 +1661,9 @@
                 title = `提醒：任务已开始！`;
             }
 
-            const body = `${batchTitle} - ${subtaskText}\n${subject} | ${endDate} ${startTimeStr}~${endTimeStr}`;
-
+            const body = `${batchTitle} - ${subtaskText}\n${subject} | ${endDate} ${startTimeStr} ~ ${endTimeStr}`;
             return { title, body };
         }
-
 
         function checkAndTriggerDueReminders() {
             if (!('Notification' in window) || Notification.permission !== 'granted') return;
@@ -1720,7 +1686,6 @@
                     const offsetMs = (s.remindOffset !== undefined ? s.remindOffset : 0) * 60 * 1000;
                     const earlyTriggerTime = taskStartTime - offsetMs;
 
-                    // 1. 检查提前提醒 (当设置了提前时间 > 0 分钟时)
                     if (offsetMs > 0 && !s.earlyReminded && nowTime >= earlyTriggerTime && nowTime < taskStartTime) {
                         s.earlyReminded = true;
                         hasChanged = true;
@@ -1736,10 +1701,9 @@
                         });
                     }
 
-                    // 2. 检查任务正式开始时的提醒
                     if (!s.startReminded && nowTime >= taskStartTime && (nowTime - taskStartTime) < 24 * 60 * 60 * 1000) {
                         s.startReminded = true;
-                        s.earlyReminded = true; // 既然已经开始了，提前通知也不用补发了
+                        s.earlyReminded = true;
                         hasChanged = true;
 
                         const { title, body } = formatReminderNotification(
@@ -1804,16 +1768,20 @@
             return withLinks.replace(/\n/g, '<br>');
         }
 
+        // 根据用户隔离路径加载数据
         async function loadStateFromSupabase() {
             let parsed = null;
+            const userFilePath = `users/${currentUser.id}/data.json`;
+            const localUserCacheKey = `MD3_DATA_${currentUser.id}`;
+
             try {
-                const {data, error} = await supabaseClient.storage.from(BUCKET_NAME).download(FILE_NAME);
+                const {data, error} = await supabaseClient.storage.from(BUCKET_NAME).download(userFilePath);
                 if (error) throw error;
                 const text = await data.text();
                 parsed = JSON.parse(text);
-                localStorage.setItem("MD3_ATOMIC_SYSTEM_DATA", JSON.stringify(parsed));
+                localStorage.setItem(localUserCacheKey, JSON.stringify(parsed));
             } catch (err) {
-                const cached = localStorage.getItem("MD3_ATOMIC_SYSTEM_DATA");
+                const cached = localStorage.getItem(localUserCacheKey);
                 if (cached) {
                     try {parsed = JSON.parse(cached);} catch (e) { }
                 }
@@ -1864,22 +1832,24 @@
 
         let supabaseSaveTimer = null;
 
+        // 根据用户隔离路径保存数据
         function saveStateToStorage(pushHistory = true) {
             if (pushHistory) commitState();
-            localStorage.setItem("MD3_ATOMIC_SYSTEM_DATA", JSON.stringify(appState));
+            const localUserCacheKey = `MD3_DATA_${currentUser.id}`;
+            localStorage.setItem(localUserCacheKey, JSON.stringify(appState));
 
             clearTimeout(supabaseSaveTimer);
             supabaseSaveTimer = setTimeout(async () => {
                 try {
-                    // 1. 上传主 JSON 数据文件
+                    const userFilePath = `users/${currentUser.id}/data.json`;
                     const jsonStr = JSON.stringify(appState);
                     const blob = new Blob([jsonStr], {type: 'application/json'});
-                    await supabaseClient.storage.from(BUCKET_NAME).upload(FILE_NAME, blob, {
+                    
+                    await supabaseClient.storage.from(BUCKET_NAME).upload(userFilePath, blob, {
                         upsert: true,
                         contentType: 'application/json;charset=UTF-8'
                     });
 
-                    // 2. 同步提醒表到云端（自动让离线推送生效）
                     await syncRemindersToCloud();
                 } catch (err) {
                     console.warn("Supabase 同步跳过/失败:", err);
@@ -1888,8 +1858,7 @@
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
-
-            initUserInfo();
+            await initUserInfo();
             
             appState = await loadStateFromSupabase();
             appState.searchQuery = "";
@@ -2748,7 +2717,8 @@
             const target = findSubtask(subtaskId);
             if (target) {
                 target.subtask.endDate = TODAY_STR;
-                target.subtask.reminded = false;
+                target.subtask.earlyReminded = false;
+                target.subtask.startReminded = false;
                 saveStateToStorage();
                 renderAllComponents();
                 const activeDate = document.getElementById("day-detail-date-title").innerText;
@@ -3081,8 +3051,8 @@
                             iteration: 1,
                             hasRemind: !!rc.hasRemind,
                             remindOffset: rc.remindOffset || 0,
-                            earlyReminded: false, // 初始化
-                            startReminded: false  // 初始化
+                            earlyReminded: false,
+                            startReminded: false
                         });
                         stateChanged = true;
                     }
@@ -3111,7 +3081,8 @@
                                 iteration: nextIteration,
                                 hasRemind: !!rc.hasRemind,
                                 remindOffset: rc.remindOffset || 0,
-                                reminded: false
+                                earlyReminded: false,
+                                startReminded: false
                             });
                             stateChanged = true;
                         }
@@ -3205,22 +3176,19 @@
             }
         }
 
-        // 辅助方法：时间格式转分钟数
         function timeStrToMinutes(str) {
-            if (!str || !str.includes(':')) return 480; // 默认 08:00
+            if (!str || !str.includes(':')) return 480;
             const [h, m] = str.split(':').map(Number);
             return (h * 60) + (m || 0);
         }
 
-        // 辅助方法：分钟数转 HH:mm 格式
         function minutesToTimeStr(mins) {
-            const clamped = Math.max(0, Math.min(1439, mins)); // 限制在 00:00 ~ 23:59
+            const clamped = Math.max(0, Math.min(1439, mins));
             const h = String(Math.floor(clamped / 60)).padStart(2, '0');
             const m = String(clamped % 60).padStart(2, '0');
             return `${h}:${m}`;
         }
 
-        // 辅助方法：获取接近当前时间的下一个 5 分钟整数点 (HH:mm)
         function getNearestNext5MinutesTimeStr() {
             const now = new Date();
             let minutes = now.getMinutes();
@@ -3779,7 +3747,7 @@
             if (dimension === 'tag') {if (!target.batch.tags.includes(value)) target.batch.tags.push(value);}
             else if (dimension === 'time') {
                 if (value === '待排程') {target.subtask.endDate = null;}
-                else if (value && /^\d{4}-\d{2}-\d{2}$/.test(value)) {target.subtask.endDate = value; target.subtask.reminded = false;}
+                else if (value && /^\d{4}-\d{2}-\d{2}$/.test(value)) {target.subtask.endDate = value; target.subtask.earlyReminded = false; target.subtask.startReminded = false;}
                 else return;
             }
             saveStateToStorage(); renderAllComponents(); isGlobalDragging = false;
@@ -4023,7 +3991,6 @@
                 } else if (subtask.endDate) {jumpToCalendar(subtask.endDate);}
             });
 
-            // 统一 MD3 小图标：手机端常态显示 (opacity-100)，电脑端悬浮显示 (md:opacity-0 md:group-hover/item:opacity-100)
             const starIconClass = subtask.starred ? 'star-filled' : 'star-outline text-[var(--md-sys-color-outline)] hover:text-amber-500';
             const starBtnVisibility = subtask.starred ? 'opacity-100' : 'opacity-100 md:opacity-0 md:group-hover/item:opacity-100';
 
@@ -4158,7 +4125,6 @@
                     `;
                 }
 
-                // 判断当前卡片是否开启了提醒
                 const isBatchRemindActive = (batch.isRecurring && batch.recurringConfig?.hasRemind) || 
                                             batch.subtasks.some(s => s.hasRemind);
 
@@ -4219,7 +4185,6 @@
                         expandToDrawerTask(sub.id, document.getElementById('global-search').value.trim());
                     });
 
-                    // 统一 MD3 小图标：手机端常态显示 (opacity-100)，电脑端悬浮显示 (md:opacity-0 md:group-hover/sub:opacity-100)
                     const starIconClass = sub.starred ? 'star-filled' : 'star-outline text-[var(--md-sys-color-outline)] hover:text-amber-500';
                     const starBtnVisibility = sub.starred ? 'opacity-100' : 'opacity-100 md:opacity-0 md:group-hover/sub:opacity-100';
 
@@ -4753,7 +4718,9 @@
                         startMinute: null,
                         durationMinutes: 60,
                         hasRemind: false,
-                        remindOffset: 0
+                        remindOffset: 0,
+                        earlyReminded: false,
+                        startReminded: false
                     });
                 });
 
@@ -4836,8 +4803,8 @@
                         iteration: 1,
                         hasRemind: !!rc.hasRemind,
                         remindOffset: rc.remindOffset || 0,
-                        earlyReminded: false, // 初始化
-                        startReminded: false  // 初始化
+                        earlyReminded: false,
+                        startReminded: false
                     });
                     changed = true;
                 } else {
@@ -4870,7 +4837,8 @@
                         iteration: nextIter,
                         hasRemind: !!rc.hasRemind,
                         remindOffset: rc.remindOffset || 0,
-                        reminded: false
+                        earlyReminded: false,
+                        startReminded: false
                     });
                     changed = true;
                 } else {
@@ -4907,7 +4875,6 @@
                             toggleSubtaskStatus(s.id);
                         });
 
-                        // 统一 MD3 小图标：手机端常态显示 (opacity-100)，电脑端悬浮显示 (md:opacity-0 md:group-hover/today:opacity-100)
                         const starIconClass = s.starred ? 'star-filled' : 'star-outline text-[var(--md-sys-color-outline)] hover:text-amber-500';
                         const starBtnVisibility = s.starred ? 'opacity-100' : 'opacity-100 md:opacity-0 md:group-hover/today:opacity-100';
 
@@ -5028,7 +4995,7 @@
 
         function triggerDataExport() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
-            const anchor = document.createElement('a'); anchor.setAttribute("href", dataStr); anchor.setAttribute("download", `MD3_ATOMIC_DATA.json`); anchor.click(); anchor.remove();
+            const anchor = document.createElement('a'); anchor.setAttribute("href", dataStr); anchor.setAttribute("download", `MD3_ATOMIC_DATA_${currentUser.id}.json`); anchor.click(); anchor.remove();
         }
         function triggerDataImport(e) {
             const file = e.target.files[0]; if (!file) return;
