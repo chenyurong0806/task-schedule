@@ -3,9 +3,11 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>任务看板</title>
     <meta name="theme-color" content="#6750A4">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -29,6 +31,10 @@
             --md-sys-color-on-secondary: #FFFFFF;
             --md-sys-color-secondary-container: #E8DEF8;
             --md-sys-color-on-secondary-container: #1D192B;
+            --md-sys-color-tertiary: #7D5260;
+            --md-sys-color-on-tertiary: #FFFFFF;
+            --md-sys-color-tertiary-container: #FFD8E4;
+            --md-sys-color-on-tertiary-container: #31111D;
             --md-sys-color-background: #FEF7FF;
             --md-sys-color-on-background: #1D1B20;
             --md-sys-color-surface: #FEF7FF;
@@ -42,7 +48,6 @@
             --md-sys-color-surface-container-highest: #E6E1E5;
             --md-sys-color-outline: #79747E;
             --md-sys-color-outline-variant: #CAC4D0;
-            --md-sys-color-tertiary-container: #FFD8E4;
             --md-sys-color-gold: #F59E0B;
             --md-motion-easing-emphasized: cubic-bezier(0.2, 0, 0, 1);
             --md-motion-easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
@@ -60,6 +65,10 @@
             --md-sys-color-on-secondary: #332D41;
             --md-sys-color-secondary-container: #4A4458;
             --md-sys-color-on-secondary-container: #E8DEF8;
+            --md-sys-color-tertiary: #EFB8C8;
+            --md-sys-color-on-tertiary: #492532;
+            --md-sys-color-tertiary-container: #492532;
+            --md-sys-color-on-tertiary-container: #FFD8E4;
             --md-sys-color-background: #141218;
             --md-sys-color-on-background: #E6E1E5;
             --md-sys-color-surface: #141218;
@@ -98,8 +107,8 @@
         }
 
         .md3-user-avatar {
-            width: 36px;
-            height: 36px;
+            width: 34px;
+            height: 34px;
             border-radius: 9999px;
             background-color: var(--md-sys-color-primary-container);
             color: var(--md-sys-color-on-primary-container);
@@ -107,7 +116,7 @@
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 14px;
+            font-size: 13px;
             overflow: hidden;
             position: relative;
             border: 1.5px solid var(--md-sys-color-outline-variant);
@@ -127,8 +136,8 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 28px;
-            height: 28px;
+            width: 30px;
+            height: 30px;
             border-radius: 9999px;
             color: var(--md-sys-color-on-surface-variant);
             transition: background-color var(--md-motion-duration-short4) var(--md-motion-easing-standard),
@@ -154,7 +163,7 @@
         }
 
         .md3-icon-btn .material-symbols-outlined {
-            font-size: 18px;
+            font-size: 19px;
         }
 
         @keyframes starPopAnim {
@@ -229,8 +238,8 @@
         }
 
         #task-drawer-inner {
-            width: 20rem;
-            min-width: 20rem;
+            width: 19rem;
+            min-width: 19rem;
             height: 100%;
         }
 
@@ -282,8 +291,8 @@
         }
 
         .md-scrollbar::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+            width: 5px;
+            height: 5px;
         }
 
         .md-scrollbar::-webkit-scrollbar-track {
@@ -293,10 +302,6 @@
         .md-scrollbar::-webkit-scrollbar-thumb {
             background: var(--md-sys-color-outline-variant);
             border-radius: 8px;
-        }
-
-        .md-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: var(--md-sys-color-outline);
         }
 
         .md-scrollbar {
@@ -322,12 +327,12 @@
 
         .week-cell-active {
             flex: 3 1 0%;
-            min-width: 280px !important;
+            min-width: 260px !important;
         }
 
         .week-cell-inactive {
             flex: 1 1 0%;
-            min-width: 170px !important;
+            min-width: 150px !important;
         }
 
         .chip-active {
@@ -373,10 +378,6 @@
             background-color: rgba(0, 0, 0, 0.12);
             border-radius: 0 0 8px 8px;
             touch-action: none;
-        }
-
-        .resize-handle:hover {
-            background-color: rgba(0, 0, 0, 0.3);
         }
 
         #global-tooltip {
@@ -518,7 +519,7 @@
     </style>
 </head>
 
-<body class="h-[100dvh] w-screen flex flex-col md:flex-row select-none overflow-hidden">
+<body class="h-[100dvh] w-screen flex flex-col md:flex-row select-none overflow-hidden pb-16 md:pb-0">
 
     <div id="global-tooltip" class="text-xs flex flex-col gap-1"></div>
 
@@ -549,6 +550,42 @@
     <!-- MD3 时间/提醒下拉选择器弹窗 -->
     <div id="md3-dropdown-menu"
         class="fixed hidden z-[400] p-1.5 text-xs min-w-[140px] max-h-56 overflow-y-auto md-scrollbar flex-col gap-0.5 md3-menu-popup bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)] shadow-xl rounded-2xl">
+    </div>
+
+    <!-- iOS PWA 提醒引导模态框 -->
+    <div id="ios-pwa-modal"
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[450] hidden items-center justify-center p-4">
+        <div class="w-full max-w-sm rounded-[28px] p-6 shadow-2xl flex flex-col gap-4 bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]">
+            <div class="flex items-center gap-3 text-[var(--md-sys-color-primary)]">
+                <span class="material-symbols-outlined text-2xl">add_to_home_screen</span>
+                <h3 class="text-base font-bold">iOS 开启系统通知指南</h3>
+            </div>
+            <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] leading-relaxed">
+                受苹果 iOS 系统安全限制，Safari 浏览器需要将本站<span class="font-bold text-[var(--md-sys-color-primary)]">「添加到主屏幕」</span>后，才能在锁屏及后台准时接收系统推送提醒。
+            </p>
+            <div class="flex flex-col gap-2.5 bg-[var(--md-sys-color-surface-container-lowest)] p-3.5 rounded-2xl border border-[var(--md-sys-color-outline-variant)] text-xs">
+                <div class="flex items-center gap-2">
+                    <span class="w-5 h-5 rounded-full bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] flex items-center justify-center font-bold text-[11px]">1</span>
+                    <span>点击 Safari 底部工具栏的「<strong>分享</strong>」按钮</span>
+                    <span class="material-symbols-outlined text-sm text-[var(--md-sys-color-primary)]">ios_share</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="w-5 h-5 rounded-full bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] flex items-center justify-center font-bold text-[11px]">2</span>
+                    <span>向下滑动并选择「<strong>添加到主屏幕</strong>」</span>
+                    <span class="material-symbols-outlined text-sm text-[var(--md-sys-color-primary)]">add_box</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="w-5 h-5 rounded-full bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] flex items-center justify-center font-bold text-[11px]">3</span>
+                    <span>从主屏幕打开本应用，再次点击开启提醒即可</span>
+                </div>
+            </div>
+            <div class="flex justify-end pt-1">
+                <button type="button" onclick="closeIosPwaModal()"
+                    class="px-5 py-2 rounded-full text-xs font-bold text-[var(--md-sys-color-on-primary)] bg-[var(--md-sys-color-primary)] shadow-sm md-ripple">
+                    我知道了
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- Month Day Detail Modal -->
@@ -624,64 +661,49 @@
         </div>
     </div>
 
-    <!-- 左侧 / 底部 MD3 导航栏 -->
+    <!-- 左侧（电脑端）/ 底部固定（移动端，不可滚动）MD3 导航栏 -->
     <aside
-        class="w-full md:w-20 h-16 md:h-full flex flex-row md:flex-col justify-around md:justify-between items-center py-2 md:py-6 flex-shrink-0 order-last md:order-first border-t md:border-t-0 md:border-r z-50 bg-[var(--md-sys-color-surface-container-low)] border-[var(--md-sys-color-outline-variant)] overflow-x-auto no-scrollbar">
-        <div class="flex flex-row md:flex-col items-center gap-2 md:gap-5 px-4 md:px-0 w-full md:w-auto">
-            <!-- MD3 用户信息头像组件 (电脑端侧栏顶部 / 悬浮弹出资料卡) -->
-            <div class="relative group/user my-1 flex justify-center w-full">
-                <button type="button" id="user-profile-btn" onclick="toggleUserDropdown(event)"
+        class="fixed md:static bottom-0 left-0 right-0 w-full md:w-20 h-16 md:h-full flex flex-row md:flex-col justify-around md:justify-between items-center py-1 md:py-6 flex-shrink-0 border-t md:border-t-0 md:border-r z-50 bg-[var(--md-sys-color-surface-container-low)] border-[var(--md-sys-color-outline-variant)] overflow-hidden select-none touch-none">
+        <div class="flex flex-row md:flex-col items-center justify-around md:justify-start gap-1 md:gap-5 px-2 md:px-0 w-full md:w-auto">
+            <!-- MD3 用户信息头像组件（仅电脑端侧栏顶部显示） -->
+            <div class="hidden md:flex relative group/user my-1 justify-center w-full">
+                <button type="button" id="user-profile-btn-desktop" onclick="toggleUserDropdown(event)"
                     class="md3-user-avatar md-ripple cursor-pointer focus:outline-none" title="用户信息">
-                    <span id="user-avatar-text">?</span>
+                    <span class="user-avatar-text">?</span>
                 </button>
-
-                <!-- MD3 悬浮/点击资料卡 -->
-                <div id="user-profile-card"
-                    class="absolute left-14 md:left-full md:ml-3 top-0 hidden group-hover/user:flex flex-col z-[100] p-3 min-w-[180px] rounded-2xl md3-menu-popup shadow-xl pointer-events-none group-hover/user:pointer-events-auto bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)]">
-                    <div class="flex items-center gap-2.5">
-                        <div id="user-card-avatar" class="w-10 h-10 rounded-full bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] flex items-center justify-center font-bold text-sm overflow-hidden flex-shrink-0">
-                            <span>?</span>
-                        </div>
-                        <div class="flex flex-col min-w-0">
-                            <span id="user-card-name" class="text-xs font-bold truncate text-[var(--md-sys-color-on-surface)]">加载中...</span>
-                            <span id="user-card-status" class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>已登录
-                            </span>
-                        </div>
-                    </div>
-                </div>
             </div>
-            <nav class="flex flex-row md:flex-col gap-2 md:gap-4 flex-1 md:w-full md:px-2">
+            <nav class="flex flex-row md:flex-col gap-1 md:gap-4 flex-1 md:w-full md:px-2 justify-around md:justify-start">
                 <button onclick="switchView('home')" id="nav-home"
-                    class="md-nav-item active flex flex-col items-center gap-1 group md:w-full text-center outline-none px-3 md:px-0">
-                    <div class="md-icon-wrapper md-ripple w-14 h-8 flex items-center justify-center rounded-full"><span
-                            class="material-symbols-outlined">home</span></div>
+                    class="md-nav-item active flex flex-col items-center gap-0.5 group md:w-full text-center outline-none px-2 md:px-0">
+                    <div class="md-icon-wrapper md-ripple w-12 md:w-14 h-7 md:h-8 flex items-center justify-center rounded-full"><span
+                            class="material-symbols-outlined text-[20px] md:text-[24px]">home</span></div>
                     <span class="text-[10px] md:text-xs font-medium tracking-wider">首页</span>
                 </button>
                 <button onclick="switchView('today')" id="nav-today"
-                    class="md-nav-item flex flex-col items-center gap-1 group md:w-full text-center outline-none px-3 md:px-0">
-                    <div class="md-icon-wrapper md-ripple w-14 h-8 flex items-center justify-center rounded-full"><span
-                            class="material-symbols-outlined">today</span></div>
+                    class="md-nav-item flex flex-col items-center gap-0.5 group md:w-full text-center outline-none px-2 md:px-0">
+                    <div class="md-icon-wrapper md-ripple w-12 md:w-14 h-7 md:h-8 flex items-center justify-center rounded-full"><span
+                            class="material-symbols-outlined text-[20px] md:text-[24px]">today</span></div>
                     <span class="text-[10px] md:text-xs font-medium tracking-wider">今日</span>
                 </button>
                 <button onclick="switchView('calendar')" id="nav-calendar"
-                    class="md-nav-item flex flex-col items-center gap-1 group md:w-full text-center outline-none px-3 md:px-0">
-                    <div class="md-icon-wrapper md-ripple w-14 h-8 flex items-center justify-center rounded-full"><span
-                            class="material-symbols-outlined">calendar_month</span></div>
+                    class="md-nav-item flex flex-col items-center gap-0.5 group md:w-full text-center outline-none px-2 md:px-0">
+                    <div class="md-icon-wrapper md-ripple w-12 md:w-14 h-7 md:h-8 flex items-center justify-center rounded-full"><span
+                            class="material-symbols-outlined text-[20px] md:text-[24px]">calendar_month</span></div>
                     <span class="text-[10px] md:text-xs font-medium tracking-wider">日程</span>
                 </button>
             </nav>
             <hr class="hidden md:block w-8 border-[var(--md-sys-color-outline-variant)]">
-            <div class="flex flex-row md:flex-col gap-1 md:gap-3">
+            <div class="flex flex-row md:flex-col gap-1 md:gap-3 items-center">
+                <!-- 加回深色/浅色模式切换按钮 -->
                 <button onclick="toggleDarkMode(true)"
-                    class="w-10 h-10 rounded-full flex items-center justify-center md-ripple hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors"
-                    title="切换深色模式">
-                    <span class="material-symbols-outlined" id="dark-mode-icon">dark_mode</span>
+                    class="w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center md-ripple hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors"
+                    title="切换深色/浅色模式">
+                    <span class="material-symbols-outlined text-[20px]" id="dark-mode-icon">dark_mode</span>
                 </button>
-                <button onclick="requestNotificationPermission()"
-                    class="w-10 h-10 rounded-full flex items-center justify-center md-ripple hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors"
+                <button onclick="handleNotificationBtnClick()"
+                    class="w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center md-ripple hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors"
                     title="系统通知权限与测试" id="nav-bell-btn">
-                    <span class="material-symbols-outlined" id="nav-bell-icon">notifications</span>
+                    <span class="material-symbols-outlined text-[20px]" id="nav-bell-icon">notifications</span>
                 </button>
                 <button onclick="triggerDataExport()"
                     class="hidden md:flex w-10 h-10 rounded-full items-center justify-center md-ripple hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors"
@@ -698,64 +720,80 @@
             </div>
         </div>
         <button onclick="openAddTaskModal()"
-            class="md-ripple w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center shadow-lg transition-transform active:scale-95 flex-shrink-0 mr-4 md:mr-0"
+            class="md-ripple w-10 h-10 md:w-14 md:h-14 rounded-2xl flex items-center justify-center shadow-lg transition-transform active:scale-95 flex-shrink-0 mr-1 md:mr-0"
             style="background-color: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container);">
-            <span class="material-symbols-outlined text-[24px] md:text-[28px]">add</span>
+            <span class="material-symbols-outlined text-[22px] md:text-[28px]">add</span>
         </button>
     </aside>
 
+    <!-- MD3 悬浮用户资料卡（自适应手机与桌面） -->
+    <div id="user-profile-card"
+        class="fixed hidden flex-col z-[320] p-3 min-w-[190px] rounded-2xl md3-menu-popup shadow-xl bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)]">
+        <div class="flex items-center gap-2.5">
+            <div id="user-card-avatar" class="w-10 h-10 rounded-full bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] flex items-center justify-center font-bold text-sm overflow-hidden flex-shrink-0">
+                <span>?</span>
+            </div>
+            <div class="flex flex-col min-w-0">
+                <span id="user-card-name" class="text-xs font-bold truncate text-[var(--md-sys-color-on-surface)]">加载中...</span>
+                <span id="user-card-status" class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>已登录
+                </span>
+            </div>
+        </div>
+    </div>
+
     <!-- 侧边任务索引抽屉 -->
     <section id="task-drawer"
-        class="absolute md:relative z-40 h-[calc(100%-4rem)] md:h-full w-80 flex flex-col border-r flex-shrink-0 shadow-2xl md:shadow-none bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)]"
+        class="fixed md:relative z-40 h-[calc(100%-4rem)] md:h-full w-76 md:w-80 flex flex-col border-r flex-shrink-0 shadow-2xl md:shadow-none bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)]"
         ondragover="allowDrop(event)" ondragleave="handleDragLeave(event)">
 
         <div id="task-drawer-inner" class="flex flex-col h-full overflow-hidden">
             <div
-                class="p-4 flex flex-col gap-3 border-b flex-shrink-0 w-full relative border-[var(--md-sys-color-outline-variant)]">
+                class="p-3 md:p-4 flex flex-col gap-2.5 border-b flex-shrink-0 w-full relative border-[var(--md-sys-color-outline-variant)]">
                 <div class="flex items-center justify-between">
-                    <h2 class="text-sm font-semibold tracking-wide text-[var(--md-sys-color-on-surface-variant)]">
+                    <h2 class="text-xs md:text-sm font-semibold tracking-wide text-[var(--md-sys-color-on-surface-variant)]">
                         索引</h2>
                     <button onclick="toggleDrawer()"
-                        class="w-8 h-8 rounded-full flex items-center justify-center md-ripple hover:bg-black/5 dark:hover:bg-white/5">
-                        <span class="material-symbols-outlined text-xl">menu_open</span>
+                        class="w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center md-ripple hover:bg-black/5 dark:hover:bg-white/5">
+                        <span class="material-symbols-outlined text-lg md:text-xl">menu_open</span>
                     </button>
                 </div>
 
                 <div class="relative w-full">
                     <div
-                        class="flex items-center bg-[var(--md-sys-color-surface-container-high)] rounded-full px-3 py-1.5 border border-[var(--md-sys-color-outline-variant)] focus-within:border-[var(--md-sys-color-primary)] transition-colors">
+                        class="flex items-center bg-[var(--md-sys-color-surface-container-high)] rounded-full px-3 py-1 border border-[var(--md-sys-color-outline-variant)] focus-within:border-[var(--md-sys-color-primary)] transition-colors">
                         <span
-                            class="material-symbols-outlined text-[16px] text-[var(--md-sys-color-on-surface-variant)]">search</span>
+                            class="material-symbols-outlined text-[15px] text-[var(--md-sys-color-on-surface-variant)]">search</span>
                         <input type="text" id="drawer-search-input" oninput="handleDrawerSearch(this.value)"
                             placeholder="搜索关键词"
-                            class="bg-transparent flex-1 outline-none text-xs ml-2 text-[var(--md-sys-color-on-surface)]" />
+                            class="bg-transparent flex-1 outline-none text-xs ml-1.5 text-[var(--md-sys-color-on-surface)]" />
                         <span id="drawer-search-count"
-                            class="text-[10px] text-[var(--md-sys-color-primary)] font-bold ml-2"></span>
+                            class="text-[10px] text-[var(--md-sys-color-primary)] font-bold ml-1"></span>
                     </div>
                     <div id="drawer-search-results"
                         class="absolute left-0 right-0 top-full mt-2 bg-[var(--md-sys-color-surface-container-highest)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl shadow-2xl z-[80] hidden flex-col max-h-48 overflow-y-auto md-scrollbar w-full overflow-x-hidden">
                     </div>
                 </div>
 
-                <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 pr-1 w-full flex-nowrap"
+                <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 pr-1 w-full flex-nowrap"
                     id="drawer-filter-chips">
                     <button onclick="changeDrawerArrange('starred')" id="chip-starred"
-                        class="chip-active text-[11px] py-1.5 px-3.5 rounded-full text-center font-semibold md-ripple hover:bg-black/5 dark:hover:bg-white/5 border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0 transition-colors">重要</button>
+                        class="chip-active text-[11px] py-1 px-3 rounded-full text-center font-semibold md-ripple hover:bg-black/5 dark:hover:bg-white/5 border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0 transition-colors">重要</button>
                     <button onclick="changeDrawerArrange('subject')" id="chip-subject"
-                        class="text-[11px] py-1.5 px-3.5 rounded-full text-center font-semibold md-ripple hover:bg-black/5 dark:hover:bg-white/5 border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0 transition-colors">按类型</button>
+                        class="text-[11px] py-1 px-3 rounded-full text-center font-semibold md-ripple hover:bg-black/5 dark:hover:bg-white/5 border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0 transition-colors">按类型</button>
                     <button onclick="changeDrawerArrange('tag')" id="chip-tag"
-                        class="text-[11px] py-1.5 px-3.5 rounded-full text-center font-semibold md-ripple hover:bg-black/5 dark:hover:bg-white/5 border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0 transition-colors">按标签</button>
+                        class="text-[11px] py-1 px-3 rounded-full text-center font-semibold md-ripple hover:bg-black/5 dark:hover:bg-white/5 border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0 transition-colors">按标签</button>
                     <button onclick="changeDrawerArrange('time')" id="chip-time"
-                        class="text-[11px] py-1.5 px-3.5 rounded-full text-center font-semibold md-ripple hover:bg-black/5 dark:hover:bg-white/5 border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0 transition-colors">按时间</button>
+                        class="text-[11px] py-1 px-3 rounded-full text-center font-semibold md-ripple hover:bg-black/5 dark:hover:bg-white/5 border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0 transition-colors">按时间</button>
                 </div>
 
-                <div id="drawer-quick-add-container" class="gap-1.5 mt-1 flex items-center" style="display: none;">
+                <div id="drawer-quick-add-container" class="gap-1.5 mt-0.5 flex items-center" style="display: none;">
                     <input type="color" id="drawer-quick-color" value="#6750A4"
                         class="w-6 h-6 p-0 border-0 rounded cursor-pointer hidden flex-shrink-0 bg-transparent" />
                     <input type="text" id="drawer-quick-input" placeholder="创建新项..."
-                        class="flex-1 text-xs px-2.5 py-1.5 rounded-lg border outline-none bg-[var(--md-sys-color-surface-container-low)] border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface)] min-w-0" />
+                        class="flex-1 text-xs px-2.5 py-1 rounded-lg border outline-none bg-[var(--md-sys-color-surface-container-low)] border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface)] min-w-0" />
                     <button onclick="executeQuickMetaAdd()"
-                        class="px-3 py-1.5 rounded-lg text-xs font-bold bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] md-ripple transition-transform active:scale-95 flex-shrink-0">+</button>
+                        class="px-2.5 py-1 rounded-lg text-xs font-bold bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] md-ripple transition-transform active:scale-95 flex-shrink-0">+</button>
                 </div>
             </div>
             <div class="flex-1 overflow-hidden relative flex flex-col">
@@ -764,7 +802,7 @@
                 <div id="drawer-today-locator-container"
                     class="p-2 border-t border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-lowest)] hidden flex-shrink-0 justify-center">
                     <button onclick="locateDrawerToday()"
-                        class="w-full py-2.5 rounded-full text-xs font-bold bg-[var(--md-sys-color-primary)] text-white shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 md-ripple">
+                        class="w-full py-2 rounded-full text-xs font-bold bg-[var(--md-sys-color-primary)] text-white shadow-sm hover:shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5 md-ripple">
                         <span class="material-symbols-outlined text-sm">today</span>定位到今天
                     </button>
                 </div>
@@ -772,45 +810,55 @@
         </div>
     </section>
 
-    <button id="drawer-restore-btn" onclick="toggleDrawer()"
-        class="hidden fixed left-4 md:left-24 top-4 w-10 h-10 rounded-full shadow-md flex items-center justify-center z-40 md-ripple bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)]">
-        <span class="material-symbols-outlined">menu</span>
-    </button>
-
     <!-- 主展示区域 -->
-    <main class="flex-1 h-[100dvh] md:h-full relative overflow-hidden flex flex-col">
+    <main class="flex-1 h-full relative overflow-hidden flex flex-col">
         <!-- 首页视图 -->
-        <div id="view-home" class="view-pane active p-4 md:p-6 flex flex-col h-full overflow-hidden gap-4 md:gap-6">
+        <div id="view-home" class="view-pane active p-3 md:p-6 flex flex-col h-full overflow-hidden gap-3 md:gap-5">
+            <div class="w-full max-w-3xl mx-auto flex items-center gap-2 flex-shrink-0">
+            <!-- 内嵌式抽屉复位唤出按钮 -->
+            <button onclick="toggleDrawer()" id="drawer-restore-btn-home"
+                class="drawer-open-btn hidden w-11 h-11 md:w-12 md:h-12 rounded-full flex-shrink-0 flex items-center justify-center bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)] shadow-sm hover:bg-black/5 dark:hover:bg-white/5 transition-all md-ripple"
+                title="展开任务索引">
+                <span class="material-symbols-outlined text-xl">menu</span>
+            </button>
+
             <header
-                class="w-full max-w-3xl mx-auto flex items-center h-12 md:h-14 rounded-full px-4 shadow-sm flex-shrink-0 gap-2 bg-[var(--md-sys-color-surface-container-high)]">
-                <span class="material-symbols-outlined text-[var(--md-sys-color-on-surface-variant)] mr-1">search</span>
+                class="flex-1 flex items-center h-11 md:h-12 rounded-full px-3 md:px-4 shadow-sm gap-2 bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)] min-w-0">
+                <span class="material-symbols-outlined text-[var(--md-sys-color-on-surface-variant)] text-lg md:text-xl flex-shrink-0">search</span>
                 <input type="text" id="global-search" oninput="handleSearchDebounced(this.value)" placeholder="搜索关键词..."
-                    class="bg-transparent flex-1 outline-none text-sm text-[var(--md-sys-color-on-surface)]" />
+                    class="bg-transparent flex-1 outline-none text-xs md:text-sm text-[var(--md-sys-color-on-surface)] min-w-0" />
                 <button onclick="undo()"
-                    class="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors md-ripple"><span
-                        class="material-symbols-outlined text-lg">undo</span></button>
+                    class="p-1 md:p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors md-ripple flex-shrink-0" title="撤销"><span
+                        class="material-symbols-outlined text-base md:text-lg">undo</span></button>
                 <button onclick="redo()"
-                    class="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors md-ripple"><span
-                        class="material-symbols-outlined text-lg">redo</span></button>
+                    class="p-1 md:p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors md-ripple flex-shrink-0" title="重做"><span
+                        class="material-symbols-outlined text-base md:text-lg">redo</span></button>
             </header>
+
+            <!-- 移到了搜索框 <header> 外部，并与搜索框保持 MD3 规范的间距与高度对齐 -->
+            <button type="button" id="user-profile-btn-mobile" onclick="toggleUserDropdown(event)"
+                class="md:hidden md3-user-avatar md-ripple cursor-pointer focus:outline-none flex-shrink-0" title="用户信息">
+                <span class="user-avatar-text">?</span>
+            </button>
+        </div>
 
             <!-- 总学习进度栏 -->
             <div id="global-progress-card" onclick="handleProgressCardClick(event)"
-                class="group/prog p-4 md:p-5 rounded-2xl flex flex-col gap-3 shadow-sm border border-[var(--md-sys-color-outline-variant)] flex-shrink-0 bg-[var(--md-sys-color-surface-container-low)] cursor-pointer md:cursor-default transition-all">
+                class="group/prog p-3.5 md:p-5 rounded-2xl flex flex-col gap-2 md:gap-3 shadow-sm border border-[var(--md-sys-color-outline-variant)] flex-shrink-0 bg-[var(--md-sys-color-surface-container-low)] cursor-pointer md:cursor-default transition-all">
                 <div class="flex justify-between items-center">
                     <div>
-                        <div class="flex items-center gap-2">
-                            <h3 class="text-sm md:text-base font-bold tracking-tight">总进度</h3>
+                        <div class="flex items-center gap-1.5">
+                            <h3 class="text-xs md:text-base font-bold tracking-tight">总进度</h3>
                             <button onclick="event.stopPropagation(); toggleGlobalProgressVisibility()"
-                                class="hidden md:flex opacity-0 group-hover/prog:opacity-100 w-6 h-6 rounded-full items-center justify-center text-[var(--md-sys-color-outline)] hover:bg-black/5 dark:hover:bg-white/5 transition-all md-ripple"
+                                class="hidden md:flex opacity-0 group-hover/prog:opacity-100 w-5 h-5 rounded-full items-center justify-center text-[var(--md-sys-color-outline)] hover:bg-black/5 dark:hover:bg-white/5 transition-all md-ripple"
                                 title="隐藏进度条">
-                                <span class="material-symbols-outlined text-[16px]">visibility</span>
+                                <span class="material-symbols-outlined text-[15px]">visibility</span>
                             </button>
                         </div>
                         <p class="text-[10px] md:text-xs text-[var(--md-sys-color-on-surface-variant)]"
                             id="stats-summary-text">计算中...</p>
                     </div>
-                    <span class="text-xl md:text-2xl font-black text-[var(--md-sys-color-primary)]"
+                    <span class="text-lg md:text-2xl font-black text-[var(--md-sys-color-primary)]"
                         id="global-progress-percent">0%</span>
                 </div>
                 <div id="global-progress-bar-wrapper"
@@ -829,34 +877,40 @@
                 </button>
             </div>
 
-            <div class="flex-1 w-full flex flex-col gap-4 md:gap-6 overflow-hidden min-h-0">
-                <div class="flex-1 w-full flex flex-col gap-3 overflow-y-auto pr-1 md:pr-2 md-scrollbar min-h-0">
-                    <div id="home-checklist-container" class="flex flex-col gap-4 pb-6 md:pb-12"></div>
+            <div class="flex-1 w-full flex flex-col gap-3 md:gap-5 overflow-hidden min-h-0">
+                <div class="flex-1 w-full flex flex-col gap-3 overflow-y-auto pr-0.5 md:pr-2 md-scrollbar min-h-0">
+                    <div id="home-checklist-container" class="flex flex-col gap-3 md:gap-4 pb-6 md:pb-12"></div>
                 </div>
             </div>
         </div>
 
         <!-- 今日概览视图 -->
-        <div id="view-today" class="view-pane p-4 md:p-6 flex flex-col h-full overflow-hidden gap-4 md:gap-6"
+        <div id="view-today" class="view-pane p-3 md:p-6 flex flex-col h-full overflow-hidden gap-3 md:gap-5"
             ondragover="allowDropToday(event)" ondrop="dropToTodayArea(event)">
-            <div class="flex items-center gap-3 flex-shrink-0">
+            <div class="flex items-center gap-2.5 flex-shrink-0">
+                <!-- 内嵌式抽屉复位唤出按钮 -->
+                <button onclick="toggleDrawer()" id="drawer-restore-btn-today"
+                    class="drawer-open-btn hidden w-10 h-10 md:w-11 md:h-11 rounded-full flex-shrink-0 flex items-center justify-center bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)] shadow-sm hover:bg-black/5 dark:hover:bg-white/5 transition-all md-ripple"
+                    title="展开任务索引">
+                    <span class="material-symbols-outlined text-lg md:text-xl">menu</span>
+                </button>
                 <span
-                    class="material-symbols-outlined text-2xl md:text-3xl text-[var(--md-sys-color-primary)]">today</span>
-                <div>
-                    <h2 class="text-lg md:text-xl font-bold tracking-tight">今日概览</h2>
-                    <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]" id="today-date-display"></p>
+                    class="material-symbols-outlined text-2xl md:text-3xl text-[var(--md-sys-color-primary)] flex-shrink-0">today</span>
+                <div class="min-w-0">
+                    <h2 class="text-base md:text-xl font-bold tracking-tight">今日概览</h2>
+                    <p class="text-[11px] md:text-xs text-[var(--md-sys-color-on-surface-variant)]" id="today-date-display"></p>
                 </div>
             </div>
-            <div class="p-4 rounded-2xl flex flex-col gap-3 bg-rose-100/40 dark:bg-rose-950/20 border border-rose-300/60 shadow-sm flex-shrink-0 max-h-[40vh]"
+            <div class="p-3.5 md:p-4 rounded-2xl flex flex-col gap-2.5 bg-rose-100/40 dark:bg-rose-950/20 border border-rose-300/60 shadow-sm flex-shrink-0 max-h-[36vh]"
                 ondragover="allowDropToday(event)" ondrop="dropToTodayArea(event)">
-                <div class="flex items-center gap-2 text-rose-700 dark:text-rose-400 font-bold text-xs flex-shrink-0">
+                <div class="flex items-center gap-1.5 text-rose-700 dark:text-rose-400 font-bold text-xs flex-shrink-0">
                     <span class="material-symbols-outlined text-sm">warning</span> 逾期任务
                 </div>
                 <div id="overdue-tasks-container" class="flex flex-col gap-2 overflow-y-auto md-scrollbar pr-1"></div>
             </div>
-            <div class="p-4 rounded-2xl flex flex-col gap-3 border border-[var(--md-sys-color-outline-variant)] shadow-sm bg-[var(--md-sys-color-surface-container-low)] flex-1 min-h-[200px] overflow-hidden"
+            <div class="p-3.5 md:p-4 rounded-2xl flex flex-col gap-2.5 border border-[var(--md-sys-color-outline-variant)] shadow-sm bg-[var(--md-sys-color-surface-container-low)] flex-1 min-h-[180px] overflow-hidden"
                 ondragover="allowDropToday(event)" ondrop="dropToTodayArea(event)">
-                <div class="flex items-center gap-2 text-[var(--md-sys-color-primary)] font-bold text-xs flex-shrink-0">
+                <div class="flex items-center gap-1.5 text-[var(--md-sys-color-primary)] font-bold text-xs flex-shrink-0">
                     <span class="material-symbols-outlined text-sm">event_upcoming</span> 今日任务
                 </div>
                 <div id="today-tasks-container"
@@ -866,46 +920,70 @@
         </div>
 
         <!-- 日程视图 -->
-        <div id="view-calendar" class="view-pane p-4 md:p-6 flex flex-col h-full overflow-hidden gap-4">
-            <div
-                class="flex justify-between items-center flex-shrink-0 pl-12 md:pl-0 transition-all gap-2 flex-wrap sm:flex-nowrap">
-                <div class="flex items-center gap-2 md:gap-3 flex-wrap">
-                    <h2 class="text-base md:text-xl font-bold tracking-tight" id="calendar-month-title">加载中...</h2>
-
-                    <!-- MD3 风格日历过滤 Chips -->
-                    <div class="flex items-center gap-2">
-                        <button type="button" onclick="openCalendarTypeMenu(event)" id="btn-calendar-filter-type"
-                            class="bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] text-[11px] md:text-xs font-bold py-1.5 px-3 rounded-full border border-[var(--md-sys-color-outline-variant)] flex items-center gap-1 hover:bg-black/5 dark:hover:bg-white/5 transition-all md-ripple">
-                            <span id="calendar-type-label">全部类型</span>
-                            <span class="material-symbols-outlined text-[16px]">arrow_drop_down</span>
+        <div id="view-calendar" class="view-pane p-3 md:p-6 flex flex-col h-full overflow-hidden gap-3 md:gap-4">
+            <div class="flex flex-col gap-2 flex-shrink-0 transition-all">
+                <!-- 头部第一行：抽屉展开按钮、当前年月、撤销重做与靠右的切换按钮 -->
+                <div class="flex justify-between items-center w-full gap-2">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <!-- 内嵌式抽屉复位唤出按钮 -->
+                        <button onclick="toggleDrawer()" id="drawer-restore-btn-cal"
+                            class="drawer-open-btn hidden w-9 h-9 md:w-10 md:h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)] shadow-sm hover:bg-black/5 dark:hover:bg-white/5 transition-all md-ripple"
+                            title="展开任务索引">
+                            <span class="material-symbols-outlined text-base md:text-lg">menu</span>
                         </button>
+                        <h2 class="text-sm md:text-xl font-bold tracking-tight truncate" id="calendar-month-title">加载中...</h2>
 
-                        <button type="button" onclick="openCalendarStatusMenu(event)" id="btn-calendar-filter-status"
-                            class="bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] text-[11px] md:text-xs font-bold py-1.5 px-3 rounded-full border border-[var(--md-sys-color-outline-variant)] flex items-center gap-1 hover:bg-black/5 dark:hover:bg-white/5 transition-all md-ripple">
-                            <span id="calendar-status-label">全部状态</span>
-                            <span class="material-symbols-outlined text-[16px]">arrow_drop_down</span>
-                        </button>
+                        <!-- 电脑端大屏幕时在一行内展示筛选器 Chips -->
+                        <div class="hidden lg:flex items-center gap-1.5 ml-2">
+                            <button type="button" onclick="openCalendarTypeMenu(event)" id="btn-calendar-filter-type"
+                                class="bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] text-[10px] md:text-xs font-bold py-1 px-2.5 md:py-1.5 md:px-3 rounded-full border border-[var(--md-sys-color-outline-variant)] flex items-center gap-0.5 hover:bg-black/5 dark:hover:bg-white/5 transition-all md-ripple flex-shrink-0">
+                                <span class="calendar-type-label">全部类型</span>
+                                <span class="material-symbols-outlined text-[15px]">arrow_drop_down</span>
+                            </button>
+
+                            <button type="button" onclick="openCalendarStatusMenu(event)" id="btn-calendar-filter-status"
+                                class="bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] text-[10px] md:text-xs font-bold py-1 px-2.5 md:py-1.5 md:px-3 rounded-full border border-[var(--md-sys-color-outline-variant)] flex items-center gap-0.5 hover:bg-black/5 dark:hover:bg-white/5 transition-all md-ripple flex-shrink-0">
+                                <span class="calendar-status-label">全部状态</span>
+                                <span class="material-symbols-outlined text-[15px]">arrow_drop_down</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 靠右区域：撤销重做 + 视图切换组件 -->
+                    <div class="flex items-center gap-1 flex-shrink-0 ml-auto">
+                        <button onclick="undo()"
+                            class="p-1 md:p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors md-ripple"><span
+                                class="material-symbols-outlined text-base md:text-lg">undo</span></button>
+                        <button onclick="redo()"
+                            class="p-1 md:p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors md-ripple"><span
+                                class="material-symbols-outlined text-base md:text-lg">redo</span></button>
+                        <div
+                            class="flex items-center gap-0.5 bg-[var(--md-sys-color-surface-container-high)] p-0.5 md:p-1 rounded-full shadow-sm border border-[var(--md-sys-color-outline-variant)] ml-1">
+                            <button id="view-mode-month" onclick="switchCalendarMode('month')"
+                                class="px-2.5 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] transition-all md-ripple">月历</button>
+                            <button id="view-mode-week" onclick="switchCalendarMode('week')"
+                                class="px-2.5 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold text-[var(--md-sys-color-on-surface-variant)] transition-all md-ripple">周历</button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-1">
-                    <button onclick="undo()"
-                        class="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors md-ripple"><span
-                            class="material-symbols-outlined text-lg">undo</span></button>
-                    <button onclick="redo()"
-                        class="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-on-surface-variant)] transition-colors md-ripple"><span
-                            class="material-symbols-outlined text-lg">redo</span></button>
-                    <div
-                        class="flex items-center gap-1 bg-[var(--md-sys-color-surface-container-high)] p-1 rounded-full shadow-sm border border-[var(--md-sys-color-outline-variant)] ml-2">
-                        <button id="view-mode-month" onclick="switchCalendarMode('month')"
-                            class="px-3.5 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] transition-all md-ripple">月历</button>
-                        <button id="view-mode-week" onclick="switchCalendarMode('week')"
-                            class="px-3.5 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold text-[var(--md-sys-color-on-surface-variant)] transition-all md-ripple">周历</button>
-                    </div>
+                <!-- 手机/平板端折行显示的筛选器 Chips -->
+                <div class="flex lg:hidden items-center gap-1.5 pt-0.5 flex-wrap">
+                    <button type="button" onclick="openCalendarTypeMenu(event)" id="btn-calendar-filter-type-mobile"
+                        class="bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] text-[10px] md:text-xs font-bold py-1 px-2.5 rounded-full border border-[var(--md-sys-color-outline-variant)] flex items-center gap-0.5 hover:bg-black/5 dark:hover:bg-white/5 transition-all md-ripple flex-shrink-0">
+                        <span class="calendar-type-label">全部类型</span>
+                        <span class="material-symbols-outlined text-[15px]">arrow_drop_down</span>
+                    </button>
+
+                    <button type="button" onclick="openCalendarStatusMenu(event)" id="btn-calendar-filter-status-mobile"
+                        class="bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] text-[10px] md:text-xs font-bold py-1 px-2.5 rounded-full border border-[var(--md-sys-color-outline-variant)] flex items-center gap-0.5 hover:bg-black/5 dark:hover:bg-white/5 transition-all md-ripple flex-shrink-0">
+                        <span class="calendar-status-label">全部状态</span>
+                        <span class="material-symbols-outlined text-[15px]">arrow_drop_down</span>
+                    </button>
                 </div>
             </div>
 
-            <div class="flex-1 w-full flex flex-col gap-4 overflow-hidden relative min-h-0">
+            <div class="flex-1 w-full flex flex-col gap-3 overflow-hidden relative min-h-0">
 
                 <div id="calendar-month-view-wrapper"
                     class="w-full flex-shrink-0 rounded-2xl border flex flex-col shadow-sm transition-all duration-300 border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-lowest)] overflow-hidden"
@@ -913,7 +991,7 @@
                     <div id="calendar-month-scroll" class="flex-1 overflow-y-auto hide-scrollbar relative cal-scroll-v"
                         onscroll="handleCalendarScroll(event, true)">
                         <div
-                            class="sticky top-0 z-20 grid grid-cols-7 text-center font-bold py-2 border-b border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-surface-container-high)]">
+                            class="sticky top-0 z-20 grid grid-cols-7 text-center font-bold py-1.5 md:py-2 border-b border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-surface-container-high)] text-[11px] md:text-xs">
                             <div>一</div>
                             <div>二</div>
                             <div>三</div>
@@ -937,16 +1015,16 @@
                 </div>
 
                 <div id="calendar-timeline-pane"
-                    class="w-full flex-1 border rounded-2xl p-3 md:p-4 flex flex-col gap-3 shadow-sm bg-[var(--md-sys-color-surface-container-low)] border-[var(--md-sys-color-outline-variant)] hidden transition-all duration-300 min-h-0 overflow-hidden">
+                    class="w-full flex-1 border rounded-2xl p-2.5 md:p-4 flex flex-col gap-2.5 shadow-sm bg-[var(--md-sys-color-surface-container-low)] border-[var(--md-sys-color-outline-variant)] hidden transition-all duration-300 min-h-0 overflow-hidden">
                     <div
-                        class="flex justify-between items-center border-b pb-2 border-[var(--md-sys-color-outline-variant)] flex-shrink-0">
+                        class="flex justify-between items-center border-b pb-1.5 border-[var(--md-sys-color-outline-variant)] flex-shrink-0">
                         <span id="timeline-focused-title"
-                            class="text-xs md:text-sm font-black flex items-center gap-2 text-[var(--md-sys-color-primary)]"><span
+                            class="text-xs md:text-sm font-black flex items-center gap-1.5 text-[var(--md-sys-color-primary)]"><span
                                 class="material-symbols-outlined text-sm">schedule</span> 轴流舱</span>
                         <button onclick="toggleTimelineExpand()"
-                            class="w-7 h-7 rounded-full hover:bg-black/5 dark:hover:bg-white/5 flex items-center justify-center text-[var(--md-sys-color-on-surface)] transition-colors md-ripple"><span
+                            class="w-6 h-6 rounded-full hover:bg-black/5 dark:hover:bg-white/5 flex items-center justify-center text-[var(--md-sys-color-on-surface)] transition-colors md-ripple"><span
                                 id="timeline-expand-icon"
-                                class="material-symbols-outlined text-sm">open_in_full</span></button>
+                                class="material-symbols-outlined text-xs">open_in_full</span></button>
                     </div>
 
                     <div
@@ -965,9 +1043,9 @@
 
     <!-- MD3 任务创建/编辑模态框 -->
     <div id="modal-backdrop"
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 pointer-events-none opacity-0 transition-opacity duration-200 flex items-center justify-center p-4">
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 pointer-events-none opacity-0 transition-opacity duration-200 flex items-center justify-center p-3 md:p-4">
         <div
-            class="w-full max-w-xl rounded-[28px] p-5 md:p-6 shadow-2xl flex flex-col gap-4 transform scale-90 transition-transform duration-200 bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)] max-h-[90vh]">
+            class="w-full max-w-xl rounded-[28px] p-4 md:p-6 shadow-2xl flex flex-col gap-3.5 md:gap-4 transform scale-90 transition-transform duration-200 bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)] max-h-[92vh]">
             <div class="flex justify-between items-center flex-shrink-0">
                 <h3 class="text-base md:text-lg font-semibold" id="modal-form-title">创建新任务</h3>
                 <button type="button" onclick="closeAddTaskModal()"
@@ -988,35 +1066,35 @@
             </div>
 
             <form id="task-form" onsubmit="handleFormSubmit(event)"
-                class="flex flex-col gap-4 flex-1 overflow-y-auto md-scrollbar px-1 pb-2">
+                class="flex flex-col gap-3.5 flex-1 overflow-y-auto md-scrollbar px-1 pb-1">
                 <input type="hidden" id="form-task-id" value="" />
                 
                 <div
                     class="flex flex-col rounded-t-lg border-b-2 bg-[var(--md-sys-color-surface-variant)] px-3 py-1.5 border-[var(--md-sys-color-primary)] transition-colors hover:bg-black/5 dark:hover:bg-white/5">
                     <label class="text-[10px] font-bold text-[var(--md-sys-color-primary)]">任务名称：</label>
                     <input type="text" id="form-title" required placeholder="如：英语四级高频词背诵"
-                        class="bg-transparent text-sm outline-none w-full py-1 font-semibold" />
+                        class="bg-transparent text-xs md:text-sm outline-none w-full py-0.5 font-semibold" />
                 </div>
                 
                 <div class="flex flex-col gap-1.5">
                     <span class="text-xs font-bold text-[var(--md-sys-color-on-surface-variant)]">类型：</span>
-                    <div class="flex flex-wrap gap-2 items-center" id="form-subject-container"></div>
+                    <div class="flex flex-wrap gap-1.5 items-center" id="form-subject-container"></div>
                 </div>
                 
                 <div
-                    class="flex flex-col rounded-t-lg border-b bg-[var(--md-sys-color-surface-variant)] px-3 py-2 border-[var(--md-sys-color-outline)] transition-colors hover:bg-black/5 dark:hover:bg-white/5">
+                    class="flex flex-col rounded-t-lg border-b bg-[var(--md-sys-color-surface-variant)] px-3 py-1.5 border-[var(--md-sys-color-outline)] transition-colors hover:bg-black/5 dark:hover:bg-white/5">
                     <label class="text-[10px] font-bold text-gray-400">备注：</label>
                     <textarea id="form-content" rows="2"
-                        class="bg-transparent text-sm outline-none w-full resize-none mt-1"></textarea>
+                        class="bg-transparent text-xs md:text-sm outline-none w-full resize-none mt-0.5"></textarea>
                 </div>
 
                 <!-- 单次任务：子任务容器 -->
                 <div id="form-single-section" class="flex flex-col gap-3">
-                    <div class="flex flex-col gap-2 p-3 md:p-4 rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-low)]">
-                        <div class="flex justify-between items-center mb-1">
+                    <div class="flex flex-col gap-2 p-3 rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-low)]">
+                        <div class="flex justify-between items-center mb-0.5">
                             <span class="text-[11px] md:text-xs font-bold text-[var(--md-sys-color-on-surface)]">创建子任务：</span>
                             <button type="button" onclick="addChecklistItemSlot()"
-                                class="text-xs flex items-center gap-1 bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] px-3 py-1 rounded-full font-bold hover:shadow-sm transition-all md-ripple">
+                                class="text-xs flex items-center gap-1 bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] px-2.5 py-0.5 rounded-full font-bold hover:shadow-sm transition-all md-ripple">
                                 <span class="material-symbols-outlined text-sm">add</span>添加
                             </button>
                         </div>
@@ -1030,16 +1108,15 @@
                         <span class="text-xs font-bold text-[var(--md-sys-color-primary)] flex items-center gap-1.5">
                             <span class="material-symbols-outlined text-base">repeat</span> 循环规则
                         </span>
-                        <!-- 起始日期按钮 -->
                         <button type="button" onclick="openRecurringStartDatePicker(event)" id="btn-rec-start-date"
-                            class="text-xs font-bold text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-secondary-container)] hover:brightness-105 px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-all md-ripple border border-[var(--md-sys-color-outline-variant)]">
-                            <span class="material-symbols-outlined text-[15px]">calendar_today</span>
+                            class="text-xs font-bold text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-secondary-container)] hover:brightness-105 px-3 py-1 rounded-full flex items-center gap-1.5 transition-all md-ripple border border-[var(--md-sys-color-outline-variant)]">
+                            <span class="material-symbols-outlined text-[14px]">calendar_today</span>
                             <span id="label-rec-start-date">2026-06-01</span>
                         </button>
                     </div>
                     
                     <!-- 频率与间隔 -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center pt-1 border-[var(--md-sys-color-outline-variant)]">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 items-center pt-1 border-[var(--md-sys-color-outline-variant)]">
                         <div class="flex items-center gap-2">
                             <span class="text-xs text-[var(--md-sys-color-on-surface-variant)] flex-shrink-0 font-medium">频率： 按</span>
                             <div class="flex p-0.5 rounded-xl bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)] flex-1">
@@ -1087,7 +1164,7 @@
                     </div>
 
                     <!-- 周期任务具体时间 & 提醒模块 -->
-                    <div class="pt-2 border-t border-[var(--md-sys-color-outline-variant)] flex flex-col gap-3">
+                    <div class="pt-2 border-t border-[var(--md-sys-color-outline-variant)] flex flex-col gap-2.5">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
                                 <span class="material-symbols-outlined text-base text-[var(--md-sys-color-primary)]">schedule</span>
@@ -1099,23 +1176,23 @@
                             </label>
                         </div>
 
-                        <div id="form-rec-time-fields" class="flex flex-col gap-3">
+                        <div id="form-rec-time-fields" class="flex flex-col gap-2.5">
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                <div class="flex flex-col gap-1">
+                                <div class="flex flex-col gap-0.5">
                                     <label class="text-[10px] font-bold text-[var(--md-sys-color-outline)]">开始时间</label>
                                     <button type="button" id="btn-rec-start-time" onclick="openTimePickerDropdown(event, 'recurring', 'start')" class="w-full py-1.5 px-3 rounded-xl border text-xs font-bold bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)] flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 transition-all md-ripple">
                                         <span id="label-rec-start-time">08:00</span>
-                                        <span class="material-symbols-outlined text-[16px] text-[var(--md-sys-color-outline)]">schedule</span>
+                                        <span class="material-symbols-outlined text-[15px] text-[var(--md-sys-color-outline)]">schedule</span>
                                     </button>
                                 </div>
-                                <div class="flex flex-col gap-1">
+                                <div class="flex flex-col gap-0.5">
                                     <label class="text-[10px] font-bold text-[var(--md-sys-color-outline)]">结束时间</label>
                                     <button type="button" id="btn-rec-end-time" onclick="openTimePickerDropdown(event, 'recurring', 'end')" class="w-full py-1.5 px-3 rounded-xl border text-xs font-bold bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)] flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 transition-all md-ripple">
                                         <span id="label-rec-end-time">09:30</span>
-                                        <span class="material-symbols-outlined text-[16px] text-[var(--md-sys-color-outline)]">schedule</span>
+                                        <span class="material-symbols-outlined text-[15px] text-[var(--md-sys-color-outline)]">schedule</span>
                                     </button>
                                 </div>
-                                <div class="flex flex-col gap-1">
+                                <div class="flex flex-col gap-0.5">
                                     <label class="text-[10px] font-bold text-[var(--md-sys-color-outline)]">持续时长 (分)</label>
                                     <input type="number" id="form-rec-duration" min="5" step="5" value="90" oninput="handleDurationInput('recurring')" class="p-1.5 rounded-xl border text-xs font-bold bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)] outline-none focus:border-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-surface)]" />
                                 </div>
@@ -1128,13 +1205,13 @@
                                     <span class="text-xs font-medium text-[var(--md-sys-color-on-surface)]">添加提醒</span>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" id="form-rec-has-remind" onchange="toggleRemindDropdown('recurring')" class="sr-only peer">
+                                    <input type="checkbox" id="form-rec-has-remind" onchange="handleRemindToggleChange('recurring')" class="sr-only peer">
                                     <div class="w-9 h-5 bg-[var(--md-sys-color-surface-variant)] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--md-sys-color-secondary)]"></div>
                                 </label>
                             </div>
                             <div id="form-rec-remind-dropdown-box" class="hidden items-center justify-between gap-2">
                                 <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] font-medium">提醒时间：</span>
-                                <button type="button" id="btn-rec-remind-menu" onclick="openRemindDropdown(event, 'recurring')" class="py-1.5 px-3 rounded-xl border text-xs font-bold bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)] flex items-center justify-between gap-2 hover:bg-black/5 dark:hover:bg-white/5 transition-all md-ripple flex-1 max-w-[200px]">
+                                <button type="button" id="btn-rec-remind-menu" onclick="openRemindDropdown(event, 'recurring')" class="py-1.5 px-3 rounded-xl border text-xs font-bold bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)] flex items-center justify-between gap-2 hover:bg-black/5 dark:hover:bg-white/5 transition-all md-ripple flex-1 max-w-[180px]">
                                     <span id="label-rec-remind-menu" data-val="0">任务开始时</span>
                                     <span class="material-symbols-outlined text-[16px] text-[var(--md-sys-color-outline)]">arrow_drop_down</span>
                                 </button>
@@ -1145,9 +1222,7 @@
                     <!-- 子任务名称模板与权重选择 -->
                     <div class="flex flex-col sm:flex-row gap-2 sm:items-center justify-between pt-2 border-t border-[var(--md-sys-color-outline-variant)]">
                         <div class="flex flex-col gap-1 flex-1">
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs text-[var(--md-sys-color-on-surface-variant)] font-medium">子任务名称：</span>
-                            </div>
+                            <span class="text-xs text-[var(--md-sys-color-on-surface-variant)] font-medium">子任务名称模板：</span>
                             <input type="text" id="form-rec-title-template" placeholder="如：第{n}次背诵打卡" value="第{n}次任务" 
                                 class="p-2 rounded-xl border text-xs bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)] outline-none focus:border-[var(--md-sys-color-primary)] font-semibold text-[var(--md-sys-color-on-surface)]" />
                         </div>
@@ -1163,17 +1238,17 @@
                 </div>                
 
                 <div
-                    class="p-3 md:p-4 rounded-2xl flex flex-col gap-2 border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-low)]">
+                    class="p-3 rounded-2xl flex flex-col gap-1.5 border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-low)]">
                     <span class="text-xs font-bold text-[var(--md-sys-color-on-surface)]">添加标签：</span>
-                    <div id="form-tags-list" class="flex flex-wrap gap-2 items-center"></div>
+                    <div id="form-tags-list" class="flex flex-wrap gap-1.5 items-center"></div>
                 </div>
                 
                 <div
-                    class="flex justify-end gap-3 pt-3 border-t border-[var(--md-sys-color-outline-variant)] mt-2 flex-shrink-0">
+                    class="flex justify-end gap-3 pt-2.5 border-t border-[var(--md-sys-color-outline-variant)] mt-1 flex-shrink-0">
                     <button type="button" onclick="closeAddTaskModal()"
-                        class="px-5 py-2.5 rounded-full text-xs font-bold hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-primary)] transition-colors md-ripple">取消</button>
+                        class="px-4 py-2 rounded-full text-xs font-bold hover:bg-black/5 dark:hover:bg-white/5 text-[var(--md-sys-color-primary)] transition-colors md-ripple">取消</button>
                     <button type="submit"
-                        class="px-6 py-2.5 rounded-full text-xs font-bold text-white shadow-md hover:shadow-lg transition-all active:scale-95 bg-[var(--md-sys-color-primary)] md-ripple">保存</button>
+                        class="px-5 py-2 rounded-full text-xs font-bold text-white shadow-md hover:shadow-lg transition-all active:scale-95 bg-[var(--md-sys-color-primary)] md-ripple">保存</button>
                 </div>
             </form>
         </div>
@@ -1195,26 +1270,26 @@
                 {
                     id: "batch-demo-01", 
                     isRecurring: false,
-                    title: "高一物理必修第一册错题回溯", 
-                    content: "对期末考卷中动力学多体滑块模型与牛顿第二定律综合题重新推导。参考教程：https://bilibili.com", 
+                    title: "测试单次任务", 
+                    content: "测试链接: https://bilibili.com", 
                     subject: "物理", 
-                    tags: ["高难度", "急需突破"], 
-                    pinned: false, 
+                    tags: ["标签测试"], 
+                    pinned: true, 
                     collapsed: false,
                     subtasks: [
-                        {id: "sub-101", text: "滑块模型核心三题拆解", weight: 1, done: true, starred: true, completedAt: TODAY_STR, endDate: TODAY_STR, startMinute: 480, durationMinutes: 90, hasRemind: true, remindOffset: 0},
-                        {id: "sub-102", text: "建立隔离法受力方程组", weight: 1, done: false, starred: false, endDate: TODAY_STR, startMinute: 540, durationMinutes: 120, hasRemind: true, remindOffset: 10}
+                        {id: "sub-101", text: "子任务1", weight: 1, done: true, starred: true, completedAt: TODAY_STR, endDate: TODAY_STR, startMinute: 480, durationMinutes: 90, hasRemind: true, remindOffset: 0},
+                        {id: "sub-102", text: "子任务2", weight: 1, done: false, starred: false, endDate: TODAY_STR, startMinute: 540, durationMinutes: 120, hasRemind: true, remindOffset: 10}
                     ]
                 }, 
                 {
                     id: "batch-demo-02", 
                     isRecurring: true,
-                    title: "英语3500词高效循环背诵", 
-                    content: "复习并默写核心变形词及短语。在线词库：https://dictionary.cambridge.org", 
+                    title: "测试周期任务", 
+                    content: "", 
                     subject: "英语", 
-                    tags: ["高频高燃"], 
+                    tags: ["标签测试"], 
                     pinned: false, 
-                    collapsed: false,
+                    collapsed: true,
                     recurringConfig: {
                         freq: "day",
                         interval: 1,
@@ -1230,15 +1305,15 @@
                         hasRemind: true,
                         remindOffset: 5,
                         weight: 1,
-                        titleTemplate: "第{n}次背诵打卡"
+                        titleTemplate: "第{n}次任务"
                     },
                     subtasks: [
-                        {id: "sub-rec-01", text: "第1次背诵打卡", weight: 1, done: true, starred: false, completedAt: TODAY_STR, endDate: TODAY_STR, startMinute: 510, durationMinutes: 60, iteration: 1, hasRemind: true, remindOffset: 5},
-                        {id: "sub-rec-02", text: "第2次背诵打卡", weight: 1, done: false, starred: true, endDate: TODAY_STR, startMinute: 510, durationMinutes: 60, iteration: 2, hasRemind: true, remindOffset: 5}
+                        {id: "sub-rec-01", text: "第1次任务", weight: 1, done: true, starred: false, completedAt: TODAY_STR, endDate: TODAY_STR, startMinute: 510, durationMinutes: 60, iteration: 1, hasRemind: true, remindOffset: 5},
+                        {id: "sub-rec-02", text: "第2次任务", weight: 1, done: false, starred: true, endDate: TODAY_STR, startMinute: 510, durationMinutes: 60, iteration: 2, hasRemind: true, remindOffset: 5}
                     ]
                 }
             ],
-            tags: [{name: "高难度", color: "#E53935"}, {name: "急需突破", color: "#FB8C00"}, {name: "高频高燃", color: "#3949AB"}],
+            tags: [{name: "标签测试", color: "#E53935"}],
             subjects: ["语文", "数学", "英语", "物理", "化学", "地理"],
             currentDrawerArrange: "starred", searchQuery: "", selectedFormSubject: "数学", selectedFormTags: [],
             calendarYear: parseInt(TODAY_STR.split('-')[0]), calendarMonth: parseInt(TODAY_STR.split('-')[1]), calendarMode: "month", focusedDate: TODAY_STR,
@@ -1297,6 +1372,42 @@
         const BUCKET_NAME = 'schedule-data';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        function isIOSDevice() {
+            return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        }
+
+        function isStandalonePWA() {
+            return ('standalone' in window.navigator && window.navigator.standalone) || window.matchMedia('(display-mode: standalone)').matches;
+        }
+
+        function checkAndPromptIOSNotificationGuide() {
+            if (isIOSDevice() && !isStandalonePWA()) {
+                document.getElementById('ios-pwa-modal').classList.remove('hidden');
+                document.getElementById('ios-pwa-modal').classList.add('flex');
+                return true;
+            }
+            return false;
+        }
+
+        function closeIosPwaModal() {
+            document.getElementById('ios-pwa-modal').classList.add('hidden');
+            document.getElementById('ios-pwa-modal').classList.remove('flex');
+        }
+
+        function handleNotificationBtnClick() {
+            if (checkAndPromptIOSNotificationGuide()) return;
+            requestNotificationPermission();
+        }
+
+        function handleRemindToggleChange(mode) {
+            const isChecked = document.getElementById(`form-${mode === 'single' ? 'single' : 'rec'}-has-remind`).checked;
+            if (isChecked && checkAndPromptIOSNotificationGuide()) {
+                document.getElementById(`form-${mode === 'single' ? 'single' : 'rec'}-has-remind`).checked = false;
+                return;
+            }
+            toggleRemindDropdown(mode);
+        }
+
         function urlBase64ToUint8Array(base64String) {
             const padding = '='.repeat((4 - base64String.length % 4) % 4);
             const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
@@ -1308,7 +1419,6 @@
             return outputArray;
         }
 
-        // 1. 用户信息状态定义
         let currentUser = {
             id: '',
             name: '加载中...',
@@ -1316,9 +1426,8 @@
             avatar: ''
         };
 
-        // 2. 获取并初始化用户信息（实现持久化与隔离）
         async function initUserInfo() {
-            const IS_DEV_LOGIN = false; // 开发调试模式开关
+            const IS_DEV_LOGIN = false;
 
             if (IS_DEV_LOGIN) {
                 currentUser = { id: "dev_user_001", name: "本地调试员", isLoggedIn: true, avatar: "" };
@@ -1344,7 +1453,6 @@
                     throw new Error("网络响应异常");
                 }
             } catch (e) {
-                // 访客模式：从本地持久化读取固定的访客 ID，保证刷新后数据依然隔离且保持
                 let guestId = localStorage.getItem("MD3_GUEST_UID");
                 let guestName = localStorage.getItem("MD3_GUEST_UNAME");
                 if (!guestId) {
@@ -1359,9 +1467,8 @@
             renderUserProfile();
         }
 
-        // 3. 渲染 MD3 用户头像与弹窗卡片
         function renderUserProfile() {
-            const avatarBtn = document.getElementById("user-avatar-text");
+            const avatarTexts = document.querySelectorAll(".user-avatar-text");
             const cardAvatar = document.getElementById("user-card-avatar");
             const cardName = document.getElementById("user-card-name");
             const cardStatus = document.getElementById("user-card-status");
@@ -1383,9 +1490,12 @@
                 ? `<img src="${currentUser.avatar}" alt="${currentUser.name}" class="w-full h-full object-cover rounded-full" />`
                 : `<span>${(currentUser.name || '?').charAt(0).toUpperCase()}</span>`;
 
-            if (avatarBtn) {
-                avatarBtn.parentElement.innerHTML = avatarContent;
-            }
+            avatarTexts.forEach(el => {
+                if (el && el.parentElement) {
+                    el.parentElement.innerHTML = avatarContent;
+                }
+            });
+
             if (cardAvatar) {
                 cardAvatar.innerHTML = avatarContent;
             }
@@ -1397,6 +1507,14 @@
             if (!card) return;
             const isHidden = card.classList.contains('hidden');
             if (isHidden) {
+                const rect = e.currentTarget.getBoundingClientRect();
+                let left = rect.left;
+                let top = rect.bottom + 8;
+                if (left + 190 > window.innerWidth - 12) {
+                    left = window.innerWidth - 190 - 12;
+                }
+                card.style.left = `${left}px`;
+                card.style.top = `${top}px`;
                 card.classList.remove('hidden');
                 card.classList.add('flex');
             } else {
@@ -1427,7 +1545,6 @@
             startNotificationCheckTimer();
         }
 
-        // 设备订阅凭证绑定到当前用户（支持多设备）
         async function subscribeUserToPush() {
             if (!serviceWorkerReg || !('pushManager' in serviceWorkerReg)) return null;
             if (!VAPID_PUBLIC_KEY) return null;
@@ -1441,7 +1558,6 @@
                     });
                 }
 
-                // 将该设备的推送凭证与当前用户ID绑定写入 user_subscriptions 表
                 if (subscription && currentUser && currentUser.id) {
                     await supabaseClient
                         .from('user_subscriptions')
@@ -1513,8 +1629,6 @@
                     body: "当排程任务到达提醒时间时，系统将会准时向您的所有设备推送提醒通知。",
                     tag: "test-notification"
                 });
-            } else {
-                alert('未授予系统通知权限，将无法在后台接收任务提醒。');
             }
         }
 
@@ -1548,7 +1662,6 @@
             }
         }
 
-        // 将所有待触发的提醒同步到 Supabase push_reminders（按用户隔离，并支持未来好友协作扩展）
         async function syncRemindersToCloud() {
             if (!('Notification' in window) || Notification.permission !== 'granted' || !VAPID_PUBLIC_KEY || !currentUser.id) return;
 
@@ -1568,14 +1681,13 @@
                     const offsetMs = (s.remindOffset !== undefined ? s.remindOffset : 0) * 60 * 1000;
                     const earlyTriggerTime = taskStartTime - offsetMs;
 
-                    // 计划 A：提前提醒
                     if (offsetMs > 0 && earlyTriggerTime > nowTime) {
                         const earlyNotice = formatReminderNotification(
                             b.title, s.text, b.subject, s.endDate, s.startMinute, s.durationMinutes, true, s.remindOffset
                         );
 
                         reminderRows.push({
-                            target_user_id: currentUser.id, // 目标用户（可扩展为好友 ID）
+                            target_user_id: currentUser.id,
                             created_by: currentUser.id,
                             subtask_id: `${s.id}-early`,
                             task_title: earlyNotice.title,
@@ -1585,14 +1697,13 @@
                         });
                     }
 
-                    // 计划 B：任务正式开始时的提醒
                     if (taskStartTime > nowTime) {
                         const startNotice = formatReminderNotification(
                             b.title, s.text, b.subject, s.endDate, s.startMinute, s.durationMinutes, false, s.remindOffset
                         );
 
                         reminderRows.push({
-                            target_user_id: currentUser.id, // 目标用户
+                            target_user_id: currentUser.id,
                             created_by: currentUser.id,
                             subtask_id: `${s.id}-start`,
                             task_title: startNotice.title,
@@ -1605,14 +1716,12 @@
             });
 
             try {
-                // 清理该用户未发送的旧提醒排期
                 await supabaseClient
                     .from('push_reminders')
                     .delete()
                     .eq('target_user_id', currentUser.id)
                     .eq('is_sent', false);
 
-                // 写入最新的多设备排期任务列表
                 if (reminderRows.length > 0) {
                     await supabaseClient
                         .from('push_reminders')
@@ -1768,7 +1877,6 @@
             return withLinks.replace(/\n/g, '<br>');
         }
 
-        // 根据用户隔离路径加载数据
         async function loadStateFromSupabase() {
             let parsed = null;
             const userFilePath = `users/${currentUser.id}/data.json`;
@@ -1832,7 +1940,6 @@
 
         let supabaseSaveTimer = null;
 
-        // 根据用户隔离路径保存数据
         function saveStateToStorage(pushHistory = true) {
             if (pushHistory) commitState();
             const localUserCacheKey = `MD3_DATA_${currentUser.id}`;
@@ -1857,6 +1964,44 @@
             }, 400);
         }
 
+        function setupSwipeGestures() {
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let isSwiping = false;
+
+            document.addEventListener('touchstart', (e) => {
+                if (e.touches.length !== 1) return;
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                isSwiping = true;
+            }, {passive: true});
+
+            document.addEventListener('touchend', (e) => {
+                if (!isSwiping || e.changedTouches.length !== 1) return;
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                const deltaX = touchEndX - touchStartX;
+                const deltaY = Math.abs(touchEndY - touchStartY);
+
+                // 判断是否为从屏幕最左侧（<= 36px）向右滑出抽屉
+                if (touchStartX <= 36 && deltaX > 45 && deltaY < 80) {
+                    const drawer = document.getElementById('task-drawer');
+                    if (drawer && drawer.classList.contains('collapsed')) {
+                        toggleDrawer();
+                    }
+                }
+
+                // 判断是否在抽屉打开时向左滑动收起
+                if (deltaX < -50 && deltaY < 80) {
+                    const drawer = document.getElementById('task-drawer');
+                    if (drawer && !drawer.classList.contains('collapsed')) {
+                        toggleDrawer();
+                    }
+                }
+                isSwiping = false;
+            }, {passive: true});
+        }
+
         document.addEventListener("DOMContentLoaded", async () => {
             await initUserInfo();
             
@@ -1872,6 +2017,7 @@
             initializeTheme();
             setupGlobalRippleListener();
             setupDragHoverNavigation();
+            setupSwipeGestures();
             initRecurringFormGrids();
             initServiceWorkerAndNotification();
 
@@ -1933,13 +2079,19 @@
                     ctxMenu.style.display = "none";
                 }
 
+                const userCard = document.getElementById('user-profile-card');
+                if (userCard && !e.target.closest('#user-profile-card') && !e.target.closest('#user-profile-btn-desktop') && !e.target.closest('#user-profile-btn-mobile')) {
+                    userCard.classList.add('hidden');
+                    userCard.classList.remove('flex');
+                }
+
                 const qMenu = document.getElementById('date-quick-menu');
                 if (qMenu && !e.target.closest('#date-quick-menu') && !e.target.closest('[data-date-chip]')) {
                     qMenu.style.display = "none";
                 }
 
                 const calMenu = document.getElementById('calendar-filter-menu');
-                if (calMenu && !e.target.closest('#calendar-filter-menu') && !e.target.closest('#btn-calendar-filter-type') && !e.target.closest('#btn-calendar-filter-status')) {
+                if (calMenu && !e.target.closest('#calendar-filter-menu') && !e.target.closest('[id^="btn-calendar-filter-"]')) {
                     calMenu.style.display = "none";
                 }
 
@@ -2208,8 +2360,8 @@
 
         function clampModalPosition(modal, x, y) {
             const pad = 12;
-            const width = modal.offsetWidth || 300;
-            const height = modal.offsetHeight || 260;
+            const width = modal.offsetWidth || 280;
+            const height = modal.offsetHeight || 240;
             const maxLeft = Math.max(pad, window.innerWidth - width - pad);
             const maxTop = Math.max(pad, window.innerHeight - height - pad);
             return {
@@ -2307,15 +2459,15 @@
                 const wdStr = weekdays[currDate.getDay()];
 
                 let dateLabel = dayNum;
-                if (dayNum === 1) dateLabel = `<span class="text-[var(--md-sys-color-primary)] font-black text-[12px] md:text-[13px]">${monthNum}月</span>`;
+                if (dayNum === 1) dateLabel = `<span class="text-[var(--md-sys-color-primary)] font-black text-[11px] md:text-[13px]">${monthNum}月</span>`;
 
                 const mCell = document.createElement('div');
-                mCell.className = `p-1 border-r border-b border-[var(--md-sys-color-outline-variant)] flex flex-col gap-1 hover:bg-black/5 dark:hover:bg-white/5 transition-colors min-h-[60px] md:min-h-[80px] relative cell-target`;
+                mCell.className = `p-1 border-r border-b border-[var(--md-sys-color-outline-variant)] flex flex-col gap-1 hover:bg-black/5 dark:hover:bg-white/5 transition-colors min-h-[56px] md:min-h-[80px] relative cell-target`;
                 mCell.setAttribute('data-date', dateStr);
                 mCell.innerHTML = `
                     <div class="flex justify-between items-center px-1 pt-0.5 md:pt-1 flex-shrink-0 pointer-events-none">
                         <span class="w-1.5 h-1.5 rounded-full bg-transparent focus-dot"></span>
-                        <span class="w-auto px-1.5 h-5 md:h-6 rounded-full flex items-center justify-center font-bold text-[10px] md:text-[11px] ${isToday ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md' : 'text-[var(--md-sys-color-on-surface-variant)]'}">${dateLabel}</span>
+                        <span class="w-auto px-1.5 h-4 md:h-6 rounded-full flex items-center justify-center font-bold text-[10px] md:text-[11px] ${isToday ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md' : 'text-[var(--md-sys-color-on-surface-variant)]'}">${dateLabel}</span>
                     </div>
                     <div class="task-box flex flex-col gap-1 px-0.5 md:px-1 flex-1 overflow-y-auto md-scrollbar pb-1 pointer-events-auto"></div>`;
 
@@ -2359,7 +2511,7 @@
 
         function openCalendarTypeMenu(event) {
             event.stopPropagation();
-            const btn = document.getElementById("btn-calendar-filter-type");
+            const btn = event.currentTarget;
             const menu = document.getElementById("calendar-filter-menu");
             const rect = btn.getBoundingClientRect();
 
@@ -2380,7 +2532,9 @@
         function setCalendarTypeFilter(typeVal) {
             appState.calendarFilterType = typeVal;
             document.getElementById("calendar-filter-menu").style.display = "none";
-            document.getElementById("calendar-type-label").innerText = typeVal === 'ALL' ? '全部类型' : typeVal;
+            document.querySelectorAll(".calendar-type-label").forEach(el => {
+                el.innerText = typeVal === 'ALL' ? '全部类型' : typeVal;
+            });
             saveStateToStorage(false);
             updateCalendarTaskRendering();
             if (appState.calendarMode === 'week') focusDayTimeline(appState.focusedDate);
@@ -2388,7 +2542,7 @@
 
         function openCalendarStatusMenu(event) {
             event.stopPropagation();
-            const btn = document.getElementById("btn-calendar-filter-status");
+            const btn = event.currentTarget;
             const menu = document.getElementById("calendar-filter-menu");
             const rect = btn.getBoundingClientRect();
 
@@ -2410,19 +2564,21 @@
             appState.calendarFilterStatus = statusVal;
             document.getElementById("calendar-filter-menu").style.display = "none";
             const statusMap = {'ALL': '全部状态', 'TODO': '未完成', 'DONE': '已完成'};
-            document.getElementById("calendar-status-label").innerText = statusMap[statusVal];
+            document.querySelectorAll(".calendar-status-label").forEach(el => {
+                el.innerText = statusMap[statusVal];
+            });
             saveStateToStorage(false);
             updateCalendarTaskRendering();
             if (appState.calendarMode === 'week') focusDayTimeline(appState.focusedDate);
         }
 
         function renderCalendarFilterLabels() {
-            const typeLabel = document.getElementById("calendar-type-label");
-            if (typeLabel) typeLabel.innerText = appState.calendarFilterType === 'ALL' ? '全部类型' : appState.calendarFilterType;
+            const typeText = appState.calendarFilterType === 'ALL' ? '全部类型' : appState.calendarFilterType;
+            document.querySelectorAll(".calendar-type-label").forEach(el => el.innerText = typeText);
 
-            const statusLabel = document.getElementById("calendar-status-label");
             const statusMap = {'ALL': '全部状态', 'TODO': '未完成', 'DONE': '已完成'};
-            if (statusLabel) statusLabel.innerText = statusMap[appState.calendarFilterStatus || 'ALL'];
+            const statusText = statusMap[appState.calendarFilterStatus || 'ALL'];
+            document.querySelectorAll(".calendar-status-label").forEach(el => el.innerText = statusText);
         }
 
         function updateCalendarTaskRendering() {
@@ -2459,19 +2615,16 @@
 
                         if (!dailyTasksHtmlCache[subtask.endDate]) dailyTasksHtmlCache[subtask.endDate] = '';
                         const starredHighlight = subtask.starred ? 'starred-calendar-item font-black ring-1 ring-amber-400' : '';
-                        const starIcon = subtask.starred ? '<span class="material-symbols-outlined star-filled text-[12px] flex-shrink-0">grade</span>' : '';
-                        const recIcon = batch.isRecurring ? '<span class="material-symbols-outlined text-[11px] opacity-80 flex-shrink-0">repeat</span>' : '';
-                        const remindIcon = subtask.hasRemind ? '<span class="material-symbols-outlined text-[11px] opacity-80 flex-shrink-0" title="已设置提醒">notifications</span>' : '';
+                        const starIcon = subtask.starred ? '<span class="material-symbols-outlined star-filled text-[11px] flex-shrink-0">grade</span>' : '';
+                        const recIcon = batch.isRecurring ? '<span class="material-symbols-outlined text-[10px] opacity-80 flex-shrink-0">repeat</span>' : '';
+                        const remindIcon = subtask.hasRemind ? '<span class="material-symbols-outlined text-[10px] opacity-80 flex-shrink-0" title="已设置提醒">notifications</span>' : '';
                         const bgColor = subjectColors[batch.subject]?.text || "#6750A4";
                         const doneClass = subtask.done ? 'opacity-50 line-through saturate-50' : '';
 
-                        dailyTasksHtmlCache[subtask.endDate] += `<div id="cal-sub-${subtask.id}" class="cal-task-item text-[8px] md:text-[9px] px-1.5 py-0.5 md:py-1 rounded truncate font-bold text-white shadow-sm cursor-grab hover:brightness-110 active:scale-95 transition-all flex items-center justify-between gap-0.5 ${starredHighlight} ${doneClass}" style="background-color: ${bgColor}; min-height: 20px; flex-shrink: 0;" draggable="true" data-subtask-id="${subtask.id}" data-batch-id="${batch.id}">
+                        dailyTasksHtmlCache[subtask.endDate] += `<div id="cal-sub-${subtask.id}" class="cal-task-item text-[8px] md:text-[9px] px-1 md:px-1.5 py-0.5 rounded truncate font-bold text-white shadow-sm cursor-grab hover:brightness-110 active:scale-95 transition-all flex items-center justify-between gap-0.5 ${starredHighlight} ${doneClass}" style="background-color: ${bgColor}; min-height: 18px; flex-shrink: 0;" draggable="true" data-subtask-id="${subtask.id}" data-batch-id="${batch.id}">
                             <div class="flex items-center gap-0.5 truncate flex-1 min-w-0 pointer-events-none">
                                 ${starIcon}${recIcon}${remindIcon}<span class="truncate">${subtask.text}</span>
                             </div>
-                            <button type="button" data-context-btn="true" onclick="handleContextMenu(event, 'task_calendar', '${batch.id}', '${subtask.id}')" class="flex md:hidden hover:bg-white/20 rounded p-0.5 transition-colors flex-shrink-0">
-                                <span class="material-symbols-outlined text-[13px]">more_horiz</span>
-                            </button>
                         </div>`;
                     }
                 });
@@ -2618,9 +2771,6 @@
                         </div>
                         <div class="flex items-center gap-1 flex-shrink-0">
                             ${!isToday ? `<button type="button" onclick="setSubtaskToday('${subtask.id}', event)" class="px-2 py-0.5 rounded-full bg-white/20 hover:bg-white/30 text-[10px] font-bold text-white transition-colors md-ripple" title="设为今日任务">设为今日</button>` : '<span class="text-[9px] bg-white/20 px-2 py-0.5 rounded-full text-white font-mono">今日</span>'}
-                            <button type="button" data-context-btn="true" onclick="handleContextMenu(event, 'task_calendar', '${batch.id}', '${subtask.id}')" class="flex md:hidden p-1 rounded hover:bg-white/20 text-white transition-colors">
-                                <span class="material-symbols-outlined text-[15px]">more_horiz</span>
-                            </button>
                         </div>
                     </div>`;
                 }).join('');
@@ -2674,8 +2824,8 @@
             modal.style.display = "flex";
 
             if (!modal.dataset.moved) {
-                let x = e ? (e.clientX || (e.touches && e.touches[0].clientX) || window.innerWidth / 2 - 150) : window.innerWidth / 2 - 150;
-                let y = e ? (e.clientY || (e.touches && e.touches[0].clientY) || window.innerHeight / 2 - 130) : window.innerHeight / 2 - 130;
+                let x = e ? (e.clientX || (e.touches && e.touches[0].clientX) || window.innerWidth / 2 - 140) : window.innerWidth / 2 - 140;
+                let y = e ? (e.clientY || (e.touches && e.touches[0].clientY) || window.innerHeight / 2 - 120) : window.innerHeight / 2 - 120;
 
                 const clamped = clampModalPosition(modal, x, y);
                 modal.style.left = `${clamped.x}px`;
@@ -2764,8 +2914,8 @@
                 if (isVertical) {
                     const grid = document.getElementById("month-grid-container");
                     if (!grid || !grid.firstElementChild) return;
-                    const cellHeight = grid.firstElementChild.offsetHeight || 65;
-                    const rowIndex = Math.floor((container.scrollTop + 40) / cellHeight);
+                    const cellHeight = grid.firstElementChild.offsetHeight || 60;
+                    const rowIndex = Math.floor((container.scrollTop + 35) / cellHeight);
                     const dayOffset = rowIndex * 7;
                     const refDate = new Date(calendarBaseStartDate.getTime() + dayOffset * 86400000);
                     if (!isNaN(refDate.getTime())) {
@@ -3072,7 +3222,7 @@
                             batch.subtasks.push({
                                 id: `sub-rec-${Date.now()}-${nextIteration}`,
                                 text: title,
-                                weight: rc.weight !== undefined ? rc.weight : 1,
+                                weight: taskWeight,
                                 done: false,
                                 starred: lastTask.starred,
                                 endDate: nextDate,
@@ -3681,7 +3831,7 @@
 
             const drawer = document.getElementById('task-drawer');
             drawer.classList.remove('collapsed');
-            document.getElementById('drawer-restore-btn').classList.add('hidden');
+            updateDrawerRestoreButtons(false);
 
             const target = findSubtask(subtaskId);
             if (target) {
@@ -3994,12 +4144,6 @@
             const starIconClass = subtask.starred ? 'star-filled' : 'star-outline text-[var(--md-sys-color-outline)] hover:text-amber-500';
             const starBtnVisibility = subtask.starred ? 'opacity-100' : 'opacity-100 md:opacity-0 md:group-hover/item:opacity-100';
 
-            const recIconHtml = batch.isRecurring 
-                ? `<div class="md3-icon-btn opacity-100 md:opacity-0 md:group-hover/item:opacity-100 pointer-events-none text-[var(--md-sys-color-secondary)]" title="周期任务">
-                    <span class="material-symbols-outlined">repeat</span>
-                   </div>` 
-                : '';
-
             const remindIconHtml = subtask.hasRemind 
                 ? `<button type="button" onclick="toggleSubtaskRemind('${subtask.id}', event)" class="md3-icon-btn opacity-100 md:opacity-0 md:group-hover/item:opacity-100 text-[var(--md-sys-color-secondary)] hover:text-red-500 md-ripple" title="已开启提醒，点击取消">
                     <span class="material-symbols-outlined">notifications</span>
@@ -4012,7 +4156,6 @@
                     <span class="text-xs font-medium truncate text-[var(--md-sys-color-on-surface)]" title="${subtask.text}">${subtask.text}</span>
                 </div>
                 <div class="flex items-center gap-0.5 flex-shrink-0">
-                    ${recIconHtml}
                     ${remindIconHtml}
                     <button type="button" onclick="toggleSubtaskStar('${subtask.id}', event, this)" class="md3-icon-btn ${starBtnVisibility} hover:text-amber-500 md-ripple" title="${subtask.starred ? '取消星标' : '设为星标'}">
                         <span class="material-symbols-outlined ${starIconClass}">grade</span>
@@ -4038,8 +4181,8 @@
 
         function changeDrawerArrange(dimension) {
             appState.currentDrawerArrange = dimension;
-            document.querySelectorAll("#drawer-filter-chips button").forEach(btn => btn.className = 'text-[11px] py-1.5 px-3.5 rounded-full text-center font-semibold md-ripple hover:bg-black/5 dark:hover:bg-white/5 border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0 transition-colors');
-            document.getElementById(`chip-${dimension}`).className = 'chip-active text-[11px] py-1.5 px-3.5 rounded-full text-center font-semibold md-ripple hover:bg-black/5 dark:hover:bg-white/5 border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0 transition-colors';
+            document.querySelectorAll("#drawer-filter-chips button").forEach(btn => btn.className = 'text-[11px] py-1 px-3 rounded-full text-center font-semibold md-ripple hover:bg-black/5 dark:hover:bg-white/5 border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0 transition-colors');
+            document.getElementById(`chip-${dimension}`).className = 'chip-active text-[11px] py-1 px-3 rounded-full text-center font-semibold md-ripple hover:bg-black/5 dark:hover:bg-white/5 border border-[var(--md-sys-color-outline-variant)] bg-transparent whitespace-nowrap flex-shrink-0 transition-colors';
             const quickAdd = document.getElementById('drawer-quick-add-container');
             const colorInput = document.getElementById('drawer-quick-color');
             if (dimension === 'subject' || dimension === 'tag') {
@@ -4087,7 +4230,7 @@
                 return keywords.every(k => combinedText.includes(k));
             });
             if (!filteredBatches.length) {
-                container.innerHTML = `<div class="text-xs text-[var(--md-sys-color-outline)] p-10 text-center bg-[var(--md-sys-color-surface-container-low)] rounded-2xl border border-dashed border-[var(--md-sys-color-outline-variant)]">无匹配任务，点击左下角 + 新建任务</div>`;
+                container.innerHTML = `<div class="text-xs text-[var(--md-sys-color-outline)] p-8 text-center bg-[var(--md-sys-color-surface-container-low)] rounded-2xl border border-dashed border-[var(--md-sys-color-outline-variant)]">无匹配任务，点击新建添加任务</div>`;
                 return;
             }
 
@@ -4097,7 +4240,7 @@
                 const taskPct = totalW === 0 ? 0 : Math.round((doneW / totalW) * 100);
 
                 const box = document.createElement("div");
-                box.className = `batch-card p-4 md:p-5 rounded-2xl flex flex-col gap-3 border shadow-sm bg-[var(--md-sys-color-surface-container-lowest)] ${batch.pinned ? 'border-[var(--md-sys-color-primary)] ring-1 ring-[var(--md-sys-color-primary)]/30' : 'border-[var(--md-sys-color-outline-variant)]'} hover:shadow-md ${batch.collapsed ? 'cursor-pointer' : ''}`;
+                box.className = `batch-card p-3.5 md:p-5 rounded-2xl flex flex-col gap-2.5 md:gap-3 border shadow-sm bg-[var(--md-sys-color-surface-container-lowest)] ${batch.pinned ? 'border-[var(--md-sys-color-primary)] ring-1 ring-[var(--md-sys-color-primary)]/30' : 'border-[var(--md-sys-color-outline-variant)]'} hover:shadow-md ${batch.collapsed ? 'cursor-pointer' : ''}`;
 
                 box.addEventListener('click', (e) => {
                     if (batch.collapsed) {
@@ -4112,16 +4255,14 @@
                 }).join('');
 
                 let recurringBadgeHtml = '';
+                let recurringActionIconHtml = '';
                 if (batch.isRecurring && batch.recurringConfig) {
                     const rc = batch.recurringConfig;
                     const remainingStr = rc.isInfinite ? '长期' : `剩余 ${Math.max(0, rc.totalCount - (rc.completedCount || 0))} 次`;
-                    recurringBadgeHtml = `
-                        <span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-primary-container)] flex items-center gap-1 shadow-sm">
-                            <span>周期任务</span>
-                        </span>
-                        <span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-primary-container)] flex items-center gap-1 shadow-sm">
-                            <span>${remainingStr}</span>
-                        </span>
+                    recurringActionIconHtml = `
+                        <div class="md3-icon-btn pointer-events-none text-[var(--md-sys-color-secondary)]" title="周期任务">
+                            <span class="material-symbols-outlined">repeat</span>
+                        </div>
                     `;
                 }
 
@@ -4136,13 +4277,14 @@
 
                 box.innerHTML = `
                     <div class="flex justify-between items-start gap-2">
-                        <div class="flex items-center flex-wrap gap-2 flex-1">
-                            <h5 class="text-sm font-black text-[var(--md-sys-color-primary)]">${batch.title}</h5>
-                            <span class="text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm" style="background-color: ${subjectColors[batch.subject]?.bg || '#E0E0E0'}; color: ${subjectColors[batch.subject]?.text || '#333'};">${batch.subject}</span>
+                        <div class="flex items-center flex-wrap gap-1.5 flex-1 min-w-0">
+                            <h5 class="text-xs md:text-sm font-black text-[var(--md-sys-color-primary)] truncate max-w-full">${batch.title}</h5>
+                            <span class="text-[9px] md:text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm flex-shrink-0" style="background-color: ${subjectColors[batch.subject]?.bg || '#E0E0E0'}; color: ${subjectColors[batch.subject]?.text || '#333'};">${batch.subject}</span>
                             ${recurringBadgeHtml}
                             ${tagsHtml}
                         </div>
                         <div class="flex items-center gap-0.5 flex-shrink-0">
+                            ${recurringActionIconHtml}
                             ${batchRemindBtnHtml}
                             <button onclick="event.stopPropagation(); toggleBatchPin('${batch.id}')" class="md3-icon-btn md-ripple ${batch.pinned ? 'text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary)]/10' : 'text-[var(--md-sys-color-outline)] hover:text-[var(--md-sys-color-primary)]'}" title="${batch.pinned ? '取消置顶' : '置顶卡片'}"><span class="material-symbols-outlined ${batch.pinned ? 'filled' : ''}">push_pin</span></button>
                             <button onclick="event.stopPropagation(); openEditTaskModal('${batch.id}')" class="md3-icon-btn md-ripple text-[var(--md-sys-color-outline)] hover:text-[var(--md-sys-color-primary)]" title="编辑卡片"><span class="material-symbols-outlined">edit</span></button>
@@ -4152,7 +4294,7 @@
                     </div>
                     <div class="home-batch-content ${batch.collapsed ? 'collapsed' : ''}">
                         <div class="overflow-hidden min-h-0">
-                            <p class="text-[11px] md:text-xs text-[var(--md-sys-color-on-surface-variant)] border-l-2 border-[var(--md-sys-color-outline-variant)] pl-2 mb-3 select-text whitespace-pre-wrap break-words leading-relaxed">${formatTextWithLinks(batch.content)}</p>
+                            <p class="text-[11px] md:text-xs text-[var(--md-sys-color-on-surface-variant)] border-l-2 border-[var(--md-sys-color-outline-variant)] pl-2 mb-2 select-text whitespace-pre-wrap break-words leading-relaxed">${formatTextWithLinks(batch.content)}</p>
                             <div class="flex flex-col gap-1 my-0.5">
                                 <div class="flex justify-between items-center text-[10px] font-bold text-[var(--md-sys-color-on-surface-variant)]">
                                     <span>任务进度</span><span class="font-mono text-[var(--md-sys-color-primary)]">${doneW}/${totalW} (${taskPct}%)</span>
@@ -4174,8 +4316,8 @@
                 displaySubtasks.forEach((sub, subIdx) => {
                     const subRow = document.createElement("div");
                     subRow.id = `home-sub-${sub.id}`;
-                    subRow.className = "subtask-item-animated group/sub flex items-center justify-between px-3 py-1.5 rounded-xl bg-[var(--md-sys-color-surface-container-low)] border border-transparent text-xs cursor-grab active:cursor-grabbing hover:bg-[var(--md-sys-color-surface-container-high)] hover:border-[var(--md-sys-color-outline-variant)] transition-all flex-shrink-0";
-                    subRow.style.transitionDelay = `${subIdx * 35}ms`;
+                    subRow.className = "subtask-item-animated group/sub flex items-center justify-between px-2.5 md:px-3 py-1.5 rounded-xl bg-[var(--md-sys-color-surface-container-low)] border border-transparent text-xs cursor-grab active:cursor-grabbing hover:bg-[var(--md-sys-color-surface-container-high)] hover:border-[var(--md-sys-color-outline-variant)] transition-all flex-shrink-0";
+                    subRow.style.transitionDelay = `${subIdx * 30}ms`;
                     subRow.setAttribute("draggable", "true");
                     subRow.addEventListener("dragstart", (e) => handleSubtaskDragStart(e, sub.id));
                     subRow.addEventListener("contextmenu", (e) => handleContextMenu(e, 'task_home', batch.id, sub.id));
@@ -4188,33 +4330,19 @@
                     const starIconClass = sub.starred ? 'star-filled' : 'star-outline text-[var(--md-sys-color-outline)] hover:text-amber-500';
                     const starBtnVisibility = sub.starred ? 'opacity-100' : 'opacity-100 md:opacity-0 md:group-hover/sub:opacity-100';
 
-                    const recIconHtml = batch.isRecurring 
-                        ? `<div class="md3-icon-btn opacity-100 md:opacity-0 md:group-hover/sub:opacity-100 pointer-events-none text-[var(--md-sys-color-secondary)]" title="周期任务">
-                            <span class="material-symbols-outlined">repeat</span>
-                           </div>` 
-                        : '';
-
-                    const remindIconHtml = sub.hasRemind 
-                        ? `<button type="button" onclick="toggleSubtaskRemind('${sub.id}', event)" class="md3-icon-btn opacity-100 md:opacity-0 md:group-hover/sub:opacity-100 text-[var(--md-sys-color-secondary)] hover:text-red-500 md-ripple" title="已开启提醒，点击取消">
-                            <span class="material-symbols-outlined">notifications</span>
-                           </button>` 
-                        : '';
-
                     subRow.innerHTML = `
-                        <label class="flex items-center gap-3 cursor-pointer flex-1 overflow-hidden min-w-0 py-1 interactive pl-1 -ml-1">
-                            <div class="relative flex items-center justify-center flex-shrink-0 p-2 -m-2 cursor-pointer" onclick="event.stopPropagation()">
-                                <input type="checkbox" ${sub.done ? 'checked' : ''} onchange="toggleSubtaskStatus('${sub.id}')" class="w-5 h-5 md:w-4 md:h-4 appearance-none rounded-md border-2 border-[var(--md-sys-color-outline)] checked:border-[var(--md-sys-color-primary)] checked:bg-[var(--md-sys-color-primary)] transition-colors peer cursor-pointer" />
-                                <span class="material-symbols-outlined text-[16px] md:text-[14px] text-white absolute opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity font-bold">check</span>
+                        <label class="flex items-center gap-2.5 cursor-pointer flex-1 overflow-hidden min-w-0 py-1 interactive pl-1 -ml-1">
+                            <div class="relative flex items-center justify-center flex-shrink-0 p-1.5 -m-1.5 cursor-pointer" onclick="event.stopPropagation()">
+                                <input type="checkbox" ${sub.done ? 'checked' : ''} onchange="toggleSubtaskStatus('${sub.id}')" class="w-4 h-4 appearance-none rounded-md border-2 border-[var(--md-sys-color-outline)] checked:border-[var(--md-sys-color-primary)] checked:bg-[var(--md-sys-color-primary)] transition-colors peer cursor-pointer" />
+                                <span class="material-symbols-outlined text-[14px] text-white absolute opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity font-bold">check</span>
                             </div>
-                            <span class="font-medium truncate text-[var(--md-sys-color-on-surface)] text-sm md:text-xs transition-all ${sub.done ? 'line-through opacity-50 saturate-50' : ''}">${sub.text}</span>
+                            <span class="font-medium truncate text-[var(--md-sys-color-on-surface)] text-xs md:text-xs transition-all ${sub.done ? 'line-through opacity-50 saturate-50' : ''}">${sub.text}</span>
                         </label>
-                        <div class="flex items-center gap-0.5 flex-shrink-0 ml-2">
-                            ${recIconHtml}
-                            ${remindIconHtml}
+                        <div class="flex items-center gap-0.5 flex-shrink-0 ml-1.5">
                             <button type="button" onclick="toggleSubtaskStar('${sub.id}', event, this)" class="md3-icon-btn ${starBtnVisibility} hover:text-amber-500 md-ripple" title="${sub.starred ? '取消星标' : '设为星标'}">
                                 <span class="material-symbols-outlined ${starIconClass}">grade</span>
                             </button>
-                            <button type="button" data-date-chip="true" onclick="openDateQuickMenu('${sub.id}', event)" class="text-[10px] text-[var(--md-sys-color-on-secondary-container)] font-mono font-bold bg-[var(--md-sys-color-secondary-container)] hover:brightness-110 px-2.5 py-1 rounded-lg transition-all md-ripple ml-0.5">${sub.endDate ? sub.endDate : '设置日期'}</button>
+                            <button type="button" data-date-chip="true" onclick="openDateQuickMenu('${sub.id}', event)" class="text-[10px] text-[var(--md-sys-color-on-secondary-container)] font-mono font-bold bg-[var(--md-sys-color-secondary-container)] hover:brightness-110 px-2 py-0.5 rounded-lg transition-all md-ripple ml-0.5">${sub.endDate ? sub.endDate : '设置日期'}</button>
                             <button type="button" data-context-btn="true" onclick="handleContextMenu(event, 'task_home', '${batch.id}', '${sub.id}')" class="md3-icon-btn flex md:hidden md-ripple" title="更多操作">
                                 <span class="material-symbols-outlined">more_horiz</span>
                             </button>
@@ -4235,8 +4363,8 @@
 
         function switchCalendarMode(mode) {
             appState.calendarMode = mode;
-            const activeClass = 'px-3.5 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] transition-all shadow-sm md-ripple';
-            const inactiveClass = 'px-3.5 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold text-[var(--md-sys-color-on-surface-variant)] hover:bg-black/5 dark:hover:bg-white/5 transition-colors md-ripple';
+            const activeClass = 'px-2.5 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] transition-all shadow-sm md-ripple';
+            const inactiveClass = 'px-2.5 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold text-[var(--md-sys-color-on-surface-variant)] hover:bg-black/5 dark:hover:bg-white/5 transition-colors md-ripple';
 
             document.getElementById("view-mode-month").className = mode === 'month' ? activeClass : inactiveClass;
             document.getElementById("view-mode-week").className = mode === 'week' ? activeClass : inactiveClass;
@@ -4304,7 +4432,7 @@
             }
             container.appendChild(bgTrack);
 
-            const cardPool = document.createElement("div"); cardPool.className = "absolute top-0 bottom-0 left-12 md:left-14 right-2 md:right-4 z-10";
+            const cardPool = document.createElement("div"); cardPool.className = "absolute top-0 bottom-0 left-11 md:left-14 right-1.5 md:right-4 z-10";
             let dayTasks = [];
             appState.batches.forEach(b => b.subtasks.forEach(s => {
                 if (s.endDate === dateStr && s.startMinute !== null && s.startMinute !== undefined) {
@@ -4421,10 +4549,10 @@
             const container = document.getElementById("form-subject-container");
             let html = appState.subjects.map(sub => {
                 const isSel = appState.selectedFormSubject === sub;
-                return `<button type="button" onclick="selectFormSubject('${sub}')" id="form-sub-${sub}" class="px-3.5 py-1.5 rounded-full text-[11px] font-bold border border-[var(--md-sys-color-outline-variant)] transition-all hover:bg-black/5 dark:hover:bg-white/5 md-ripple ${isSel ? 'chip-active shadow-sm' : 'text-[var(--md-sys-color-on-surface-variant)]'}">${sub}</button>`;
+                return `<button type="button" onclick="selectFormSubject('${sub}')" id="form-sub-${sub}" class="px-3 py-1 rounded-full text-[11px] font-bold border border-[var(--md-sys-color-outline-variant)] transition-all hover:bg-black/5 dark:hover:bg-white/5 md-ripple ${isSel ? 'chip-active shadow-sm' : 'text-[var(--md-sys-color-on-surface-variant)]'}">${sub}</button>`;
             }).join('');
-            html += `<button type="button" onclick="showAddSubjectUI()" id="btn-show-add-subject" class="px-3.5 py-1.5 rounded-full text-[11px] font-bold border border-dashed border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-outline)] hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-1 transition-colors md-ripple"><span class="material-symbols-outlined text-[14px]">add</span>新建类型</button>`;
-            html += `<div id="new-subject-ui" class="hidden items-center gap-1.5 bg-[var(--md-sys-color-surface-container-highest)] px-3 py-1 rounded-full border border-[var(--md-sys-color-outline-variant)] shadow-inner w-full sm:w-auto">
+            html += `<button type="button" onclick="showAddSubjectUI()" id="btn-show-add-subject" class="px-3 py-1 rounded-full text-[11px] font-bold border border-dashed border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-outline)] hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-0.5 transition-colors md-ripple"><span class="material-symbols-outlined text-[14px]">add</span>新建类型</button>`;
+            html += `<div id="new-subject-ui" class="hidden items-center gap-1.5 bg-[var(--md-sys-color-surface-container-highest)] px-2.5 py-0.5 rounded-full border border-[var(--md-sys-color-outline-variant)] shadow-inner w-full sm:w-auto">
                 <input type="text" id="new-subject-name-input" placeholder="类型名称..." class="w-20 sm:w-28 bg-transparent text-[11px] font-bold outline-none text-[var(--md-sys-color-on-surface)] placeholder-gray-400">
                 <button type="button" onclick="saveNewSubject()" class="text-[var(--md-sys-color-primary)] hover:brightness-110 flex items-center p-0.5"><span class="material-symbols-outlined text-[16px]">check_circle</span></button>
                 <button type="button" onclick="hideAddSubjectUI()" class="text-[var(--md-sys-color-outline)] hover:text-red-500 flex items-center p-0.5"><span class="material-symbols-outlined text-[16px]">cancel</span></button>
@@ -4523,10 +4651,10 @@
             const container = document.getElementById("form-tags-list");
             let html = appState.tags.map(t => {
                 const isSel = appState.selectedFormTags.includes(t.name);
-                return `<button type="button" onclick="toggleFormTagSelection('${t.name}')" class="px-3 py-1 rounded-full text-[10px] font-bold shadow-sm border border-transparent transition-transform active:scale-95 md-ripple" style="background-color: ${isSel ? t.color : 'var(--md-sys-color-surface-variant)'}; color: ${isSel ? '#FFF' : 'var(--md-sys-color-on-surface-variant)'};">${t.name}</button>`;
+                return `<button type="button" onclick="toggleFormTagSelection('${t.name}')" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold shadow-sm border border-transparent transition-transform active:scale-95 md-ripple" style="background-color: ${isSel ? t.color : 'var(--md-sys-color-surface-variant)'}; color: ${isSel ? '#FFF' : 'var(--md-sys-color-on-surface-variant)'};">${t.name}</button>`;
             }).join('');
-            html += `<button type="button" onclick="showAddTagUI()" id="btn-show-add-tag" class="px-3 py-1 rounded-full text-[10px] font-bold border border-dashed border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-outline)] hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-1 transition-colors md-ripple"><span class="material-symbols-outlined text-[14px]">add</span>新建</button>`;
-            html += `<div id="new-tag-ui" class="hidden items-center gap-1.5 bg-[var(--md-sys-color-surface-container-highest)] px-2 py-1 rounded-full border border-[var(--md-sys-color-outline-variant)] shadow-inner w-full sm:w-auto mt-1 sm:mt-0">
+            html += `<button type="button" onclick="showAddTagUI()" id="btn-show-add-tag" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border border-dashed border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-outline)] hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-0.5 transition-colors md-ripple"><span class="material-symbols-outlined text-[14px]">add</span>新建</button>`;
+            html += `<div id="new-tag-ui" class="hidden items-center gap-1.5 bg-[var(--md-sys-color-surface-container-highest)] px-2 py-0.5 rounded-full border border-[var(--md-sys-color-outline-variant)] shadow-inner w-full sm:w-auto mt-1 sm:mt-0">
                 <input type="color" id="new-tag-color-input" value="#6750A4" class="w-5 h-5 rounded cursor-pointer border-0 bg-transparent p-0 flex-shrink-0">
                 <input type="text" id="new-tag-name-input" placeholder="标签名..." class="w-20 sm:w-24 bg-transparent text-[11px] font-bold outline-none text-[var(--md-sys-color-on-surface)] placeholder-gray-400">
                 <button type="button" onclick="saveNewTag()" class="text-[var(--md-sys-color-primary)] hover:brightness-110 flex items-center p-0.5"><span class="material-symbols-outlined text-[16px]">check_circle</span></button>
@@ -4588,12 +4716,12 @@
 
             div.innerHTML = `
                 <input type="text" placeholder="如：数学暑假作业卷一" value="${initialText}" required 
-                    class="flex-1 p-2.5 rounded-xl border text-xs bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)] outline-none focus:border-[var(--md-sys-color-primary)] transition-colors checklist-text-input" 
+                    class="flex-1 p-2 rounded-xl border text-xs bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)] outline-none focus:border-[var(--md-sys-color-primary)] transition-colors checklist-text-input" 
                     onkeydown="if(event.key==='Enter'){event.preventDefault(); addChecklistItemSlot(this);}" />
                 <div class="flex items-center gap-1">
                     <span class="text-[10px] text-[var(--md-sys-color-outline)] font-medium">权重</span>
                     <button type="button" onclick="openSingleSubtaskWeightMenu(event, this)" 
-                        class="w-16 py-1.5 px-2 rounded-xl border text-xs font-bold bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)] flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 transition-all md-ripple checklist-weight-btn" 
+                        class="w-14 py-1 px-1.5 rounded-xl border text-xs font-bold bg-[var(--md-sys-color-surface-container-lowest)] border-[var(--md-sys-color-outline-variant)] flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 transition-all md-ripple checklist-weight-btn" 
                         data-val="${weightVal}">
                         <span>${weightVal}</span>
                         <span class="material-symbols-outlined text-[15px] text-[var(--md-sys-color-outline)]">arrow_drop_down</span>
@@ -4774,7 +4902,7 @@
             const summaryEl = document.getElementById("stats-summary-text");
             if (percentEl) percentEl.innerText = `${percent}%`;
             if (barEl) barEl.style.width = `${percent}%`;
-            if (summaryEl) summaryEl.innerText = `共 ${batches.length} 种类型， ${totalItems} 项活动任务。`;
+            if (summaryEl) summaryEl.innerText = `共 ${totalItems} 项任务，已完成 ${completedWeight} 项`;
         }
 
         function populateRecurringSubtasksUpToToday(batch) {
@@ -4867,7 +4995,7 @@
                         let baseClass = "group/today p-2.5 rounded-2xl bg-[var(--md-sys-color-surface-container-lowest)] text-xs font-medium shadow-sm cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 flex items-center justify-between gap-2 transition-colors flex-shrink-0";
                         if (s.done) baseClass += " line-through opacity-50 saturate-50";
                         item.className = `${baseClass} ${isOverdue ? "border-l-4 border-rose-500" : isToday ? "border-l-4 border-[var(--md-sys-color-primary)]" : ""}`;
-                        const checkboxClass = isOverdue ? "w-5 h-5 md:w-4 md:h-4 appearance-none rounded-md border-2 border-[var(--md-sys-color-outline)] checked:border-rose-500 checked:bg-rose-500 transition-colors peer cursor-pointer" : "w-5 h-5 md:w-4 md:h-4 appearance-none rounded-md border-2 border-[var(--md-sys-color-outline)] checked:border-[var(--md-sys-color-primary)] checked:bg-[var(--md-sys-color-primary)] transition-colors peer cursor-pointer";
+                        const checkboxClass = isOverdue ? "w-4 h-4 appearance-none rounded-md border-2 border-[var(--md-sys-color-outline)] checked:border-rose-500 checked:bg-rose-500 transition-colors peer cursor-pointer" : "w-4 h-4 appearance-none rounded-md border-2 border-[var(--md-sys-color-outline)] checked:border-[var(--md-sys-color-primary)] checked:bg-[var(--md-sys-color-primary)] transition-colors peer cursor-pointer";
 
                         item.addEventListener("contextmenu", (e) => handleContextMenu(e, 'task_today', b.id, s.id));
                         item.addEventListener("click", (e) => {
@@ -4878,12 +5006,6 @@
                         const starIconClass = s.starred ? 'star-filled' : 'star-outline text-[var(--md-sys-color-outline)] hover:text-amber-500';
                         const starBtnVisibility = s.starred ? 'opacity-100' : 'opacity-100 md:opacity-0 md:group-hover/today:opacity-100';
 
-                        const recIconHtml = b.isRecurring 
-                            ? `<div class="md3-icon-btn opacity-100 md:opacity-0 md:group-hover/today:opacity-100 pointer-events-none text-[var(--md-sys-color-secondary)]" title="周期任务">
-                                <span class="material-symbols-outlined">repeat</span>
-                            </div>` 
-                            : '';
-
                         const remindIconHtml = s.hasRemind 
                             ? `<button type="button" onclick="toggleSubtaskRemind('${s.id}', event)" class="md3-icon-btn opacity-100 md:opacity-0 md:group-hover/today:opacity-100 text-[var(--md-sys-color-secondary)] hover:text-red-500 md-ripple" title="已开启提醒，点击取消">
                                 <span class="material-symbols-outlined">notifications</span>
@@ -4891,19 +5013,18 @@
                             : '';
 
                         const dateChipHtml = isOverdue
-                            ? `<button type="button" data-date-chip="true" onclick="event.stopPropagation(); openDateQuickMenu('${s.id}', event)" class="text-[10px] text-rose-700 dark:text-rose-300 font-mono font-bold bg-rose-100 dark:bg-rose-950/60 hover:brightness-110 px-2.5 py-1 rounded-lg transition-all md-ripple border border-rose-200 dark:border-rose-900 ml-0.5">${s.endDate}</button>`
-                            : `<button type="button" data-date-chip="true" onclick="event.stopPropagation(); openDateQuickMenu('${s.id}', event)" class="text-[10px] text-[var(--md-sys-color-on-secondary-container)] font-mono font-bold bg-[var(--md-sys-color-secondary-container)] hover:brightness-110 px-2.5 py-1 rounded-lg transition-all md-ripple ml-0.5">${s.endDate ? s.endDate : '设置日期'}</button>`;
+                            ? `<button type="button" data-date-chip="true" onclick="event.stopPropagation(); openDateQuickMenu('${s.id}', event)" class="text-[10px] text-rose-700 dark:text-rose-300 font-mono font-bold bg-rose-100 dark:bg-rose-950/60 hover:brightness-110 px-2 py-0.5 rounded-lg transition-all md-ripple border border-rose-200 dark:border-rose-900 ml-0.5">${s.endDate}</button>`
+                            : `<button type="button" data-date-chip="true" onclick="event.stopPropagation(); openDateQuickMenu('${s.id}', event)" class="text-[10px] text-[var(--md-sys-color-on-secondary-container)] font-mono font-bold bg-[var(--md-sys-color-secondary-container)] hover:brightness-110 px-2 py-0.5 rounded-lg transition-all md-ripple ml-0.5">${s.endDate ? s.endDate : '设置日期'}</button>`;
 
                         item.innerHTML = `
-                            <div class="flex items-center gap-3 flex-1 min-w-0 pointer-events-none">
-                                <div class="relative flex items-center justify-center flex-shrink-0 p-2 -m-2 pointer-events-auto" onclick="event.stopPropagation()">
+                            <div class="flex items-center gap-2.5 flex-1 min-w-0 pointer-events-none">
+                                <div class="relative flex items-center justify-center flex-shrink-0 p-1.5 -m-1.5 pointer-events-auto" onclick="event.stopPropagation()">
                                     <input type="checkbox" ${s.done ? 'checked' : ''} onchange="toggleSubtaskStatus('${s.id}')" class="${checkboxClass}" />
-                                    <span class="material-symbols-outlined text-[16px] md:text-[14px] text-white absolute opacity-0 peer-checked:opacity-100 pointer-events-none font-bold">check</span>
+                                    <span class="material-symbols-outlined text-[14px] text-white absolute opacity-0 peer-checked:opacity-100 pointer-events-none font-bold">check</span>
                                 </div>
-                                <span class="truncate block text-sm md:text-xs ${isOverdue ? 'text-rose-700 dark:text-rose-400' : 'text-[var(--md-sys-color-primary)]'}">${s.text}</span>
+                                <span class="truncate block text-xs ${isOverdue ? 'text-rose-700 dark:text-rose-400' : 'text-[var(--md-sys-color-primary)]'}">${s.text}</span>
                             </div>
-                            <div class="flex items-center gap-0.5 flex-shrink-0 ml-2">
-                                ${recIconHtml}
+                            <div class="flex items-center gap-0.5 flex-shrink-0 ml-1.5">
                                 ${remindIconHtml}
                                 <button type="button" onclick="toggleSubtaskStar('${s.id}', event, this)" class="md3-icon-btn ${starBtnVisibility} hover:text-amber-500 md-ripple" title="${s.starred ? '取消星标' : '设为星标'}">
                                     <span class="material-symbols-outlined ${starIconClass}">grade</span>
@@ -4918,8 +5039,8 @@
                     }
                 });
             });
-            if (!overdue.children.length) overdue.innerHTML = `<div class="text-[10px] text-emerald-500 text-center py-2.5 font-bold bg-emerald-500/10 rounded-xl flex-shrink-0">无滞留任务</div>`;
-            if (!today.children.length) today.innerHTML = `<div class="text-[11px] text-[var(--md-sys-color-outline)] text-center py-4 border border-dashed rounded-xl border-[var(--md-sys-color-outline-variant)] flex-shrink-0">今日无安排</div>`;
+            if (!overdue.children.length) overdue.innerHTML = `<div class="text-[10px] text-emerald-500 text-center py-2 font-bold bg-emerald-500/10 rounded-xl flex-shrink-0">无滞留任务</div>`;
+            if (!today.children.length) today.innerHTML = `<div class="text-[11px] text-[var(--md-sys-color-outline)] text-center py-3 border border-dashed rounded-xl border-[var(--md-sys-color-outline-variant)] flex-shrink-0">今日无安排</div>`;
         }
 
         function toggleSubtaskStatus(subtaskId) {
@@ -4972,24 +5093,60 @@
             }
         }
 
+        function updateDrawerRestoreButtons(isCollapsed) {
+            const btns = document.querySelectorAll('.drawer-open-btn');
+            btns.forEach(btn => {
+                if (isCollapsed) {
+                    btn.classList.remove('hidden');
+                } else {
+                    btn.classList.add('hidden');
+                }
+            });
+        }
+
         function toggleDrawer() {
             const drawer = document.getElementById('task-drawer');
             drawer.classList.toggle('collapsed');
-            document.getElementById('drawer-restore-btn').classList.toggle('hidden', !drawer.classList.contains('collapsed'));
+            updateDrawerRestoreButtons(drawer.classList.contains('collapsed'));
         }
 
+        // 手动点击切换深色/浅色模式（兼顾本地记忆）
         function toggleDarkMode(manual = false) {
             const isDark = document.documentElement.classList.toggle("dark");
-            if (manual) localStorage.setItem("THEME_DARK_MODE", isDark ? "true" : "false");
-            document.getElementById("dark-mode-icon").innerText = isDark ? "light_mode" : "dark_mode";
+            if (manual) {
+                localStorage.setItem("THEME_DARK_MODE", isDark ? "true" : "false");
+            }
+            const icon = document.getElementById("dark-mode-icon");
+            if (icon) icon.innerText = isDark ? "light_mode" : "dark_mode";
         }
 
+        // 初始化主题：随系统实时响应，若用户手动设置过则优先使用设置
         function initializeTheme() {
-            const isDarkSystem = window.matchMedia('(prefers-color-scheme: dark)').matches; const savedTheme = localStorage.getItem("THEME_DARK_MODE");
-            const isDark = savedTheme !== null ? savedTheme === "true" : isDarkSystem;
-            document.documentElement.classList.toggle("dark", isDark); document.getElementById("dark-mode-icon").innerText = isDark ? "light_mode" : "dark_mode";
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-                if (localStorage.getItem("THEME_DARK_MODE") === null) {document.documentElement.classList.toggle("dark", e.matches); document.getElementById("dark-mode-icon").innerText = e.matches ? "light_mode" : "dark_mode";}
+            const savedTheme = localStorage.getItem("THEME_DARK_MODE");
+            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+            const applyTheme = (isDark) => {
+                if (isDark) {
+                    document.documentElement.classList.add("dark");
+                } else {
+                    document.documentElement.classList.remove("dark");
+                }
+                const icon = document.getElementById("dark-mode-icon");
+                if (icon) icon.innerText = isDark ? "light_mode" : "dark_mode";
+            };
+
+            // 初次加载判断
+            if (savedTheme !== null) {
+                applyTheme(savedTheme === "true");
+            } else {
+                applyTheme(mediaQuery.matches);
+            }
+
+            // 监听系统深浅色变化
+            mediaQuery.addEventListener('change', (e) => {
+                if (localStorage.getItem("THEME_DARK_MODE") === null) {
+                    applyTheme(e.matches);
+                }
             });
         }
 
