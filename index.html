@@ -1457,14 +1457,15 @@
                             s.text, 
                             b.subject, 
                             s.endDate, 
-                            s.startMinute, 
+                            s.startMinute,
+                            s.durationMinutes, 
                             s.remindOffset
                         );
 
                         reminderRows.push({
                             subtask_id: s.id,
-                            task_title: title,       // 存入生成的标题
-                            batch_title: body,       // 存入生成的正文内容
+                            task_title: title,
+                            batch_title: body,
                             trigger_time: new Date(triggerTimeMs).toISOString(),
                             subscription: subscription,
                             is_sent: false
@@ -1503,15 +1504,25 @@
             }, 10000);
         }
 
-
-        // 格式化提醒通知内容
-        function formatReminderNotification(batchTitle, subtaskText, subject, endDate, startMinute, remindOffset) {
+        // 格式化提醒通知内容（包含开始时间与结束时间）
+        function formatReminderNotification(batchTitle, subtaskText, subject, endDate, startMinute, durationMinutes, remindOffset) {
             const minVal = (startMinute !== null && startMinute !== undefined) ? startMinute : 480;
-            const h = String(Math.floor(minVal / 60)).padStart(2, '0');
-            const m = String(minVal % 60).padStart(2, '0');
-            const startTimeStr = `${h}:${m}`;
+            const durVal = (durationMinutes !== null && durationMinutes !== undefined) ? durationMinutes : 60;
+            
+            // 计算开始时间 HH:mm
+            const startH = String(Math.floor(minVal / 60)).padStart(2, '0');
+            const startM = String(minVal % 60).padStart(2, '0');
+            const startTimeStr = `${startH}:${startM}`;
+
+            // 计算结束时间 HH:mm（限制在当天 23:59 以内）
+            const endTotalMins = Math.min(1439, minVal + durVal);
+            const endH = String(Math.floor(endTotalMins / 60)).padStart(2, '0');
+            const endM = String(endTotalMins % 60).padStart(2, '0');
+            const endTimeStr = `${endH}:${endM}`;
+
             const offset = parseInt(remindOffset) || 0;
 
+            // 生成标题
             let title = "";
             if (offset > 0) {
                 let timeDesc = "";
@@ -1525,7 +1536,8 @@
                 title = `提醒：任务已开始！`;
             }
 
-            const body = `${batchTitle} - ${subtaskText}\n${subject} | ${endDate} ${startTimeStr}`;
+            // 生成正文（最后一行包含：开始时间 ~ 结束时间）
+            const body = `${batchTitle} - ${subtaskText}\n${subject} | ${endDate} ${startTimeStr}~${endTimeStr}`;
 
             return { title, body };
         }
@@ -1556,13 +1568,14 @@
                         s.reminded = true;
                         hasChanged = true;
 
-                        // 按照指定格式生成标题与正文
+                        // 传入 s.durationMinutes 计算结束时间
                         const { title, body } = formatReminderNotification(
                             b.title, 
                             s.text, 
                             b.subject, 
                             s.endDate, 
-                            s.startMinute, 
+                            s.startMinute,
+                            s.durationMinutes, 
                             s.remindOffset
                         );
 
